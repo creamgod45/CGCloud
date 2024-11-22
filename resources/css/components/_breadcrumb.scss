@@ -1,0 +1,24 @@
+.breadcrumb {
+    @apply flex min-w-fit w-fit rounded-lg border-slate-200 border-solid border-[1px] shadow py-1 px-1;
+    .bcitem {
+        @apply min-w-fit cursor-pointer select-none px-4 py-2 flex justify-center items-center;
+        &:last-child {
+            @apply border-r-0 rounded-lg;
+        }
+
+        &:first-child {
+            @apply ps-4;
+        }
+    }
+
+    .bcitem.active {
+        @apply cursor-not-allowed bg-color1;
+    }
+}
+
+
+
+
+
+
+

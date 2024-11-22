@@ -1,0 +1,17 @@
+.flex-text-col {
+    @apply flex items-center justify-center mt-3;
+    .ftc-item {
+        @apply h-max border-r-2 border-solid border-r-slate-200 break-keep px-4 w-full;
+        .highlight {
+            @apply tracking-widest text-center text-color1 text-xl font-bold break-keep;
+        }
+
+        .ftc-title {
+            @apply text-center text-neutral-500 text-sm break-keep;
+        }
+
+        &:last-child {
+            @apply border-r-0;
+        }
+    }
+}

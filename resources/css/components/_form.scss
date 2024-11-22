@@ -1,0 +1,205 @@
+.form-peer {
+    @apply mt-3;
+}
+
+.form-group {
+    @apply my-2;
+}
+
+.form-group-flex {
+    @apply my-1 flex justify-start items-center space-x-2;
+}
+
+.form-row-nowarp {
+    @apply flex flex-nowrap;
+    & > .col {
+        @apply flex-auto1 w-1/2;
+    }
+
+    & > .col-1 {
+        @apply flex-auto1 w-1/12;
+    }
+
+    & > .col-2 {
+        @apply flex-auto1 w-2/12;
+    }
+
+    & > .col-3 {
+        @apply flex-auto1 w-3/12;
+    }
+
+    & > .col-4 {
+        @apply flex-auto1 w-4/12;
+    }
+
+    & > .col-5 {
+        @apply flex-auto1 w-5/12;
+    }
+
+    & > .col-6 {
+        @apply flex-auto1 w-6/12;
+    }
+
+    & > .col-7 {
+        @apply flex-auto1 w-7/12;
+    }
+
+    & > .col-8 {
+        @apply flex-auto1 w-8/12;
+    }
+
+    & > .col-9 {
+        @apply flex-auto1 w-9/12;
+    }
+
+    & > .col-10 {
+        @apply flex-auto1 w-10/12;
+    }
+
+    & > .col-11 {
+        @apply flex-auto1 w-11/12;
+    }
+
+    & > .col-12 {
+        @apply flex-auto1 w-full;
+    }
+}
+
+.form-solid-checkbox-grp {
+    @apply relative;
+    * {
+        transition: unset !important;
+    }
+
+    .form-solid-checkbox {
+        @apply relative top-[4px] left-0;
+    }
+
+    .form-solid-checkbox:checked + .form-solid-checked-emoji {
+        @apply visible;
+    }
+
+    .form-solid-checked-emoji {
+        @apply absolute top-[4px] -left-1.5 invisible;
+    }
+}
+
+.form-solid-checkbox {
+    @apply bg-slate-300 rounded-md hover:bg-color7-50 active:bg-color7-50 checked:bg-color7 size-4 relative;
+    box-shadow: 0 0 0 0.0625em hsl(var(--hue), 90%, 80%),
+    0 0.125em 0.125em 0.0625em hsla(var(--hue), 90%, 10%, 0.3);
+    flex-shrink: 0;
+    margin-inline-end: 1em;
+    outline: transparent;
+    position: relative;
+    transition: background-color var(--trans-dur),
+    box-shadow var(--trans-dur);
+    -webkit-appearance: none;
+    appearance: none;
+
+    &:read-only {
+        @apply focus:outline-0;
+    }
+
+    &:disabled {
+        @apply cursor-not-allowed bg-slate-300;
+    }
+}
+
+.form-solid-checked-emoji {
+
+}
+
+.form-solid-checkbox:checked {
+
+}
+
+.form-solid {
+    @apply disabled:bg-gray-200 disabled:ring-gray-200 bg-slate-200 autofill:bg-slate-200 ring-1 ring-slate-200 shadow rounded-md px-2 py-2 focus:outline-0 valid:ring-slate-200 dark:text-black;
+    &:-webkit-autofill {
+        background-color: red !important;
+    }
+
+    &:user-invalid {
+        @apply ring-red-500;
+    }
+
+    &::-webkit-calendar-picker-indicator {
+        @apply bg-slate-300 rounded-md hover:bg-slate-400 active:bg-slate-500;
+    }
+}
+
+.form-solid:read-only {
+    @apply cursor-grab focus:outline-0;
+}
+
+.form-color {
+    @apply p-1 min-w-10 disabled:bg-gray-200 rounded disabled:ring-gray-200 bg-slate-200;
+    &:disabled {
+        box-shadow: none !important;
+        cursor: not-allowed !important;
+    }
+}
+
+.form-range {
+
+}
+
+.form-file {
+    @apply disabled:text-gray-200 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:ring-gray-200 bg-slate-200 file:hidden w-fit shadow ring-1 px-4 py-2 rounded valid:ring-slate-200;
+    &:user-invalid {
+        @apply ring-red-500;
+    }
+}
+
+
+.form-textarea-group {
+    @apply bg-slate-200 ring-1 ring-slate-200 shadow rounded-md min-w-fit;
+    .title-bar {
+        @apply py-2 px-4 bg-slate-300 flex space-x-2;
+    }
+
+    .function-bar {
+        @apply py-2 px-4 bg-slate-300 flex sm:space-x-2 relative sm:flex-nowrap xs:flex-wrap sm:space-y-0 xs:space-y-3 xs:justify-center sm:justify-start xs:space-x-0;
+        .btn {
+            @apply xs:flex-auto1 xs:w-full sm:w-12 min-w-12 min-h-12;
+            .sm-text {
+                @apply hidden sm:hidden xs:block;
+            }
+        }
+
+        .float-right-box {
+            @apply sm:absolute sm:right-4;
+        }
+    }
+
+    .form-solid {
+        @apply required:ring-0 shadow-none w-full h-[200px];
+    }
+}
+
+
+.form-password-group {
+    @apply flex;
+    * {
+        box-shadow: unset;
+    }
+
+    .front {
+        border-top-right-radius: unset !important;
+        border-bottom-right-radius: unset !important;
+    }
+
+    .back {
+        padding: 4px 16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-top-left-radius: unset !important;
+        border-bottom-left-radius: unset !important;
+
+        &:active {
+            box-shadow: none !important;
+        }
+    }
+}

@@ -1,0 +1,64 @@
+.carousels {
+    @apply relative max-w-[500px] w-[500px] h-fit;
+    .carousel-control {
+        @apply relative;
+        .carousel-zoom {
+            @apply absolute -top-16 left-4 z-[9];
+        }
+
+        .carousel-zoom-chunk {
+            @apply transition-none border-2 bg-white border-solid border-slate-200 absolute content-[""] min-h-36 min-w-36 size-36 bg-cover bg-fixed bg-no-repeat z-20;
+            background-size: 1000px;
+            background-position-x: 550px;
+            background-position-y: 200px;
+
+            * {
+                @apply transition-none;
+            }
+        }
+
+        .carousel-left {
+            @apply absolute bottom-12 left-4;
+        }
+
+        .carousel-right {
+            @apply absolute bottom-12 right-4;
+        }
+
+        .carousel-image-list {
+            @apply flex flex-nowrap space-x-3 overflow-y-auto max-w-[500px];
+            .carousel-image-cube {
+                @apply rounded-md p-1 border-2 border-solid hover:border-color7 border-transparent min-w-36 size-36 bg-center bg-contain bg-no-repeat;
+                .ripple {
+                    @apply w-full h-full;
+                }
+            }
+        }
+    }
+
+    .carousel-view {
+        @apply relative w-full h-[500px];
+        .carousel-image {
+            @apply w-full h-full bg-center bg-cover bg-no-repeat rounded-md;
+        }
+
+        .carousel-info-box {
+            @apply absolute bottom-4 left-[calc(50%-24px)] rounded-md hover:shadow-lg z-10 h-6 w-16 bg-white overflow-hidden;
+            .carousel-info-icon {
+                @apply w-full max-h-4 h-4 pt-1 flex justify-center items-center mb-3 text-sm;
+            }
+
+            .carousel-title {
+
+            }
+
+            .carousel-subtitle {
+
+            }
+
+            .carousel-close-btn {
+                @apply absolute right-6 top-6;
+            }
+        }
+    }
+}

@@ -1,0 +1,5 @@
+.splitter {
+    @apply content-[""] w-5 max-h-1 h-1 bg-slate-300 ring-1 ring-slate-200;
+}
+
+/*# sourceMappingURL=splitter.css.map */

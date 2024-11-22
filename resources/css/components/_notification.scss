@@ -1,0 +1,99 @@
+.notification {
+    @apply fixed right-5 bottom-10 h-fit z-20 space-y-5 sm:max-w-full sm:w-fit xs:max-w-[90vw];
+    .item {
+        @apply relative bg-white border-solid border-s-[6px] flex justify-start items-start px-4 py-2 space-x-5 shadow-2xl
+        xs:max-w-full sm:max-w-full;
+        -webkit-animation-duration: 1s;
+        animation-duration: 1s;
+        -webkit-animation-fill-mode: both;
+        animation-fill-mode: both;
+        animation: fadeIn 1s ease-in-out;
+
+        .icon {
+            @apply text-2xl h-full flex justify-center items-center;
+        }
+
+        .context {
+            .title {
+                @apply font-bold md:text-xl sm:text-sm xs:text-sm;
+            }
+
+            .description {
+                @apply
+                md:text-lg
+                sm:text-xs sm:max-w-full
+                xs:text-xs xs:max-h-20 break-all xs:overflow-y-auto xs:overflow-x-hidden xs:max-w-[240px];
+            }
+        }
+
+        .close-btn {
+            @apply absolute -top-4 -right-4 size-8 bg-red-400 hover:bg-red-300 text-white flex justify-center items-center rounded-4xl cursor-pointer;
+        }
+
+        &::after {
+            @apply w-full absolute bottom-0 left-0 h-1 bg-red-500;
+            content: '';
+            -webkit-animation-duration: 5s;
+            animation-duration: 5s;
+            -webkit-animation-fill-mode: both;
+            animation-fill-mode: both;
+            animation: notificationtimeline 5s ease-in-out;
+        }
+    }
+
+    .item.done {
+        &::after {
+            width: 0 !important;
+        }
+    }
+
+    .item.fadeOut {
+        -webkit-animation-duration: 1s;
+        animation-duration: 1s;
+        -webkit-animation-fill-mode: both;
+        animation-fill-mode: both;
+        animation: fadeOut 1s ease-in-out;
+    }
+}
+
+@keyframes notificationtimeline {
+    to {
+        width: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+.notification-info {
+    @apply border-neutral-500;
+}
+
+.notification-error {
+    @apply border-red-500;
+}
+
+.notification-warning {
+    @apply border-yellow-500;
+}
+
+.notification-success {
+    @apply border-green-500;
+}

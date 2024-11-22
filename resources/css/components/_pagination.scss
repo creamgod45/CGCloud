@@ -1,0 +1,11 @@
+.pagination-frame {
+    @apply rounded-t-2xl space-y-5;
+}
+
+.pagination {
+    @apply w-full flex justify-center items-center;
+
+    .pg-btn {
+        overflow: clip !important;
+    }
+}

@@ -1,0 +1,10 @@
+.popover {
+    @apply relative w-[80%] h-[80%] z-[11] overflow-x-hidden overflow-y-auto bg-white shadow rounded-md min-w-[280px] p-5;
+    .popover-title {
+        @apply h-12 text-4xl;
+    }
+
+    .popover-closebtn {
+        @apply absolute top-2 right-2 z-[11];
+    }
+}

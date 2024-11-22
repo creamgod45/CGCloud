@@ -1,0 +1,49 @@
+.table {
+    @apply w-full;
+    thead {
+        tr {
+            th {
+                @apply cursor-pointer;
+                svg {
+                    vertical-align: top;
+                }
+            }
+        }
+    }
+}
+
+.table-info {
+    thead {
+        @apply bg-neutral-900 text-white;
+        tr {
+            th {
+                @apply border-2 border-solid cursor-pointer hover:bg-neutral-700;
+                svg {
+                    vertical-align: top;
+                }
+            }
+        }
+    }
+}
+
+.table-row-hover {
+    tbody tr:hover {
+        @apply bg-white dark:bg-neutral-700 dark:text-white #{!important};
+    }
+}
+
+.table-col-hover {
+    tbody tr th {
+        @apply hover:bg-white;
+    }
+}
+
+.table-striped {
+    tbody tr:nth-child(odd) {
+        @apply bg-neutral-200 dark:bg-neutral-800 dark:text-white;
+    }
+
+    tbody tr:nth-child(even) {
+        @apply bg-neutral-300 dark:bg-neutral-900 dark:text-white;
+    }
+}

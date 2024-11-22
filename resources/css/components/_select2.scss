@@ -1,0 +1,7 @@
+.select2-search__field {
+    @apply rounded outline-0 text-lg;
+    &::placeholder {
+        @apply text-lg leading-4;
+    }
+}
+

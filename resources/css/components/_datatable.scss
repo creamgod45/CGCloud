@@ -1,0 +1,277 @@
+@charset "UTF-8";
+:root {
+    --dt-row-selected: 13, 110, 253;
+    --dt-row-selected-text: 255, 255, 255;
+    --dt-row-selected-link: 9, 10, 11;
+    --dt-row-stripe: 0, 0, 0;
+    --dt-row-hover: 0, 0, 0;
+    --dt-column-ordering: 0, 0, 0;
+    --dt-html-background: white;
+}
+
+:root.dark {
+    --dt-html-background: rgb(33, 37, 41);
+}
+
+.dt-container {
+    @apply m-4;
+    *{
+        transition: unset !important;
+    }
+    .dt-layout-end{
+        @apply flex justify-end md:justify-end
+        footer:justify-center
+        sm:justify-center
+        xs:justify-center
+        us:justify-center;
+    }
+    .dt-paging{
+        @apply max-w-[90vw] overflow-x-auto overflow-y-clip;
+        .btn{
+            min-width: fit-content !important;
+        }
+    }
+}
+
+.dt-processing {
+    @apply z-20 bg-white ring-1 ring-slate-200 rounded-lg shadow-2xl;
+}
+
+.dt-tool-header {
+    @apply grid gap-4 mb-4
+    xxl:grid-cols-2
+    xl:grid-cols-2
+    menu:grid-cols-1
+    lg:grid-cols-1
+    md:grid-cols-1
+    footer:grid-cols-1
+    sm:grid-cols-1
+    xs:grid-cols-1
+    us:grid-cols-1 #{!important};
+    .justify-self-start .dt-buttons{
+        .dt-button{
+            @apply mb-1;
+        }
+    }
+}
+
+table.dataTable .dt-column-title{
+    @apply text-black;
+}
+
+table.dataTable caption {
+    @apply text-2xl my-3;
+}
+table.dataTable td.clickable {
+    @apply cursor-pointer hover:bg-color7 dark:hover:bg-color7 #{!important};
+}
+
+table.dataTable td.dt-control {
+    text-align: center;
+    cursor: pointer;
+}
+
+table.dataTable td.dt-control:before {
+    display: inline-block;
+    box-sizing: border-box;
+    content: "";
+    border-top: 5px solid transparent;
+    border-left: 10px solid rgba(0, 0, 0, 0.5);
+    border-bottom: 5px solid transparent;
+    border-right: 0px solid transparent;
+}
+
+table.dataTable tr.dt-hasChild td.dt-control:before {
+    border-top: 10px solid rgba(0, 0, 0, 0.5);
+    border-left: 5px solid transparent;
+    border-bottom: 0px solid transparent;
+    border-right: 5px solid transparent;
+}
+
+html.dark table.dataTable td.dt-control:before,
+:root[data-bs-theme=dark] table.dataTable td.dt-control:before,
+:root[data-theme=dark] table.dataTable td.dt-control:before {
+    border-left-color: rgba(255, 255, 255, 0.5);
+}
+
+html.dark table.dataTable tr.dt-hasChild td.dt-control:before,
+:root[data-bs-theme=dark] table.dataTable tr.dt-hasChild td.dt-control:before,
+:root[data-theme=dark] table.dataTable tr.dt-hasChild td.dt-control:before {
+    border-top-color: rgba(255, 255, 255, 0.5);
+    border-left-color: transparent;
+}
+
+div.dt-scroll {
+    width: 100%;
+}
+
+div.dt-scroll-body thead tr,
+div.dt-scroll-body tfoot tr {
+    height: 0;
+}
+
+div.dt-scroll-body thead tr th, div.dt-scroll-body thead tr td,
+div.dt-scroll-body tfoot tr th,
+div.dt-scroll-body tfoot tr td {
+    height: 0 !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    border-top-width: 0px !important;
+    border-bottom-width: 0px !important;
+}
+
+div.dt-scroll-body thead tr th div.dt-scroll-sizing, div.dt-scroll-body thead tr td div.dt-scroll-sizing,
+div.dt-scroll-body tfoot tr th div.dt-scroll-sizing,
+div.dt-scroll-body tfoot tr td div.dt-scroll-sizing {
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+table.dataTable thead > tr > th:active,
+table.dataTable thead > tr > td:active {
+    outline: none;
+}
+
+table.dataTable thead > tr > th.dt-orderable-asc span.dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-asc span.dt-column-order:before,
+table.dataTable thead > tr > td.dt-orderable-asc span.dt-column-order:before,
+table.dataTable thead > tr > td.dt-ordering-asc span.dt-column-order:before {
+    position: absolute;
+    display: block;
+    bottom: 50%;
+    content: "▲";
+    content: "▲"/"";
+}
+
+table.dataTable thead > tr > th.dt-orderable-desc span.dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-desc span.dt-column-order:after,
+table.dataTable thead > tr > td.dt-orderable-desc span.dt-column-order:after,
+table.dataTable thead > tr > td.dt-ordering-desc span.dt-column-order:after {
+    position: absolute;
+    display: block;
+    top: 50%;
+    content: "▼";
+    content: "▼"/"";
+}
+
+table.dataTable thead > tr > th.dt-orderable-asc, table.dataTable thead > tr > th.dt-orderable-desc, table.dataTable thead > tr > th.dt-ordering-asc, table.dataTable thead > tr > th.dt-ordering-desc,
+table.dataTable thead > tr > td.dt-orderable-asc,
+table.dataTable thead > tr > td.dt-orderable-desc,
+table.dataTable thead > tr > td.dt-ordering-asc,
+table.dataTable thead > tr > td.dt-ordering-desc {
+    position: relative;
+    padding-right: 30px;
+}
+
+table.dataTable thead > tr > th.dt-orderable-asc span.dt-column-order, table.dataTable thead > tr > th.dt-orderable-desc span.dt-column-order, table.dataTable thead > tr > th.dt-ordering-asc span.dt-column-order, table.dataTable thead > tr > th.dt-ordering-desc span.dt-column-order,
+table.dataTable thead > tr > td.dt-orderable-asc span.dt-column-order,
+table.dataTable thead > tr > td.dt-orderable-desc span.dt-column-order,
+table.dataTable thead > tr > td.dt-ordering-asc span.dt-column-order,
+table.dataTable thead > tr > td.dt-ordering-desc span.dt-column-order {
+    position: absolute;
+    right: 12px;
+    top: 0;
+    bottom: 0;
+    width: 12px;
+}
+
+table.dataTable thead > tr > th.dt-orderable-asc span.dt-column-order:before, table.dataTable thead > tr > th.dt-orderable-asc span.dt-column-order:after, table.dataTable thead > tr > th.dt-orderable-desc span.dt-column-order:before, table.dataTable thead > tr > th.dt-orderable-desc span.dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-asc span.dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-asc span.dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-desc span.dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-desc span.dt-column-order:after,
+table.dataTable thead > tr > td.dt-orderable-asc span.dt-column-order:before,
+table.dataTable thead > tr > td.dt-orderable-asc span.dt-column-order:after,
+table.dataTable thead > tr > td.dt-orderable-desc span.dt-column-order:before,
+table.dataTable thead > tr > td.dt-orderable-desc span.dt-column-order:after,
+table.dataTable thead > tr > td.dt-ordering-asc span.dt-column-order:before,
+table.dataTable thead > tr > td.dt-ordering-asc span.dt-column-order:after,
+table.dataTable thead > tr > td.dt-ordering-desc span.dt-column-order:before,
+table.dataTable thead > tr > td.dt-ordering-desc span.dt-column-order:after {
+    left: 0;
+    opacity: 0.125;
+    line-height: 9px;
+    font-size: 0.8em;
+}
+
+table.dataTable thead > tr > th.dt-orderable-asc, table.dataTable thead > tr > th.dt-orderable-desc,
+table.dataTable thead > tr > td.dt-orderable-asc,
+table.dataTable thead > tr > td.dt-orderable-desc {
+    cursor: pointer;
+}
+
+table.dataTable thead > tr > th.dt-orderable-asc:hover, table.dataTable thead > tr > th.dt-orderable-desc:hover,
+table.dataTable thead > tr > td.dt-orderable-asc:hover,
+table.dataTable thead > tr > td.dt-orderable-desc:hover {
+    outline: 2px solid rgba(0, 0, 0, 0.05);
+    outline-offset: -2px;
+}
+
+table.dataTable thead > tr > th.dt-ordering-asc span.dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-desc span.dt-column-order:after,
+table.dataTable thead > tr > td.dt-ordering-asc span.dt-column-order:before,
+table.dataTable thead > tr > td.dt-ordering-desc span.dt-column-order:after {
+    opacity: 0.6;
+}
+
+table.dataTable thead > tr > th.sorting_desc_disabled span.dt-column-order:after, table.dataTable thead > tr > th.sorting_asc_disabled span.dt-column-order:before,
+table.dataTable thead > tr > td.sorting_desc_disabled span.dt-column-order:after,
+table.dataTable thead > tr > td.sorting_asc_disabled span.dt-column-order:before {
+    display: none;
+}
+
+table.dataTable thead > tr > th:active,
+table.dataTable thead > tr > td:active {
+    outline: none;
+}
+
+div.dt-scroll-body > table.dataTable > thead > tr > th,
+div.dt-scroll-body > table.dataTable > thead > tr > td {
+    overflow: hidden;
+}
+
+:root.dark table.dataTable thead > tr > th.dt-orderable-asc:hover, :root.dark table.dataTable thead > tr > th.dt-orderable-desc:hover,
+:root.dark table.dataTable thead > tr > td.dt-orderable-asc:hover,
+:root.dark table.dataTable thead > tr > td.dt-orderable-desc:hover,
+:root[data-bs-theme=dark] table.dataTable thead > tr > th.dt-orderable-asc:hover,
+:root[data-bs-theme=dark] table.dataTable thead > tr > th.dt-orderable-desc:hover,
+:root[data-bs-theme=dark] table.dataTable thead > tr > td.dt-orderable-asc:hover,
+:root[data-bs-theme=dark] table.dataTable thead > tr > td.dt-orderable-desc:hover {
+    outline: 2px solid rgba(255, 255, 255, 0.05);
+}
+
+.dt-button-background{
+}
+.dt-button-collection{
+    @apply z-10 mt-1 #{!important};
+    div[role=menu]{
+       @apply flex flex-wrap w-32 bg-white ring-slate-200 ring-1 rounded space-y-1 p-2;
+        .button-page-length:last-child {
+            @apply bg-red-500 border-red-400 hover:bg-red-400;
+            transition: all 200ms !important;
+
+            &:not(&~.btn-group):active {
+                @apply ring-red-500 ring-2 ring-offset-2;
+            }
+        }
+        .button-page-length {
+            @apply bg-amber-400 border-amber-400 w-full rounded;
+            transition: all 200ms !important;
+            margin-bottom: unset !important;
+
+            &:hover {
+                @apply bg-amber-500;
+            }
+
+            &:active:not(.btn-group) {
+                @apply ring-amber-300 ring-2 ring-offset-2;
+            }
+        }
+    }
+}
+
+@import "datatables.net-dt/css/dataTables.dataTables.min.css";
+//@import "datatables.net-autofill-dt/css/autoFill.dataTables.min.css";
+//@import "datatables.net-colreorder-dt/css/colReorder.dataTables.min.css";
+//@import "datatables.net-datetime/dist/dataTables.dateTime.min.css";
+@import "datatables.net-fixedcolumns-dt/css/fixedColumns.dataTables.min.css";
+@import "datatables.net-fixedheader-dt/css/fixedHeader.dataTables.min.css";
+@import "datatables.net-responsive-dt/css/responsive.dataTables.min.css";
+@import "datatables.net-scroller-dt/css/scroller.dataTables.min.css";
+//@import "datatables.net-searchbuilder-dt/css/searchBuilder.dataTables.min.css";
+//@import "datatables.net-searchpanes-dt/css/searchPanes.dataTables.min.css";
+@import "datatables.net-select-dt/css/select.dataTables.css";
+@import "datatables.net-staterestore-dt/css/stateRestore.dataTables.min.css";

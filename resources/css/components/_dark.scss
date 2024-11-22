@@ -1,0 +1,3 @@
+.dark-mode-trigger{
+    @apply bg-neutral-700 text-white dark:bg-white dark:text-black #{!important};
+}

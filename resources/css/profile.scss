@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "include";
+
+body {
+    @apply relative w-screen h-fit overflow-x-hidden dark:bg-neutral-800;
+
+    .dialog-frame .dialog-vt {
+        @apply overflow-clip;
+        //.item{
+        //    @apply overflow-hidden xl:ps-0 menu:ps-24;
+        //}
+    }
+
+    .container1 {
+        @apply w-full min-h-[calc(100%-81px)] bg-transparent dark:bg-neutral-800 dark:text-white;
+        .section {
+            @apply ring-1 ring-slate-200 w-full shadow rounded-md dark:bg-neutral-700;
+            .profile-grid-list {
+                @apply p-5 grid gap-5 lg:grid-cols-2
+                md:grid-cols-1 overflow-x-auto;
+                .item {
+                    @apply flex flex-nowrap;
+                    .col {
+                        @apply flex-auto1 min-w-48 w-1/2 overflow-hidden relative;
+                    }
+
+                    .col.value {
+                        @apply flex justify-start items-center;
+                    }
+                }
+            }
+        }
+        .order-item-popover {
+            .dialog-title{
+                @apply dark:bg-neutral-700 dark:text-white #{!important};
+            }
+
+            @apply fixed;
+            .order-iframe {
+                @apply w-full h-[calc(100%-81px)];
+            }
+
+            .shop-popover-placeholder {
+                @apply absolute top-0 left-0;
+                .shop-popover-loader {
+                    @apply absolute top-1/2 left-1/2 z-20;
+                }
+            }
+        }
+        .password-popover, .emailPopover1{
+            @apply dark:bg-neutral-700 dark:text-white;
+        }
+    }
+
+    *:not(textarea) {
+        transition: all 200ms;
+    }
+
+    footer {
+        @apply z-0 flex justify-center dark:bg-neutral-800;
+        .footer-menu-panel{
+            @apply justify-center grid grid-cols-1 min-w-[75vw] max-w-[90vw] bg-slate-200 ring-1 ring-slate-200 rounded-t-4xl p-5;
+            .footer-menu{
+                @apply grid gap-2 grid-cols-4 w-full
+                xxl:grid-cols-4
+                xl:grid-cols-4
+                menu:grid-cols-4
+                lg:grid-cols-3
+                md:grid-cols-3
+                footer:grid-cols-2
+                sm:grid-cols-1
+                xs:grid-cols-1
+                us:grid-cols-1    ;
+                .item{
+                    @apply space-y-2;
+                    .title{}
+                    .menu-btn{
+                        @apply ring-1 ring-slate-200 border-0 bg-white border-slate-200 hover:bg-slate-100 rounded-md w-full #{!important};
+                        transition: all 200ms !important;
+
+                        &:active {
+                            @apply ring-slate-300 ring-2 ring-offset-2;
+                        }
+                    }
+                }
+            }
+            .footer1 .row{
+                @apply grid grid-cols-2 w-full mt-5
+                xxl:grid-cols-2
+                xl:grid-cols-2
+                menu:grid-cols-2
+                lg:grid-cols-2
+                md:grid-cols-2
+                footer:grid-cols-2
+                sm:grid-cols-1
+                xs:grid-cols-1
+                us:grid-cols-1    ;
+                .creamgod45{
+                    @apply bg-color7 text-white px-2;
+                }
+                .laravel{
+                    color: #f9322c;
+                }
+            }
+        }
+    }
+}
+
+@keyframes heartbeat {
+    to {
+        transform: scale(1);
+    }
+    from {
+        transform: scale(1.2);
+    }
+}
+
+@keyframes closeing {
+    from {
+        left: 0;
+    }
+    to {
+        left: -500px;
+    }
+}
+
+@keyframes opening {
+    from {
+        left: -500px;
+    }
+    to {
+        left: 0;
+    }
+}

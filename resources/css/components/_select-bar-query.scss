@@ -1,0 +1,67 @@
+.select-bar-query {
+    @apply relative w-auto max-w-full dark:text-black;
+    .sbq-fake-input {
+        @apply relative overflow-x-auto overflow-y-hidden bg-color7 flex ring-1 ring-slate-200 w-full min-h-12 h-fit rounded-md shadow-lg;
+        .sbq-fast-input{
+            @apply transition-none absolute z-[5] p-1 top-0 left-0 bg-transparent outline-0 border-0 w-full h-full text-black text-shadow-sm shadow-amber-900 font-bold;
+        }
+        .sbq-field-item .rippleable1 {
+            word-break: keep-all;
+            position: relative;
+            overflow: hidden;
+            outline: 0;
+            //box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.3); /* black with 30% opacity */
+            span.label{
+                word-break: keep-all;
+                text-wrap: nowrap;
+            }
+
+            span.ripple {
+                position: absolute;
+                top: -50%;
+                left: 0;
+                border-radius: 50%;
+                transform: scale(0);
+                animation: ripple 600ms linear;
+                background-color: rgba(218, 218, 218, 0.7);
+            }
+        }
+
+        .sbq-field-item {
+            @apply py-1 ps-1 pe-[1px] w-fit select-none break-keep;
+            .context {
+                @apply bg-color7-50 px-2 py-1 m-1 flex space-x-1;
+            }
+            .sbq-fi-close-btn{
+                @apply z-[6];
+            }
+        }
+    }
+
+    .sbq-float-menu {
+        @apply absolute top-[62px] left-0 pb-2 rounded-md bg-color7 border-b-[1px] shadow-lg border-x-slate-200 border-solid border-b-slate-200 w-full z-[11];
+        .sbq-select-group {
+            @apply max-h-48 overflow-y-auto overflow-x-hidden;
+            .sbq-menu-item {
+                @apply text-nowrap break-keep items-center flex flex-nowrap select-none cursor-pointer space-y-2 p-1 ps-2 font-bold hover:bg-color7-50 space-x-2;
+                b:not([role=presentation]) {
+                    @apply min-w-10;
+                }
+            }
+        }
+
+        .sbq-text-input {
+            @apply p-2;
+            .sbq-search-input {
+                @apply bg-color7-50 border-solid border-2 z-[12] px-1 resize-none w-full rounded-md outline-0;
+            }
+        }
+    }
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}

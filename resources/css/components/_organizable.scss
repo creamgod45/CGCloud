@@ -1,0 +1,44 @@
+// https://github.com/Shopify/draggable
+.organizable{
+    @apply w-full;
+    transition: unset !important;
+}
+.organizable-vertical-menu{
+    @apply space-y-2;
+    .organizable-vertical-menu{
+        @apply pl-4 space-y-2;
+    }
+}
+
+.organizable--is-dragging {
+    opacity: 0.5;
+}
+
+.organizable--over {
+    background-color: #e0e0e0;
+}
+
+.organizable--mirror {
+    opacity: 0.5;
+}
+
+.organizable-flex{
+    @apply flex flex-nowrap w-full space-x-2;
+    .title{
+        @apply w-full;
+    }
+    .organizable-delete {
+        @apply cursor-pointer min-h-8 min-w-8 size-8;
+    }
+    .organizable-point{
+        @apply cursor-grab min-h-8 min-w-8 size-8;
+    }
+}
+
+.organizable-color7{
+    @apply ring-1 ring-slate-200 bg-color7 px-2 py-1 rounded hover:shadow-2xl;
+}
+
+.organizable-slate{
+
+}

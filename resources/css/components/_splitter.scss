@@ -1,0 +1,7 @@
+.splitter {
+    @apply content-[""] w-5 max-h-0.5 h-0.5 bg-slate-300 rounded-md;
+}
+
+.splitter-horizontal {
+    @apply content-[""] h-5 min-h-5 max-w-0.5 w-0.5 bg-slate-300 rounded-md m-auto;
+}

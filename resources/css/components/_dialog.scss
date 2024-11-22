@@ -1,0 +1,141 @@
+.dialog, .dialog-vt {
+    @apply relative w-[95%] h-[80%] z-[11] overflow-y-auto overflow-x-clip bg-white shadow rounded-md min-w-[280px];
+    .dialog-title {
+        @apply text-4xl bg-white sticky top-0 z-10 p-5 border-b-slate-200 border-[1px] border-solid border-t-0 border-x-0 shadow
+        us:text-2xl xs:text-2xl sm:text-4xl;
+    }
+
+    .dialog-closebtn {
+        @apply sticky top-0 z-[11] float-end text-lg;
+    }
+}
+
+.dialog-frame {
+    @apply w-screen h-screen fixed top-0 left-0 flex justify-center items-center z-30
+    xxl:items-center
+    xl:items-center
+    menu:items-center
+    lg:items-center
+    md:items-center
+    footer:items-center
+    sm:items-start sm:pt-5
+    xs:items-start xs:pt-5
+    us:items-start us:pt-5    ;
+    transition: unset !important;
+
+    * {
+        transition: unset !important;
+    }
+
+    .dialog-vt {
+        @apply outline-0 w-[95%] h-[95%];
+    }
+}
+
+.dialog-message-box{
+    @apply w-screen h-screen fixed top-0 left-0 z-50 flex justify-center items-center backdrop-blur-2xl;
+    .dialog-message-box-body-color{
+        @apply w-screen h-screen flex justify-center items-center backdrop-blur-2xl;
+        .dialog-message-box-body{
+            @apply min-w-[300px] max-w-[400px] min-h-[200px] h-fit bg-white p-4 rounded-2xl relative ring-slate-200 ring-1 shadow-2xl;
+            .dialog-message-box-title{
+                @apply text-2xl font-bold my-2;
+            }
+            .dialog-message-box-content{
+                @apply text-lg;
+            }
+            .dialog-message-box-buttonFlexGroup{
+                @apply w-full absolute bottom-4 left-0 p-5;
+                .dialog-message-box-confirm{
+                    @apply float-start font-bold;
+                }
+                .dialog-message-box-cancel{
+                    @apply float-end;
+                }
+            }
+        }
+    }
+}
+
+.dialog-message-box-info{
+    .dialog-message-box-confirm{
+        @apply bg-color7 border-color7;
+        transition: all 200ms !important;
+
+        &:hover {
+            @apply bg-color7-50;
+        }
+
+        &:active:not(.btn-group) {
+            @apply ring-color7 ring-2 ring-offset-2;
+        }
+    }
+}
+
+.dialog-message-box-info{
+    .dialog-message-box-confirm{
+        @apply bg-color7 border-color7;
+        transition: all 200ms !important;
+
+        &:hover {
+            @apply bg-color7-50;
+        }
+
+        &:active:not(.btn-group) {
+            @apply ring-color7 ring-2 ring-offset-2;
+        }
+    }
+}
+
+.dialog-message-box-success{
+    @apply bg-emerald-600 border-emerald-500 hover:bg-emerald-500;
+    transition: all 200ms !important;
+
+    &:active {
+        @apply ring-green-600 ring-2 ring-offset-2;
+    }
+
+    .dialog-message-box-confirm{
+        @apply bg-emerald-600 border-emerald-500 hover:bg-emerald-500;
+        transition: all 200ms !important;
+
+        &:active {
+            @apply ring-emerald-600 ring-2 ring-offset-2;
+        }
+    }
+}
+
+.dialog-message-box-error{
+    @apply bg-red-500 border-red-400 hover:bg-red-400;
+    transition: all 200ms !important;
+
+    &:not(&~.btn-group):active {
+        @apply ring-red-500 ring-2 ring-offset-2;
+    }
+    .dialog-message-box-confirm{
+
+        @apply bg-red-500 border-red-400 hover:bg-red-400;
+        transition: all 200ms !important;
+
+        &:not(&~.btn-group):active {
+            @apply ring-red-500 ring-2 ring-offset-2;
+        }
+    }
+}
+
+.dialog-message-box-warning{
+    @apply bg-yellow-400 border-yellow-300 hover:bg-yellow-300;
+    transition: all 200ms !important;
+
+    &:not(&~.btn-group):active {
+        @apply ring-yellow-400 ring-2 ring-offset-2;
+    }
+    .dialog-message-box-confirm{
+        @apply bg-yellow-400 border-yellow-300 hover:bg-yellow-300;
+        transition: all 200ms !important;
+
+        &:not(&~.btn-group):active {
+            @apply ring-yellow-400 ring-2 ring-offset-2;
+        }
+    }
+}

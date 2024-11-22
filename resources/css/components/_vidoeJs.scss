@@ -1,0 +1,8 @@
+.vjs-control-bar{
+    @apply overflow-x-clip w-full;
+    overflow-y: unset;
+}
+
+.video-js{
+    @apply rounded-lg;
+}

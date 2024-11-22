@@ -1,0 +1,36 @@
+AddHandler application/x-httpd-php82 .php
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # HTTP Redirect to HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+    RewriteRule ^temp/ - [F,L]
+    RewriteRule ^vendor/ - [F,L]
+    RewriteRule ^storage/ - [F,L]
+    RewriteRule ^routes/ - [F,L]
+    RewriteRule ^resources/ - [F,L]
+    RewriteRule ^public/ - [F,L]
+    RewriteRule ^database/ - [F,L]
+    RewriteRule ^config/ - [F,L]
+    RewriteRule ^bootstrap/ - [F,L]
+    RewriteRule ^app/ - [F,L]
+</IfModule>

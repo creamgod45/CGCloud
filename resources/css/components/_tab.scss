@@ -1,0 +1,23 @@
+.tab-btn {
+    @apply text-nowrap;
+}
+
+.tab-content {
+    @apply space-y-3;
+}
+.tab-panel{
+    @apply space-y-3;
+    .tab-header{
+        @apply px-5 w-full border-b-slate-200 border-b-2 border-solid flex-nowrap flex items-center;
+        margin-top: unset !important;
+        .tab-end{
+            @apply w-fit break-keep h-fit;
+        }
+    }
+    .tab-body{
+        @apply px-5 w-full;
+    }
+}
+.tab-vertical-group{
+    @apply space-y-3;
+}

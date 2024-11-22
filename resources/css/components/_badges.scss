@@ -1,0 +1,19 @@
+.badges {
+    @apply bg-gray-300 ring-1 ring-slate-200 rounded shadow mx-1 break-keep;
+}
+
+.badges-danger, .badges-error {
+    @apply bg-red-500 text-white #{!important};
+}
+
+.badges-md {
+    @apply px-2 py-1 #{!important};
+}
+
+.badges-md-strip {
+    @apply px-2 py-0 #{!important};
+}
+
+.badges-pill {
+    @apply rounded-4xl;
+}

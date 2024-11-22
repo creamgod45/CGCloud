@@ -1,0 +1,13 @@
+.persons-circle-bar {
+    @apply w-full mt-3;
+    .persons-title {
+        @apply text-neutral-500 text-sm;
+    }
+
+    .flex-center-box {
+        @apply flex space-x-2 w-full;
+        .pcb-item {
+            @apply bg-cover bg-center bg-no-repeat size-10 rounded-4xl;
+        }
+    }
+}

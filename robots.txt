@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /
+Allow: /hello
+
+Allow: /shop
+
+Allow: /appraisal
+
+Allow: /login
+
+Allow: /register

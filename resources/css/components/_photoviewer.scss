@@ -1,0 +1,6 @@
+.photoviewer-modal{
+    @apply dark:bg-neutral-600 dark:text-white;
+    .photoviewer-stage{
+        @apply dark:bg-neutral-700 dark:text-white #{!important};
+    }
+}

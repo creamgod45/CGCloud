@@ -1,0 +1,31 @@
+.scroll-indicator{
+    @apply fixed bottom-0 left-0 w-screen h-1 min-h-1 max-h-1 z-50;
+    progress{
+        @apply w-full h-full;
+        -webkit-appearance: none;
+        appearance: none;
+        -webkit-animation: animate-stripes 5s linear infinite;
+        animation: animate-stripes 5s linear infinite;
+    }
+    progress:not([value]){
+    }
+    progress[value]::-webkit-progress-value {
+        @apply bg-color7;
+    }
+    progress[value]::-webkit-progress-bar {
+        -webkit-animation: animate-stripes 5s linear infinite;
+        animation: animate-stripes 5s linear infinite;
+        background-color: transparent;
+        border-radius: 2px;
+        background-size: 35px 20px, 100% 100%, 100% 100%;
+    }
+}
+
+
+@-webkit-keyframes animate-stripes {
+    100% { background-position: -100px 0px; }
+}
+
+@keyframes animate-stripes {
+    100% { background-position: -100px 0px; }
+}
