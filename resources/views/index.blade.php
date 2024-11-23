@@ -41,7 +41,7 @@
                 @csrf
                 <input type="submit" class="btn btn-ripple btn-color7 btn-md-strip" name="upload" value="上傳">
                 <input type="file" class="filepond w-1/2"
-                       data-allowtypes="image/png::image/jpg::image/jpeg::image/svg+xml::image/gif::image/webp::image/apng::image/bmp::image/avif::video/av1::video/H264::video/H264-SVC::video/H264-RCDO::video/H265::video/JPEG::video/JPEG::video/mpeg::video/mpeg4-generic::video/ogg::video/quicktime::video/JPEG::video/vnd.mpegurl::video/vnd.youtube.yt::video/VP8::video/VP9::video/mp4::video/mp4V-ES::video/MPV::video/vnd.directv.mpeg::video/vnd.dece.mp4::video/vnd.uvvu.mp4::video/H266::video/H263::video/H263-1998::video/H263-2000::video/H261"
+                       data-allowtypes="image/png::image/jpg::image/jpeg::image/svg+xml::image/gif::image/webp::image/apng::image/bmp::image/avif::video/av1::video/H264::video/H264-SVC::video/H264-RCDO::video/H265::video/JPEG::video/JPEG::video/mpeg::video/mpeg4-generic::video/ogg::video/quicktime::video/JPEG::video/vnd.mpegurl::video/vnd.youtube.yt::video/VP8::video/VP9::video/mp4::video/mp4V-ES::video/MPV::video/vnd.directv.mpeg::video/vnd.dece.mp4::video/vnd.uvvu.mp4::video/H266::video/H263::video/H263-1998::video/H263-2000::video/H261::application/zip::application/x-zip-compressed::multipart/x-zip::application/x-compressed"
                        @if((!empty($moreParams)))
                        data-files="{{ Json::encode($newFiles) }}"
                        @endif
@@ -64,7 +64,7 @@
                     </div>
                     <div class="pfc-preview">
                         {{-- <video class="dashvideo" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video> --}}
-                        <video class="vjs video-js vjs-theme-forest" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video>
+{{--                        <video class="vjs video-js vjs-theme-forest" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video>--}}
                         <div class="vjs-playlist"></div>
                     </div>
                     <div class="pfc-operator">
@@ -99,7 +99,7 @@
                         <div class="pfcf-text">擁有者：</div>
                     </div>
                     <div id="tipper3" class="pfc-preview !hidden">
-                        <video onmouseenter="document.dispatchEvent(new CustomEvent('CG::Video', { detail: this}))" class="vjs video-js vjs-theme-forest" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video>
+{{--                        <video onmouseenter="document.dispatchEvent(new CustomEvent('CG::Video', { detail: this}))" class="vjs video-js vjs-theme-forest" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video>--}}
                         <div class="vjs-playlist"></div>
                     </div>
                     <div class="pfc-operator">

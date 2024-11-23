@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('virtual_files', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique();
+            $table->uuid()->unique()->default(Str::uuid()->toString());
             $table->enum('type', ['temporary', 'persistent']);
             $table->string('filename')->index('filename');
             $table->string('path');
@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->integer('expires_at');
             $table->timestamps();
             $table->softDeletes();
+            $table->engine('InnoDB');
         });
     }
 

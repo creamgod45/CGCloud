@@ -22,6 +22,7 @@ return new class extends Migration {
             $table->enum("administrator", ["false", "true"])->default("false");
             $table->rememberToken();
             $table->timestamps();
+            $table->engine('InnoDB');
         });
     }
 

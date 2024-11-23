@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->string('name')->unique();
             $table->text('value');
             $table->timestamps();
+            $table->engine('InnoDB');
         });
     }
 

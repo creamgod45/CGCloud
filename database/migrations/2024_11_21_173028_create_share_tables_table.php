@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->string('short_code')->comment("短連接代碼");
             $table->integer('secret')->comment("金鑰");
             $table->timestamps();
+            $table->engine('InnoDB');
         });
     }
 

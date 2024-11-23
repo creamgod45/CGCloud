@@ -19,6 +19,7 @@ use Illuminate\Support\Str;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
 use Yajra\DataTables\Facades\DataTables;
+use function Laravel\Prompts\error;
 
 class ShareTablesController extends Controller
 {
@@ -201,7 +202,19 @@ class ShareTablesController extends Controller
             Log::info("Create folder for upload");
             $path = 'ShareTable/TEMP/Patch/TEMP_' . Str::random(10);
             Storage::disk('local')->makeDirectory($path);
-            return response()->json(["folder" => urlencode(base64_encode($path))]);
+            $uuid = Str::uuid()->toString();
+            VirtualFile::insert([
+                'uuid' => $uuid,
+                'type' => 'temporary',
+                'filename' => 'folder',
+                'path' => $path,
+                'disk' => 'local',
+                'extension' => 'null',
+                'minetypes' => 'null',
+                'expires_at' => now()->addMinutes(10)->timestamp
+            ]);
+            //error_log(is_string($request->getContent()) ? $request->getContent() : var_export($request->getContent(), true));
+            return response($uuid, 200);
         } else {
             Log::info("Upload files");
             $file_path_array = [];
@@ -212,12 +225,12 @@ class ShareTablesController extends Controller
                         $filePath = $item->storePublicly('ShareTable/TEMP/Block/'. $random, 'local');
                         $uuid = Str::uuid();
                         VirtualFile::insert([
-                            'uuid' => $uuid,
+                            'uuid' => $uuid->toString(),
                             'type' => 'temporary',
                             'filename' => $item->getClientOriginalName(),
                             'path' => $filePath,
                             'disk' => 'local',
-                            'extension' => $item->getExtension(),
+                            'extension' => $item->getClientOriginalExtension(),
                             'minetypes' => $item->getMimeType(),
                             'expires_at' => now()->addMinutes(10)->timestamp
                         ]);
@@ -248,15 +261,16 @@ class ShareTablesController extends Controller
     public function shareTableItemUploadImagePatch(Request $request)
     {
         // 处理分块上传请求
-        $fileName = $request->header('Upload-Name');
+        $fileName = basename($request->header('Upload-Name'));
         $offset = $request->header('Upload-Offset');
         $fileId = $request->header('Upload-Id');
         $fileStream = $request->getContent(true); // 获取文件流
         $fileInfo = $request->route('fileinfo');
+        $virtualFile = null;
 
         try {
             $fileInfo = json_decode($fileInfo, true);
-            $fileInfo['folder'] = base64_decode(urldecode($fileInfo['folder']));
+            $virtualFile = VirtualFile::where('uuid', '=', $fileInfo['folder']);
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return response()->json(['status' => 'error', 'message' => 'Invalid JSON'], 400);
@@ -270,10 +284,21 @@ class ShareTablesController extends Controller
         ]));
 
         // 确保上传目录存在
-        $filePath = $fileInfo['folder'] . '/' . $fileId . '_' . $fileName;
+        $filePath = $fileInfo['folder'] . '/' . $fileName;
+        error_log($fileInfo['folder']);
 
         // 打开文件流用于追加内容
         $storagePath = Storage::disk('local')->path($filePath);
+
+        if($offset === "0") {
+            $virtualFile->update([
+                'filename' => $fileName,
+                'path' => $filePath,
+                'extension' => pathinfo($storagePath, PATHINFO_EXTENSION),
+                'minetypes' => Storage::disk('local')->mimeType($storagePath),
+                'expires_at' => now()->addMinutes(10)->timestamp
+            ]);
+        }
 
         // 打开文件流
         $handle = fopen($storagePath, 'c+'); // 'c+' 模式打开用于读写，如果不存在则创建

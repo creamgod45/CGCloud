@@ -36,6 +36,8 @@ return new class extends Migration {
             $table->string('UUID')->comment('操作會員 ID')->nullable()->default('null');
             $table->string('FingerPrint')->comment('操作瀏覽器的身分證')->nullable()->default('null');
             $table->timestamps();
+
+            $table->engine('InnoDB');
         });
     }
 

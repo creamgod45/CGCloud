@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->string('permission_type');
             $table->string('expires_at');
             $table->timestamps();
+            $table->engine('InnoDB');
         });
     }
 

@@ -15,6 +15,7 @@ return new class extends Migration {
             $table->string('email')->index();
             $table->string('token');
             $table->timestamps();
+            $table->engine('InnoDB');
         });
     }
 
