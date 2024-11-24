@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Lib\Type\Array\CGArray;
+use App\Lib\Type\String\CGString;
 use App\Lib\Type\String\CGStringable;
 use App\Lib\Utils\EValidatorType;
 use App\Lib\Utils\RouteNameField;
@@ -115,7 +116,8 @@ class ShareTablesController extends Controller
 
     public function shareTableItemUploadImageFetch(Request $request)
     {
-        $path = $request->route("folder") . "/" . $request->route("file");
+        $fileId = $request->route("fileId");
+        $virtualFile = VirtualFile::where('uuid', '=', $fileId)->first();
         $filename = explode('.', basename($path));
         $count = count($filename);
         if (Storage::disk('local')->exists($path) && $count > 1) {
@@ -168,27 +170,37 @@ class ShareTablesController extends Controller
     {
         // 撤銷上傳請求檔案
         $raw_paths = $request->getContent();
-        try {
-            $decode = Json::decode($raw_paths, true);
+        Log::info($raw_paths);
+        $cgstring = new CGString($raw_paths);
+        $is_json = $cgstring->StartWith('[');
+        if($is_json){
+            $uuids = Json::decode($raw_paths, true);
             $success = 0;
-            foreach ($decode as $item) {
-                if(is_string($item)) {
-                    if (Utilsv2::isBase64(urldecode($item))) {
-                        $item = base64_decode(urldecode($item));
-                        Storage::disk('local')->deleteDirectory($item);
-                    } else {
-                        Storage::disk('local')->delete($item);
-                    }
+            foreach ($uuids as $uuid) {
+                $virtualFile = VirtualFile::where('uuid', '=', $uuid)->first();
+                if ($virtualFile !== null) {
+                    Storage::disk($virtualFile->disk)->delete($virtualFile->path);
+                    //Storage::disk($virtualFile->disk)->deleteDirectory(str_replace(basename($virtualFile->path), '', $virtualFile->path));
+                    $virtualFile->delete();
                     $success++;
+                }else{
+                    Log::info("File revert failed: " . $uuid);
                 }
             }
-            if ($success > 0) {
-                return response()->json(['success' => true, 'message' => 'File deleted successfully']);
+            if($success > 0) {
+                return response()->json(['success' => true, 'message' => 'File revert amount:' . $success]);
             }
-        } catch (JsonException $e) {
-            Log::error($e->getMessage());
+        }else{
+            $virtualFile = VirtualFile::where('uuid', '=', $raw_paths)->first();
+            if ($virtualFile !== null) {
+                Storage::disk($virtualFile->disk)->delete($virtualFile->path);
+                //Storage::disk($virtualFile->disk)->deleteDirectory(str_replace($virtualFile->filename, '', $virtualFile->path));
+                $virtualFile->delete();
+                return response()->json(['success' => true, 'message' => 'File revert']);
+            }
         }
-        return response()->json(['failed' => true, 'message' => 'File not found'], 404);
+
+        return response()->json(['success' => false, 'message' => 'File not found'], 404);
     }
 
     public function shareTableItemUploadImagePost(Request $request)
@@ -245,17 +257,14 @@ class ShareTablesController extends Controller
     public function shareTableItemUploadImageHead(Request $request)
     {
         $fileInfo = $request->route('fileinfo');
-
-        try {
-            $fileInfo = json_decode($fileInfo, true);
-            $fileInfo['folder'] = base64_decode(urldecode($fileInfo['folder']));
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return response()->json(['status' => 'error', 'message' => 'Invalid JSON'], 400);
+        $virtualFile = VirtualFile::where('uuid', '=', $fileInfo)->first();
+        if ($virtualFile !== null) {
+            Storage::disk($virtualFile->disk)->delete($virtualFile->path);
+            //Storage::disk($virtualFile->disk)->deleteDirectory(str_replace($virtualFile->filename, '', $virtualFile->path));
+            return response()->json(['status' => 'success']);
+        } else {
+            return response()->json(['status' => 'error', 'message' => 'File not found'], 404);
         }
-        Storage::disk('local')->deleteDirectory($fileInfo['folder']);
-        Storage::disk('local')->makeDirectory($fileInfo['folder']);
-        return response()->json(['status' => 'success']);
     }
 
     public function shareTableItemUploadImagePatch(Request $request)
@@ -266,15 +275,8 @@ class ShareTablesController extends Controller
         $fileId = $request->header('Upload-Id');
         $fileStream = $request->getContent(true); // 获取文件流
         $fileInfo = $request->route('fileinfo');
-        $virtualFile = null;
 
-        try {
-            $fileInfo = json_decode($fileInfo, true);
-            $virtualFile = VirtualFile::where('uuid', '=', $fileInfo['folder']);
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return response()->json(['status' => 'error', 'message' => 'Invalid JSON'], 400);
-        }
+        $virtualFile = VirtualFile::where('uuid', '=', $fileInfo)->first();
 
         Log::debug(new CGStringable([
             "request" => $request,
@@ -284,21 +286,14 @@ class ShareTablesController extends Controller
         ]));
 
         // 确保上传目录存在
-        $filePath = $fileInfo['folder'] . '/' . $fileName;
-        error_log($fileInfo['folder']);
+        if($offset === "0" and !str_contains($virtualFile->path, $fileName)) {
+            $filePath = $virtualFile->path . '/' . $fileName;
+        } else {
+            $filePath = $virtualFile->path;
+        }
 
         // 打开文件流用于追加内容
         $storagePath = Storage::disk('local')->path($filePath);
-
-        if($offset === "0") {
-            $virtualFile->update([
-                'filename' => $fileName,
-                'path' => $filePath,
-                'extension' => pathinfo($storagePath, PATHINFO_EXTENSION),
-                'minetypes' => Storage::disk('local')->mimeType($storagePath),
-                'expires_at' => now()->addMinutes(10)->timestamp
-            ]);
-        }
 
         // 打开文件流
         $handle = fopen($storagePath, 'c+'); // 'c+' 模式打开用于读写，如果不存在则创建
@@ -319,6 +314,16 @@ class ShareTablesController extends Controller
         // 关闭文件句柄
         fclose($handle);
         fclose($fileStream);
+
+        if($offset === "0") {
+            $virtualFile->update([
+                'filename' => $fileName,
+                'path' => $filePath,
+                'extension' => pathinfo($filePath, PATHINFO_EXTENSION),
+                'minetypes' => Storage::disk('local')->mimeType($filePath),
+                'expires_at' => now()->addMinutes(10)->timestamp
+            ]);
+        }
 
         // 返回响应
         return response()->json(['status' => 'success']);
