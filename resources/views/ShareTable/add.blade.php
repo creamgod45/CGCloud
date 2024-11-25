@@ -39,18 +39,17 @@
 @section('content')
     <main>
         <div class="container2">
-            @dump($request)
-            @dump($newFiles)
             <form>
                 <div class="file-driver">
                 @foreach($newFiles as $file)
                     <div class="fd-item">
+                        <div class="fdi-preview">
                         @if(Utilsv2::isSupportImageFile($file->minetypes))
                             <img src="{{ $file->getTemporaryUrl() }}" alt="{{ $file->filename }}">
                         @else
-                            <a>{{ $file->filename }}</a>
+                            <a href="{{ $file->getTemporaryUrl() }}">{{ $file->filename }}</a>
                         @endif
-                        <a></a>
+                        </div>
                     </div>
                 @endforeach
                 </div>

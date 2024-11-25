@@ -82,17 +82,17 @@ class Kernel extends HttpKernel
      * @var array<string, class-string|string>
      */
     protected $middlewareAliases = [
-        EMiddleWareAliases::auth->name => Authenticate::class,
-        EMiddleWareAliases::auth_basic->name => AuthenticateWithBasicAuth::class,
-        EMiddleWareAliases::auth_session->name => AuthenticateSession::class,
-        EMiddleWareAliases::cache_headers->name => SetCacheHeaders::class,
-        EMiddleWareAliases::can->name => Authorize::class,
-        EMiddleWareAliases::guest->name => RedirectIfAuthenticated::class,
-        EMiddleWareAliases::password_confirm->name => RequirePassword::class,
-        EMiddleWareAliases::precognitive->name => HandlePrecognitiveRequests::class,
-        EMiddleWareAliases::signed->name => ValidateSignature::class,
-        EMiddleWareAliases::throttle->name => ThrottleRequests::class,
-        EMiddleWareAliases::verified->name => EnsureEmailIsVerified::class,
+        'auth' => Authenticate::class,
+        'auth_basic' => AuthenticateWithBasicAuth::class,
+        'auth_session' => AuthenticateSession::class,
+        'cache_headers' => SetCacheHeaders::class,
+        'can' => Authorize::class,
+        'guest' => RedirectIfAuthenticated::class,
+        'password_confirm' => RequirePassword::class,
+        'precognitive' => HandlePrecognitiveRequests::class,
+        'signed' => ValidateSignature::class,
+        'throttle' => ThrottleRequests::class,
+        'verified' => EnsureEmailIsVerified::class,
         'checkClientID' => CheckClientID::class,
     ];
 }

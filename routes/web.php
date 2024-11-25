@@ -38,13 +38,12 @@ Route::middleware("checkClientID")->group(function () {
         //Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('item/edit/{id}', [ShareTablesController::class, 'editor'])->name(RouteNameField::PageShopItemEditor->value);
             Route::post('add', [ShareTablesController::class, 'shareTableItemPost'])->name(RouteNameField::APIShareTableItemPost->value);
-            Route::post('upload', [ShareTablesController::class, 'shareTableItemUploadImagePost'])->name
-
-            (RouteNameField::APIShareTableItemUploadImage->value);
+            Route::post('upload', [ShareTablesController::class, 'shareTableItemUploadImagePost'])->name(RouteNameField::APIShareTableItemUploadImage->value);
             Route::delete('upload/revert', [ShareTablesController::class, 'shareTableItemUploadImageRevert'])->name(RouteNameField::APIShareTableItemUploadImageRevert->value);
             Route::patch('upload/patch/{fileinfo}', [ShareTablesController::class, 'shareTableItemUploadImagePatch'])->name(RouteNameField::APIShareTableItemUploadImagePatch->value);
             Route::get('upload/patch/{fileinfo}', [ShareTablesController::class, 'shareTableItemUploadImageHead'])->name(RouteNameField::APIShareTableItemUploadImageHead->value);
             Route::get('fetch/{fileId}', [ShareTablesController::class, 'shareTableItemUploadImageFetch'])->name(RouteNameField::APIShareTableItemUploadImageFetch->value);
+            Route::get('preview/{fileId}', [ShareTablesController::class, 'apiPreviewFileTemporary'])->name(RouteNameField::APIPreviewFileTemporary->value)->middleware('signed');
         //});
         Route::get('item/{id}', [ShareTablesController::class, 'index'])->name(RouteNameField::PageShopItem->value);
         Route::get('item/{id}/popover', [ShareTablesController::class, 'popover'])->name(RouteNameField::PageShopItemPopover->value);

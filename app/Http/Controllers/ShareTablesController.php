@@ -20,6 +20,7 @@ use Illuminate\Support\MessageBag;
 use Illuminate\Support\Str;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Yajra\DataTables\Facades\DataTables;
 use function Laravel\Prompts\error;
 
@@ -56,6 +57,29 @@ class ShareTablesController extends Controller
             ->addColumn("#", "")
             ->addColumn("goto", '↗️');
         return $array->toJson();*/
+    }
+
+    public function apiPreviewFileTemporary(Request $request)
+    {
+        $fileUUID = $request->route('fileId');
+        $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->first();
+        if($virtualFile !== null) {
+            $disk = Storage::disk($virtualFile->disk);
+            $filename = $virtualFile->path;
+
+            return new StreamedResponse(function () use ($disk, $filename) {
+                $stream = $disk->readStream($filename);
+                fpassthru($stream);
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
+            }, 200, [
+                'Content-Type' => $disk->mimeType($filename),
+                'Content-Length' => $disk->size($filename),
+                'Content-Disposition' => 'inline; filename="'.$filename.'"',
+            ]);
+        }
+        abort(404);
     }
 
     public function addShopItemPost(Request $request)
@@ -112,19 +136,17 @@ class ShareTablesController extends Controller
     {
         $fileId = $request->route("fileId");
         $virtualFile = VirtualFile::where('uuid', '=', $fileId)->first();
-        $filename = explode('.', basename($path));
-        $count = count($filename);
-        if (Storage::disk('local')->exists($path) && $count > 1) {
-            $resource = Storage::disk('local')->readStream($path);
+        if (Storage::disk('local')->exists($virtualFile->path)) {
+            $resource = Storage::disk('local')->readStream($virtualFile->path);
             if ($resource === false) {
                 return response()->json(['status' => 'error', 'message' => 'Failed to open file stream'], 500);
             }
 
             // 获取文件的 MIME 类型
-            $mimeType = Storage::disk('local')->mimeType($path);
+            $mimeType = Storage::disk('local')->mimeType($virtualFile->path);
 
             // 获取文件的大小
-            $fileSize = Storage::disk('local')->size($path);
+            $fileSize = Storage::disk('local')->size($virtualFile->path);
 
             //Log::info($files[0]);
             // 返回流响应，模拟文件下载
@@ -133,10 +155,10 @@ class ShareTablesController extends Controller
             }, 200, [
                 'Content-Type' => $mimeType,
                 'Content-Length' => $fileSize,
-                'Content-Disposition' => 'attachment; filename*=UTF-8\'\'' . rawurlencode(basename($path)) . '"',
+                'Content-Disposition' => 'attachment; filename*=UTF-8\'\'' . rawurlencode(basename($virtualFile->path)) . '"',
             ]);
         } else {
-            $files = Storage::disk('local')->files($path);
+            $files = Storage::disk('local')->files($virtualFile->path);
             $resource = Storage::disk('local')->readStream($files[0]);
             if ($resource === false) {
                 return response()->json(['status' => 'error', 'message' => 'Failed to open file stream'], 500);

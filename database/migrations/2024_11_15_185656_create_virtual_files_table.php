@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('virtual_files', function (Blueprint $table) {
             $table->id();
-            $table->uuid()->unique()->default(Str::uuid()->toString());
+            $table->uuid()->unique();
             $table->enum('type', ['temporary', 'persistent']);
             $table->string('filename')->index('filename');
             $table->string('path');
