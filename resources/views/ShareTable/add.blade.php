@@ -12,7 +12,13 @@
      */
     $menu=true;
     $footer=true;
+    /**
+     * @var $newFiles \App\Models\VirtualFile[]
+     */
     $newFiles=[];
+    if(!empty($moreParams)){
+        $newFiles = $moreParams[0]['files'];
+    }
 @endphp
 @extends('layouts.default')
 @section('title', "新增分享內容 | ".Config::get('app.name'))
@@ -34,6 +40,22 @@
     <main>
         <div class="container2">
             @dump($request)
+            @dump($newFiles)
+            <form>
+                <div class="file-driver">
+                @foreach($newFiles as $file)
+                    <div class="fd-item">
+                        @if(Utilsv2::isSupportImageFile($file->minetypes))
+                            <img src="{{ $file->getTemporaryUrl() }}" alt="{{ $file->filename }}">
+                        @else
+                            <a>{{ $file->filename }}</a>
+                        @endif
+                        <a></a>
+                    </div>
+                @endforeach
+                </div>
+                <input type="submit" name="addFile" value="建立檔案" class="btn btn-primary">
+            </form>
         </div>
     </main>
 @endsection

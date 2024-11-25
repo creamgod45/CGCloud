@@ -11,6 +11,7 @@ use App\Lib\Utils\Utilsv2;
 use App\Lib\Utils\ValidatorBuilder;
 use App\Models\VirtualFile;
 use Exception;
+use Hamcrest\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
@@ -87,30 +88,23 @@ class ShareTablesController extends Controller
 
     public function shareTableItemPost(Request $request)
     {
-        $gallery = $request->get('ItemImages');
+        $gallery = $request->get('ItemImages')[0];
         $files = [];
-        foreach ($gallery as $item) {
+        $string = new CGString($gallery);
 
-            if (Utilsv2::isJson($item)) {
-                try {
-                    $itemEl = Json::decode($item, true);
-                    $itemELCG = new CGArray($itemEl);
-                    if (!$itemELCG->hasKey('folder')) {
-                        foreach ($itemEl as $item2) {
-                            $files[] = $item2;
-                        }
-                    } else {
-                        $itemEl['folder'] = urldecode($itemEl['folder']);
-                        if (Utilsv2::isBase64($itemEl['folder'])) {
-                            $itemEl['folder'] = base64_decode($itemEl['folder']);
-                            $files[] = $itemEl['folder'];
-                        }
-                    }
-                } catch (JsonException $e) {
-                    Log::info($e->getMessage());
-                }
+        if ($string->StartWith('[') && Utilsv2::isJson($gallery)) {
+            $uuids = Json::decode($gallery, true);
+            if (!empty($uuids)) {
+                $files = VirtualFile::whereIn('uuid', $uuids)->get();
+            }
+        } else {
+            // 處理非陣列情況
+            $virtualFile = VirtualFile::where('uuid', '=', $gallery)->first();
+            if ($virtualFile !== null) {
+                $files[] = $virtualFile;
             }
         }
+
         return view('ShareTable.add', Controller::baseControllerInit($request, ["files" => $files])->toArrayable());
     }
 
@@ -173,7 +167,7 @@ class ShareTablesController extends Controller
         Log::info($raw_paths);
         $cgstring = new CGString($raw_paths);
         $is_json = $cgstring->StartWith('[');
-        if($is_json){
+        if ($is_json && Utilsv2::isJson($raw_paths)) {
             $uuids = Json::decode($raw_paths, true);
             $success = 0;
             foreach ($uuids as $uuid) {
@@ -183,14 +177,14 @@ class ShareTablesController extends Controller
                     //Storage::disk($virtualFile->disk)->deleteDirectory(str_replace(basename($virtualFile->path), '', $virtualFile->path));
                     $virtualFile->delete();
                     $success++;
-                }else{
+                } else {
                     Log::info("File revert failed: " . $uuid);
                 }
             }
-            if($success > 0) {
+            if ($success > 0) {
                 return response()->json(['success' => true, 'message' => 'File revert amount:' . $success]);
             }
-        }else{
+        } else {
             $virtualFile = VirtualFile::where('uuid', '=', $raw_paths)->first();
             if ($virtualFile !== null) {
                 Storage::disk($virtualFile->disk)->delete($virtualFile->path);
@@ -234,7 +228,7 @@ class ShareTablesController extends Controller
                 $random = Str::random(10);
                 foreach ($file as $item) {
                     if ($item instanceof UploadedFile) {
-                        $filePath = $item->storePublicly('ShareTable/TEMP/Block/'. $random, 'local');
+                        $filePath = $item->storePublicly('ShareTable/TEMP/Block/' . $random, 'local');
                         $uuid = Str::uuid();
                         VirtualFile::insert([
                             'uuid' => $uuid->toString(),
@@ -286,7 +280,7 @@ class ShareTablesController extends Controller
         ]));
 
         // 确保上传目录存在
-        if($offset === "0" and !str_contains($virtualFile->path, $fileName)) {
+        if ($offset === "0" and !str_contains($virtualFile->path, $fileName)) {
             $filePath = $virtualFile->path . '/' . $fileName;
         } else {
             $filePath = $virtualFile->path;
@@ -315,7 +309,7 @@ class ShareTablesController extends Controller
         fclose($handle);
         fclose($fileStream);
 
-        if($offset === "0") {
+        if ($offset === "0") {
             $virtualFile->update([
                 'filename' => $fileName,
                 'path' => $filePath,

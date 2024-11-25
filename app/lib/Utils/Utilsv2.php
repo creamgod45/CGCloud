@@ -382,5 +382,15 @@ class Utilsv2
         }
         return $unicodeString;
     }
+
+    public static function isSupportImageFile($mimetype)
+    {
+        $mimetype = strtolower($mimetype);
+        $mimeTypes = explode('::', 'image/png::image/jpg::image/jpeg::image/svg+xml::image/gif::image/webp::image/apng::image/bmp::image/avif');
+        if (in_array($mimetype, $mimeTypes)) {
+            return true;
+        }
+        return false;
+    }
 }
 
