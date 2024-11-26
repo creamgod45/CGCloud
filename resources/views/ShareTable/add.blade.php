@@ -43,13 +43,15 @@
                 <div class="file-driver">
                 @foreach($newFiles as $file)
                     <div class="fd-item">
+                        <input type="hidden" name="files[]" value="{{ $file->uuid }}">
                         <div class="fdi-preview">
                         @if(Utilsv2::isSupportImageFile($file->minetypes))
-                            <img src="{{ $file->getTemporaryUrl() }}" alt="{{ $file->filename }}">
+                            <img class="fdi-imginfo" src="{{ $file->getTemporaryUrl() }}" alt="{{ $file->filename }}">
                         @else
                             <a href="{{ $file->getTemporaryUrl() }}">{{ $file->filename }}</a>
                         @endif
                         </div>
+                        <div class="fdi-delete btn btn-circle btn-color7 btn-border-0"><i class="fa-solid fa-xmark"></i></div>
                     </div>
                 @endforeach
                 </div>

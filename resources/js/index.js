@@ -35,6 +35,8 @@ import './components/form-ct.js';
 import './components/scroll-indicator.js';
 import './components/dashvideo.js';
 import './components/videoJs.js';
+import './components/file-driver.js';
+import './components/imginfo.js';
 import Masonry from 'masonry-layout/masonry.js'
 
 document.addEventListener('DOMContentLoaded', async function () {

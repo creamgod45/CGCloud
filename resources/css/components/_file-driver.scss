@@ -1,0 +1,18 @@
+.file-driver {
+    @apply flex justify-start items-center gap-5 px-5 w-screen overflow-auto;
+    .fd-item {
+        @apply min-w-[256px] size-[256px] rounded-4xl relative ring-1 ring-slate-300 bg-slate-200 flex justify-center items-center;
+        .fdi-preview {
+            .fdi-imginfo {
+                @apply w-[256px];
+            }
+        }
+        .fdi-delete {
+            @apply absolute top-4 right-4;
+        }
+
+        .fdi-size-text{
+            @apply absolute right-4 bottom-4 text-black;
+        }
+    }
+}
