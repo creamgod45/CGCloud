@@ -29,6 +29,11 @@ class VirtualFile extends Model
         'expires_at' => ExpiresAtCast::class,
     ];
 
+    public function shareTables()
+    {
+        return $this->belongsToMany(ShareTable::class, 'share_table_virtual_file');
+    }
+
 
     public function getPublicUrl()
     {

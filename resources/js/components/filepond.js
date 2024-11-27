@@ -29,6 +29,7 @@ function filepondLoader() {
         let process = filepondElement.dataset.upload;
         let revert = filepondElement.dataset.revert;
         let patch = filepondElement.dataset.patch;
+        let thumbable = filepondElement.dataset.thumbable === "true";
         if (process === undefined || revert === undefined || patch === undefined) return; // 如果 URL 有任一未定義則返回
 
         patch = patch.replaceAll("%20", ""); // 修正 patch 路徑
@@ -69,7 +70,7 @@ function filepondLoader() {
         }
 
         // 設定 FilePond 選項
-        FilePond.setOptions({
+        let options = {
             server: {
                 process: process,
                 revert: revert,
@@ -102,7 +103,9 @@ function filepondLoader() {
             acceptedFileTypes: allowtypes,
             labelFileTypeNotAllowed: '文件類型無效',
             fileValidateTypeLabelExpectedTypes: '需要 {allButLastType} 或 {lastType}',
-            imageTransformVariants: {
+        };
+        if(thumbable){
+            options.imageTransformVariants = {
                 thumb_medium_: (transforms) => {
                     transforms.resize = {
                         size: { width: 280, height: 157 },
@@ -115,8 +118,9 @@ function filepondLoader() {
                     };
                     return transforms;
                 },
-            },
-        });
+            };
+        }
+        FilePond.setOptions(options);
 
         // 文件添加事件處理
         filepond.on('addfile', function () {

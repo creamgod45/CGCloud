@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Lib\Server\CSRF;
 use App\Lib\Type\Array\CGArray;
 use App\Lib\Type\String\CGString;
 use App\Lib\Type\String\CGStringable;
@@ -14,6 +15,7 @@ use Exception;
 use Hamcrest\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\MessageBag;
@@ -110,26 +112,40 @@ class ShareTablesController extends Controller
         return view('Shop.AddShopItem', Controller::baseControllerInit($request, ["files" => $files])->toArrayable());
     }
 
+    public function shareTableItemCreatePost(Request $request)
+    {
+
+    }
+
     public function shareTableItemPost(Request $request)
     {
-        $gallery = $request->get('ItemImages')[0];
-        $files = [];
-        $string = new CGString($gallery);
+        $CGLCI = self::baseControllerInit($request);
+        $fingerprint = $CGLCI->getFingerprint();
+        $key = 'sharTableItemPost' . $fingerprint;
+        if (Cache::has($key)) {
+            $files = [];
+            foreach ($request->get('ItemImages') as $item) {
+                $gallery = $item;
+                $string = new CGString($gallery);
 
-        if ($string->StartWith('[') && Utilsv2::isJson($gallery)) {
-            $uuids = Json::decode($gallery, true);
-            if (!empty($uuids)) {
-                $files = VirtualFile::whereIn('uuid', $uuids)->get();
+                if ($string->StartWith('[') && Utilsv2::isJson($gallery)) {
+                    $uuids = Json::decode($gallery, true);
+                    if (!empty($uuids)) {
+                        $f = VirtualFile::whereIn('uuid', $uuids)->get();
+                        $files = array_merge($files, $f->all());
+                    }
+                } else {
+                    // 處理非陣列情況
+                    $virtualFile = VirtualFile::where('uuid', '=', $gallery)->first();
+                    if ($virtualFile !== null) {
+                        $files[] = $virtualFile;
+                    }
+                }
             }
-        } else {
-            // 處理非陣列情況
-            $virtualFile = VirtualFile::where('uuid', '=', $gallery)->first();
-            if ($virtualFile !== null) {
-                $files[] = $virtualFile;
-            }
+
+            return view('ShareTable.add', Controller::baseControllerInit($request, ["files" => $files])->toArrayable());
         }
-
-        return view('ShareTable.add', Controller::baseControllerInit($request, ["files" => $files])->toArrayable());
+        return redirect(route(RouteNameField::PageHome->value));
     }
 
     public function shareTableItemUploadImageFetch(Request $request)
@@ -225,6 +241,9 @@ class ShareTablesController extends Controller
         /** @var UploadedFile[] $files */
         $files = $request->allFiles();
         //Log::info(\App\Http\Controllers\ShopController::class . " " . __FUNCTION__ . " " . __LINE__ . " " . var_export($files, true));
+        $CGLCI = self::baseControllerInit($request);
+        $fingerprint = $CGLCI->getFingerprint();
+        $key = 'sharTableItemPost' . $fingerprint;
 
         if (empty($files)) {
             Log::info("Create folder for upload");
@@ -239,9 +258,8 @@ class ShareTablesController extends Controller
                 'disk' => 'local',
                 'extension' => 'null',
                 'minetypes' => 'null',
-                'expires_at' => now()->addMinutes(10)->timestamp
+                'expires_at' => now()->addMinutes(10)->timestamp,
             ]);
-            //error_log(is_string($request->getContent()) ? $request->getContent() : var_export($request->getContent(), true));
             return response($uuid, 200);
         } else {
             Log::info("Upload files");
@@ -260,11 +278,15 @@ class ShareTablesController extends Controller
                             'disk' => 'local',
                             'extension' => $item->getClientOriginalExtension(),
                             'minetypes' => $item->getMimeType(),
-                            'expires_at' => now()->addMinutes(10)->timestamp
+                            'expires_at' => now()->addMinutes(10)->timestamp,
                         ]);
                         $file_path_array [] = $uuid;
                     }
                 }
+            }
+            if(count($file_path_array) > 0)
+            {
+                Cache::put($key, true, now()->addMinutes(10));
             }
             return response()->json($file_path_array);
         }
@@ -286,6 +308,9 @@ class ShareTablesController extends Controller
     public function shareTableItemUploadImagePatch(Request $request)
     {
         // 处理分块上传请求
+        $CGLCI = self::baseControllerInit($request);
+        $fingerprint = $CGLCI->getFingerprint();
+        $key = 'sharTableItemPost' . $fingerprint;
         $fileName = basename($request->header('Upload-Name'));
         $offset = $request->header('Upload-Offset');
         $fileId = $request->header('Upload-Id');
@@ -318,6 +343,7 @@ class ShareTablesController extends Controller
             Log::error('Failed to open file stream for writing');
             return response()->json(['status' => 'error', 'message' => 'Failed to open file stream'], 500);
         }
+        Cache::put($key, true, now()->addMinutes(10));
 
         // 移动文件指针到指定的偏移量
         fseek($handle, $offset);
@@ -337,7 +363,7 @@ class ShareTablesController extends Controller
                 'path' => $filePath,
                 'extension' => pathinfo($filePath, PATHINFO_EXTENSION),
                 'minetypes' => Storage::disk('local')->mimeType($filePath),
-                'expires_at' => now()->addMinutes(10)->timestamp
+                'expires_at' => now()->addMinutes(10)->timestamp,
             ]);
         }
 

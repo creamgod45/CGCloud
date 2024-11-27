@@ -37,13 +37,14 @@
     <main>
         <div class="container1">
             <div class="panel-title-field gfont-noto-serif-tc-bold">檔案列表</div>
-            <form class="panel-upload-field" method="post" action="{{ route(RouteNameField::APIShareTableItemPost->value)  }}">
+            <form class="panel-upload-field" method="post"
+                  action="{{ route(RouteNameField::PageShareTableItemPost->value)  }}">
                 @csrf
                 <input type="submit" class="btn btn-ripple btn-color7 btn-md-strip" name="upload" value="上傳">
                 <input type="file" class="filepond w-1/2"
                        data-allowtypes="image/png::image/jpg::image/jpeg::image/svg+xml::image/gif::image/webp::image/apng::image/bmp::image/avif::video/av1::video/H264::video/H264-SVC::video/H264-RCDO::video/H265::video/JPEG::video/JPEG::video/mpeg::video/mpeg4-generic::video/ogg::video/quicktime::video/JPEG::video/vnd.mpegurl::video/vnd.youtube.yt::video/VP8::video/VP9::video/mp4::video/mp4V-ES::video/MPV::video/vnd.directv.mpeg::video/vnd.dece.mp4::video/vnd.uvvu.mp4::video/H266::video/H263::video/H263-1998::video/H263-2000::video/H261::application/zip::application/x-zip-compressed::multipart/x-zip::application/x-compressed"
                        @if((!empty($moreParams)))
-                       data-files="{{ Json::encode($newFiles) }}"
+                           data-files="{{ Json::encode($newFiles) }}"
                        @endif
                        data-upload="{{ route(RouteNameField::APIShareTableItemUploadImage->value) }}"
                        data-revert="{{ route(RouteNameField::APIShareTableItemUploadImageRevert->value) }}"
@@ -54,7 +55,9 @@
             <div class="panel-field-list">
                 <div class="panel-field-card vertical">
                     <div class="pfc-icon"><i class="fa-solid fa-file"></i></div>
-                    <div class="pfc-title tippyer" data-placement="auto" data-htmlable="true" data-content="#tipper2"><i class="fa-solid fa-circle-info"></i> 檔案</div>
+                    <div class="pfc-title tippyer" data-placement="auto" data-htmlable="true" data-content="#tipper2"><i
+                            class="fa-solid fa-circle-info"></i> 檔案
+                    </div>
                     <div id="tipper2" class="pfc-fileinfo !hidden">
                         <div class="pfcf-text">檔案大小：</div>
                         <div class="pfcf-text">檔案類型：</div>
@@ -64,7 +67,7 @@
                     </div>
                     <div class="pfc-preview">
                         {{-- <video class="dashvideo" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video> --}}
-{{--                        <video class="vjs video-js vjs-theme-forest" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video>--}}
+                        {{--                        <video class="vjs video-js vjs-theme-forest" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video>--}}
                         <div class="vjs-playlist"></div>
                     </div>
                     <div class="pfc-operator">
@@ -84,7 +87,8 @@
                 </div>
                 <div class="panel-field-card horizontal">
                     <div class="pfc-field-group">
-                        <div class="pfc-icon tippyer !border-none" data-htmlable="true" data-placement="auto" data-content="#tipper3"><i class="fa-regular fa-file-video"></i></div>
+                        <div class="pfc-icon tippyer !border-none" data-htmlable="true" data-placement="auto"
+                             data-content="#tipper3"><i class="fa-regular fa-file-video"></i></div>
                         <div class="pfc-title">
                             <div class="tippyer w-fit" data-placement="auto" data-htmlable="true"
                                  data-content="#tipper1"><i class="fa-solid fa-circle-info"></i> 檔案
@@ -99,7 +103,7 @@
                         <div class="pfcf-text">擁有者：</div>
                     </div>
                     <div id="tipper3" class="pfc-preview !hidden">
-{{--                        <video onmouseenter="document.dispatchEvent(new CustomEvent('CG::Video', { detail: this}))" class="vjs video-js vjs-theme-forest" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video>--}}
+                        {{--                        <video onmouseenter="document.dispatchEvent(new CustomEvent('CG::Video', { detail: this}))" class="vjs video-js vjs-theme-forest" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video>--}}
                         <div class="vjs-playlist"></div>
                     </div>
                     <div class="pfc-operator">

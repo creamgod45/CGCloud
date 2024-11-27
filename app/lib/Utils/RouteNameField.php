@@ -38,6 +38,7 @@ enum RouteNameField: string
     case PageShopItemEditorPost = 'root.shop.item.editor.post';
     case PageCustomerOrderListPost = 'root.customer.order.list.post';
     case PageCustomerOrderList = 'root.customer.order.list';
+    case PageShareTableItemPost = 'root.sharetable.item.post';
 
     // API
     case APIEncodeJson = 'root.api.EncodeJson';
@@ -45,7 +46,7 @@ enum RouteNameField: string
     case APIBrowser = 'root.api.Browser';
     case APIBroadcast = 'root.api.Broadcast';
     case APIHTMLTemplateNotification = 'root.api.HTMLTemplateNotification';
-    case APIShareTableItemPost = 'root.api.sharetable.item.post';
+    case APIShareTableItemCreatePost = 'root.api.sharetable.item.create.post';
     case APIShareTableItemUploadImage = 'root.api.shop.item.upload';
     case APIShareTableItemUploadImageRevert = 'root.api.sharetable.item.upload.revert';
     case APIShareTableItemUploadImagePatch = 'root.api.sharetable.item.upload.patch';

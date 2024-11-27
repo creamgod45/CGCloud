@@ -11,7 +11,6 @@ use RahulHaque\Filepond\Models\Filepond;
 class ShareTable extends Model
 {
     protected $fillable = [
-        'filepond_id',
         'member_id',
         'name',
         'description',
@@ -27,9 +26,9 @@ class ShareTable extends Model
 
     use HasFactory;
 
-    public function virtualFile(): BelongsTo
+    public function virtualFiles()
     {
-        return $this->belongsTo(VirtualFile::class);
+        return $this->belongsToMany(VirtualFile::class, 'share_table_virtual_file');
     }
 
     public function member(): BelongsTo

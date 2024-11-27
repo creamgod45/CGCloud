@@ -2500,19 +2500,34 @@ a.btn {
 }
 
 .file-driver {
-  @apply flex justify-start items-center gap-5 px-5 w-screen overflow-auto;
+  @apply gap-5 p-5 w-screen;
 }
 .file-driver .fd-item {
-  @apply min-w-[256px] size-[256px] rounded-4xl relative ring-1 ring-slate-300 bg-slate-200 flex justify-center items-center;
+  @apply min-w-[256px] h-[256px] rounded-4xl relative ring-1 ring-slate-300 bg-slate-200 flex justify-center items-center;
+}
+.file-driver .fd-item .fdi-preview {
+  @apply size-[256px] flex justify-center items-center px-2;
 }
 .file-driver .fd-item .fdi-preview .fdi-imginfo {
   @apply w-[256px];
 }
 .file-driver .fd-item .fdi-delete {
-  @apply absolute top-4 right-4;
+  @apply absolute top-4 right-4 z-10;
 }
 .file-driver .fd-item .fdi-size-text {
-  @apply absolute right-4 bottom-4 text-black;
+  @apply absolute left-4 bottom-4 text-black;
+}
+.file-driver .fd-item .fdi-content {
+  @apply w-full h-full bg-white overflow-auto mr-6;
+}
+.file-driver .fd-item .fdi-content .fdic-field {
+  @apply dark:text-black text-black flex items-center justify-start gap-5 p-5;
+}
+.file-driver .fd-item .fdi-content .fdic-field label {
+  @apply w-1/3 text-left font-bold;
+}
+.file-driver .fd-item .fdi-content .fdic-field input, .file-driver .fd-item .fdi-content .fdic-field textarea {
+  @apply w-2/3;
 }
 
 body {

@@ -37,7 +37,8 @@ Route::middleware("checkClientID")->group(function () {
     Route::group(['prefix' => "sharetable"], function () {
         //Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('item/edit/{id}', [ShareTablesController::class, 'editor'])->name(RouteNameField::PageShopItemEditor->value);
-            Route::post('add', [ShareTablesController::class, 'shareTableItemPost'])->name(RouteNameField::APIShareTableItemPost->value);
+            Route::post('add', [ShareTablesController::class, 'shareTableItemPost'])->name(RouteNameField::PageShareTableItemPost->value);
+            Route::post('create', [ShareTablesController::class, 'shareTableItemCreatePost'])->name(RouteNameField::APIShareTableItemCreatePost->value);
             Route::post('upload', [ShareTablesController::class, 'shareTableItemUploadImagePost'])->name(RouteNameField::APIShareTableItemUploadImage->value);
             Route::delete('upload/revert', [ShareTablesController::class, 'shareTableItemUploadImageRevert'])->name(RouteNameField::APIShareTableItemUploadImageRevert->value);
             Route::patch('upload/patch/{fileinfo}', [ShareTablesController::class, 'shareTableItemUploadImagePatch'])->name(RouteNameField::APIShareTableItemUploadImagePatch->value);

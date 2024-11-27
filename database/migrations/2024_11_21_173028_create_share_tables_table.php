@@ -9,7 +9,6 @@ return new class extends Migration {
     {
         Schema::create('share_tables', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('virtual_files_id')->references('id')->on('virtual_files')->onDelete('cascade');
             $table->foreignId('member_id');
             $table->string('name');
             $table->text('description');
@@ -20,10 +19,18 @@ return new class extends Migration {
             $table->timestamps();
             $table->engine('InnoDB');
         });
+
+        Schema::create('share_table_virtual_file', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('share_table_id')->constrained()->onDelete('cascade');
+            $table->foreignId('virtual_file_id')->constrained()->onDelete('cascade');
+            $table->timestamps();
+        });
     }
 
     public function down(): void
     {
+        Schema::dropIfExists('share_table_virtual_file');
         Schema::dropIfExists('share_tables');
     }
 };

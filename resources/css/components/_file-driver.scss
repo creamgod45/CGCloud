@@ -1,18 +1,32 @@
 .file-driver {
-    @apply flex justify-start items-center gap-5 px-5 w-screen overflow-auto;
+    @apply gap-5 p-5 w-screen;
     .fd-item {
-        @apply min-w-[256px] size-[256px] rounded-4xl relative ring-1 ring-slate-300 bg-slate-200 flex justify-center items-center;
+        @apply min-w-[256px] h-[256px] rounded-4xl relative ring-1 ring-slate-300 bg-slate-200 flex justify-center items-center;
         .fdi-preview {
+            @apply size-[256px] flex justify-center items-center px-2;
             .fdi-imginfo {
                 @apply w-[256px];
             }
         }
         .fdi-delete {
-            @apply absolute top-4 right-4;
+            @apply absolute top-4 right-4 z-10;
         }
 
         .fdi-size-text{
-            @apply absolute right-4 bottom-4 text-black;
+            @apply absolute left-4 bottom-4 text-black;
+        }
+
+        .fdi-content{
+            @apply w-full h-full bg-white overflow-auto mr-6;
+            .fdic-field{
+                @apply dark:text-black text-black flex items-center justify-start gap-5 p-5;
+                label{
+                    @apply w-1/3 text-left font-bold;
+                }
+                input,textarea{
+                    @apply w-2/3;
+                }
+            }
         }
     }
 }

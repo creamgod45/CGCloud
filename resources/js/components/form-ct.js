@@ -257,6 +257,91 @@ function Auth_ForgetPassword(element) {
     forget.onclick = submitFn;
 }
 
+function ShareTable_add(element) {
+    let options = element.cgoptions;
+    let i = 0;
+    console.log(options);
+    if (options.rawOptions.target === null) return false;
+    console.log(i++)
+    for (let tracksListElement of options.tracksList) {
+        if (tracksListElement === null) return false;
+    }
+    console.log(i++)
+    /**
+     * resetpassword,password_confirmation,password
+     * @var {HTMLButtonElement}
+     */
+    let addFile = options.tracksList.addFile;
+    /**
+     * @var {HTMLInputElement}
+     */
+    let password_confirmation = options.tracksList.password_confirmation;
+    /**
+     * @var {HTMLInputElement}
+     */
+    let password = options.tracksList.password;
+    let email = options.tracksList.email;
+    let token2 = options.tracksList.token2;
+
+    console.log(i++)
+    let alert = element.querySelector(options.rawOptions.target);
+    let validateFn = () => {
+        let b = password.validateStatus && password_confirmation.validateStatus && password.value === password_confirmation.value;
+        if (!b) {
+            if (!password.validateStatus) {
+                password.tippy.show();
+            }
+            if (!password_confirmation.validateStatus) {
+                password_confirmation.tippy.show();
+            }
+            if (password.value !== password_confirmation.value) {
+                password_confirmation.tippy.show();
+            }
+        }
+        return b;
+    };
+    let proccessFn = () => {
+        axios.post('/passwordreset', {
+            password: Utils.encodeContext(password.value)['compress'],
+            password_confirmation: Utils.encodeContext(password_confirmation.value)['compress'],
+            token2: element.token,
+            token: token2.value,
+            email: email.value,
+        }, {
+            adapter: "fetch",
+            method: "POST",
+            responseType: "json",
+        }).then((response) => {
+            let data = response.data;
+            element.token = data.token;
+            console.log(data);
+            console.log(element.token);
+            if (alert !== null) {
+                alert.innerHTML = data.message;
+            }
+            if (data.error_keys !== undefined) {
+                for (let key of data.error_keys) {
+                    if (key !== "token" && key !== "resetpassword") {
+                        options.tracksList[key].tippy.show();
+                    }
+                }
+            }
+            common_proccess(data);
+        });
+    }
+    let submitFn = () => {
+        if (element.dataset.token === undefined) return false;
+        if (element.token === undefined) element.token = element.dataset.token;
+        let r = validateFn();
+        if (r) {
+            proccessFn();
+        }
+        return false;
+    };
+    addFile.form.onsubmit = submitFn;
+    addFile.onclick = submitFn;
+}
+
 /**
  * Auth_ResetPassword 函式用於重設用戶的密碼。
  *
@@ -397,6 +482,7 @@ function form_ct() {
         }
 
         let addressList = {
+            root: form,
             rawOptions: form.dataset,
             fn: fn,
             tracks: tracks,
@@ -416,6 +502,8 @@ function form_ct() {
             case "Auth.ResetPassword":
                 Auth_ResetPassword(form);
                 break;
+            case "ShareTable.add":
+                ShareTable_add(form);
             default:
                 break;
         }
