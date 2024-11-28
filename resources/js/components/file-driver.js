@@ -23,15 +23,17 @@ function fileDriver() {
             };
             item.addressList.deleteButton.onclick = ()=>{ deleteButtonFn(item) };
             let imginfo = item.addressList.imgInfo;
-            setTimeout(() => {
-                let width = imginfo.naturalWidth;
-                let height = imginfo.naturalHeight;
-                let sizeText = document.createElement('div');
-                sizeText.classList.add('fdi-size-text');
-                sizeText.innerText = `${width} x ${height}`;
+            if(imginfo !== null) {
+                setTimeout(() => {
+                    let width = imginfo.naturalWidth;
+                    let height = imginfo.naturalHeight;
+                    let sizeText = document.createElement('div');
+                    sizeText.classList.add('fdi-size-text');
+                    sizeText.innerText = `${width} x ${height}`;
 
-                item.appendChild(sizeText);
-            }, 100);
+                    item.appendChild(sizeText);
+                }, 100);
+            }
         }
 
         f.addressList = addressList;

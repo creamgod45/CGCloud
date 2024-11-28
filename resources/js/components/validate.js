@@ -174,6 +174,27 @@ function validate() {
                     checkMinLength(validate);
                 }
                 break;
+            case "default":
+                if (validate.validateStatus === undefined || validate.validateStatus === null) {
+                    validate.validateStatus = false;
+                }
+                setTimeout(function () {
+                    checkMaxLength(validate);
+                    checkMinLength(validate);
+                }, 100);
+                validate.oninput = function () {
+                    checkMaxLength(validate);
+                    checkMinLength(validate);
+                }
+                validate.onchange = function () {
+                    checkMaxLength(validate);
+                    checkMinLength(validate);
+                }
+                validate.onfocus = function () {
+                    checkMaxLength(validate);
+                    checkMinLength(validate);
+                }
+                break;
         }
     }
 }

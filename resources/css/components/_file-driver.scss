@@ -1,7 +1,7 @@
 .file-driver {
-    @apply gap-5 p-5 w-screen;
+    @apply gap-5 p-5 w-full flex flex-nowrap;
     .fd-item {
-        @apply min-w-[256px] h-[256px] rounded-4xl relative ring-1 ring-slate-300 bg-slate-200 flex justify-center items-center;
+        @apply min-w-[256px] size-[256px] rounded-4xl relative ring-1 ring-slate-300 bg-slate-200 flex justify-center items-center;
         .fdi-preview {
             @apply size-[256px] flex justify-center items-center px-2;
             .fdi-imginfo {
@@ -14,19 +14,6 @@
 
         .fdi-size-text{
             @apply absolute left-4 bottom-4 text-black;
-        }
-
-        .fdi-content{
-            @apply w-full h-full bg-white overflow-auto mr-6;
-            .fdic-field{
-                @apply dark:text-black text-black flex items-center justify-start gap-5 p-5;
-                label{
-                    @apply w-1/3 text-left font-bold;
-                }
-                input,textarea{
-                    @apply w-2/3;
-                }
-            }
         }
     }
 }

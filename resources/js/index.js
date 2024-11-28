@@ -37,6 +37,7 @@ import './components/dashvideo.js';
 import './components/videoJs.js';
 import './components/file-driver.js';
 import './components/imginfo.js';
+import './components/tom-select.js';
 import Masonry from 'masonry-layout/masonry.js'
 
 document.addEventListener('DOMContentLoaded', async function () {

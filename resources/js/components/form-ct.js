@@ -280,14 +280,21 @@ function ShareTable_add(element) {
      * @var {HTMLInputElement}
      */
     let password = options.tracksList.password;
-    let email = options.tracksList.email;
-    let token2 = options.tracksList.token2;
+    let shareTableName = options.tracksList.shareTableName;
+    let shareTableShortCode = options.tracksList.shareTableShortCode;
+    let files = options.tracksList.files;
 
     console.log(i++)
     let alert = element.querySelector(options.rawOptions.target);
     let validateFn = () => {
-        let b = password.validateStatus && password_confirmation.validateStatus && password.value === password_confirmation.value;
+        let b = password.validateStatus && password_confirmation.validateStatus && password.value === password_confirmation.value && shareTableName.validateStatus && shareTableShortCode.validateStatus;
         if (!b) {
+            if (!shareTableName.validateStatus) {
+                shareTableName.tippy.show();
+            }
+            if (!shareTableShortCode.validateStatus) {
+                shareTableShortCode.tippy.show();
+            }
             if (!password.validateStatus) {
                 password.tippy.show();
             }
@@ -504,6 +511,7 @@ function form_ct() {
                 break;
             case "ShareTable.add":
                 ShareTable_add(form);
+                break;
             default:
                 break;
         }

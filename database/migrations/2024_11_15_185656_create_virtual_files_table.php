@@ -18,7 +18,6 @@ return new class extends Migration {
             $table->string('disk');
             $table->integer('expires_at');
             $table->timestamps();
-            $table->softDeletes();
             $table->engine('InnoDB');
         });
     }

@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('member_id');
             $table->string('name');
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->enum('type', ['public', 'private'])->default('public');
             $table->integer('expired_at');
             $table->string('short_code')->comment("短連接代碼");
