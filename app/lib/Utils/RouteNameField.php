@@ -58,4 +58,5 @@ enum RouteNameField: string
     case APIClientConfig = 'root.api.ClientConfig';
     case APICustomerOrderListPost = 'root.api.customer.order.list.post';
     case APIPreviewFileTemporary = 'root.api.PreviewFileTemporary';
+    case APIGetUsers =  'root.api.get.users';
 }

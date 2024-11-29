@@ -87,6 +87,6 @@
         "videojs-playlist-ui": "^5.0.0",
         "videojs-vjsdownload": "^2.0.1",
         "videojs-wavesurfer": "^3.10.0",
-        "watch": "^1.0.2"
+        "watch": "^0.13.0"
     }
 }

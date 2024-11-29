@@ -75,7 +75,7 @@
                         </div>
                         <div class="fdic-field">
                             <label for="shareTableType">類型</label>
-                            <select class="select2" data-width="66%" name="shareTableType" required>
+                            <select class="tom-select" data-width="66%" name="shareTableType" required>
                                 <option value="public">公開</option>
                                 <option value="private">私人</option>
                             </select>
@@ -89,7 +89,7 @@
                         </div>
                         <div class="fdic-field">
                             <label for="shareMembers">分享使用者</label>
-                            <select class="select2" data-width="66%" name="shareMembers" multiple required></select>
+                            <select class="tom-select" data-src="{{ route(RouteNameField::APIGetUsers->value) }}" data-width="66%" name="shareMembers" multiple required></select>
                         </div>
                         <div class="fdic-field">
                             <label for="password">分享密碼</label>

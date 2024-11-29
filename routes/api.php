@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\InternalController;
 use App\Http\Middleware\EMiddleWareAliases;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
+use App\Lib\Utils\RouteNameField;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Hash;
@@ -19,9 +21,8 @@ use Illuminate\Support\Str;
 |
 */
 
-Route::middleware(EMiddleWareAliases::auth->name)->get('/user', function (Request $request) {
-    return $request->user();
-});
+//Route::middleware(EMiddleWareAliases::auth->name)->post('/user', [InternalController::class, 'apiGetUsers'])->name(RouteNameField::APIGetUsers->value);
+Route::post('/user', [InternalController::class, 'apiGetUsers'])->name(RouteNameField::APIGetUsers->value);
 
 //Route::apiResource('animal', AnimalController::class);
 

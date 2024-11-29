@@ -1,4 +1,6 @@
-import TomSelect from "tom-select/base";
+//import TomSelect from "tom-select/base";
+import TomSelect from 'tom-select/dist/esm/tom-select.complete.js';
+import axios from "axios";
 
 //https://tom-select.js.org/docs/
 function TomSelect_() {
@@ -18,6 +20,8 @@ function TomSelect_() {
         let duplicates = dataset.duplicates === "true";
         let maxOptions = dataset.maxoptions;
         let preload = dataset.preload === "true";
+        let src = dataset.src;
+        let perpage = dataset.perpage;
 
         if(maxOptions === undefined) {
             maxOptions = null;
@@ -35,7 +39,67 @@ function TomSelect_() {
             duplicates: duplicates,
             maxOptions: maxOptions,
             preload: preload,
+
         };
+        if(src !== undefined) {
+            custome_options.valueField = 'value';
+            custome_options.labelField = 'name';
+            custome_options.searchField = 'name';
+            if(perpage !== undefined)
+                custome_options.maxOptions = parseInt(perpage);
+            else
+                custome_options.maxOptions = 15;
+            if (custome_options.hasOwnProperty('plugins')) {
+                custome_options['plugins'].push('virtual_scroll');
+            } else {
+                custome_options['plugins'] = ['virtual_scroll'];
+            }
+            custome_options.render = {};
+            // custome_options.render.loading_more = function(data, escape) {
+            //     return `<div class="loading-more-results py-2 d-flex align-items-center"><div class="spinner"></div> Loading more results from reddit </div>`;
+            // };
+            // custome_options.render.no_more_results = function(data,escape){
+            //     return `<div class="no-more-results">No more results</div>`;
+            // }
+            custome_options.firstUrl = function(query){
+                return src;
+            };
+
+            custome_options.shouldLoadMore = function() {
+               console.log(this.currentResults.items.length);
+               return true;
+            };
+            custome_options.shouldLoad = function(query) {
+               console.log(query);
+               console.log(this.currentResults.items.length);
+               console.log(this);
+               console.log(this.maxOptions);
+               if(this.currentResults.items.length < this.settings.maxOptions-3){
+                   console.log('load');
+                   this.load(query);
+               }
+               return true;
+            };
+
+            custome_options.load = function(query, callback) {
+                console.log(query);
+                const url = this.getUrl(query);
+                axios.post(url, {
+                    query: query,
+                    //selectedItems: this.items,
+                }).then(res => {
+                    let items = res.data.data;
+                    console.log(res.data);
+                    console.log(items);
+                    callback(items);
+                    this.setNextUrl(query, res.data.next_page_url)
+                }).catch(err => {
+                    console.log(err);
+                    callback([]);
+                })
+            };
+        }
+
         if(items !== undefined) {
             custome_options['items'] = JSON.parse(items);
         }

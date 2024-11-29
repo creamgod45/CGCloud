@@ -11,17 +11,15 @@ use App\Lib\Utils\EValidatorType;
 use App\Lib\Utils\Utils;
 use App\Lib\Utils\Utilsv2;
 use App\Lib\Utils\ValidatorBuilder;
-use App\Models\CustomizePage;
-use App\Models\Inventory;
-use App\Models\InventoryType;
+use App\Models\Member;
 use App\Models\ShopConfig;
 use App\Models\SystemLog;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
@@ -35,6 +33,8 @@ use Intervention\Image\Geometry\Factories\PolygonFactory;
 use Intervention\Image\Geometry\Factories\RectangleFactory;
 use Intervention\Image\Laravel\Facades\Image;
 use Intervention\Image\Typography\FontFactory;
+use Nette\Utils\Json;
+use Nette\Utils\JsonException;
 use Symfony\Component\HttpFoundation\Response as ResponseHTTP;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -43,9 +43,56 @@ class InternalController extends Controller
     public function SystemSettings(Request $request)
     {
         $shopConfigs = ShopConfig::all();
-        $inventoryTypes = InventoryType::all();
         return view('System.SystemSettings', Controller::baseControllerInit($request,
-            ['ShopConfig' => $shopConfigs, 'inventoryTypes' => $inventoryTypes])->toArrayable());
+            ['ShopConfig' => $shopConfigs, 'inventoryTypes' => []])->toArrayable());
+    }
+
+    /**
+     * @throws JsonException
+     */
+    public function apiGetUsers(Request $request)
+    {
+        $perPage = 15; // Define how many items you want per page
+        $selectedItems = $request->get('selectedItems', []);
+        $page = $request->get('page', 1); // Get the requested page number, or default to 1
+        $queryUser = $request->get('query');
+        $queryBuilder = null;
+        if (Utilsv2::isJson($queryUser)) {
+            $queryUser = Json::decode($queryUser, true);
+            // Use paginate() instead of all() to fetch paginated results
+            $queryBuilder = Member::when($queryUser, function (Builder $query, $queryObject) use($selectedItems) {
+                foreach ($queryObject as $key => $value) {
+                    $query->where($key, 'like', $value);
+                }
+                if (!empty($selectedItems)) {
+                    $query->whereNotIn('id', $selectedItems);
+                }
+                return $query;
+            })->getQuery();
+        } elseif (is_string($queryUser) && !empty($queryUser)) {
+            // Use paginate() instead of all() to fetch paginated results
+            $queryBuilder = Member::when($queryUser, function ($query, $value) use($selectedItems) {
+                if (!empty($selectedItems)) {
+                    $query->whereNotIn('id', $selectedItems);
+                }
+                return $query->where('username', 'like', "%$value%");
+            })->getQuery();
+        }
+
+        $lengthAwarePaginator = $queryBuilder
+            ->paginate($perPage, ['*'], 'page', $page)
+            ->through(function ($item) {
+                return [
+                    "name" => $item->username,
+                    "value" => $item->id,
+                ];
+            });
+
+        if ($lengthAwarePaginator->isEmpty()) {
+            return response()->json(['message' => 'No members found'], 404);
+        }
+
+        return response()->json($lengthAwarePaginator);
     }
 
     public function SystemSettingsUploadFile(Request $request)
@@ -58,13 +105,13 @@ class InternalController extends Controller
 
         $vb = new ValidatorBuilder($CGLCI->getI18N(), EValidatorType::SYSTEMSETTINGUPLOAD);
         $messageBag = $vb->validate($request->all());
-        if($messageBag instanceof MessageBag) {
+        if ($messageBag instanceof MessageBag) {
             Log::info("ShopImage, ShopAdPopup, ShopAdItem files do not exist or are invalid");
             return response()->json([
                 "status" => false,
-                "message" => $messageBag->all()
+                "message" => $messageBag->all(),
             ], ResponseHTTP::HTTP_BAD_REQUEST);
-        }else{
+        } else {
             Log::info("ShopImage, ShopAdPopup, ShopAdItem files exist and are valid");
             foreach (['ShopImage', 'ShopAdPopup', 'ShopAdItem'] as $key) {
                 if (isset($files[$key])) {
@@ -72,7 +119,7 @@ class InternalController extends Controller
                     // 如果存在 'ShopImage', 'ShopAdPopup', 或 'ShopAdItem' 檔案，則執行此區塊內的代碼
                     if (empty($files)) {
                         Log::info("Create folder for upload");
-                        $path = 'SystemSettingUpload/'.$key.'/SSU_' . Str::random(10);
+                        $path = 'SystemSettingUpload/' . $key . '/SSU_' . Str::random(10);
                         Storage::disk('local')->makeDirectory($path);
                         return response()->json(["folder" => urlencode(base64_encode($path))]);
                     } else {
@@ -82,7 +129,7 @@ class InternalController extends Controller
                             $random = Str::random(10);
                             foreach ($fileGroup as $item) {
                                 if ($item instanceof UploadedFile) {
-                                    $file_path_array[] = $item->storePublicly('SystemSettingUpload/'.$key.'/SSU_' . $random,
+                                    $file_path_array[] = $item->storePublicly('SystemSettingUpload/' . $key . '/SSU_' . $random,
                                         'local');
                                 }
                             }
@@ -94,28 +141,8 @@ class InternalController extends Controller
         }
         return response()->json([
             "status" => false,
-            "message" => "Deny Operation"
+            "message" => "Deny Operation",
         ], ResponseHTTP::HTTP_BAD_REQUEST);
-    }
-
-    public function CustomPages(Request $request)
-    {
-        $customizePage = CustomizePage::paginate(15);
-        $popup = $request->route('popup');
-        return view('System.CustomPages', Controller::baseControllerInit($request,
-            ['customizePage' => $customizePage, 'popup' => $popup])->toArrayable());
-    }
-
-    public function CustomPage(Request $request)
-    {
-        if ($request->route('id', false)) {
-            $customizePage = CustomizePage::find($request->route('id'));
-            $popup = $request->get('popup', false) === '1';
-            return view('System.CustomPage', Controller::baseControllerInit($request,
-                ['customizePage' => $customizePage, 'popup' => $popup])->toArrayable());
-        }
-
-        return redirect()->back();
     }
 
     public function getSystemLogs(Request $request)
@@ -149,7 +176,7 @@ class InternalController extends Controller
     /**
      * @param Request $request
      *
-     * @return array
+     * @return JsonResponse
      */
     /*private function ShopListLoader(Request $request): array
     {
