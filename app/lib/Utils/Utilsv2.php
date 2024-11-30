@@ -368,6 +368,9 @@ class Utilsv2
 
     public static function isJson($string): bool
     {
+        if($string === null) {
+            return false;
+        }
         @$json_decode = json_decode($string, true);
         if(is_numeric($json_decode)){
             return false;

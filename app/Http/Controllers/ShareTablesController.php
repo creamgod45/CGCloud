@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Lib\I18N\ELanguageText;
 use App\Lib\Server\CSRF;
 use App\Lib\Type\Array\CGArray;
 use App\Lib\Type\String\CGString;
@@ -10,18 +11,24 @@ use App\Lib\Utils\EValidatorType;
 use App\Lib\Utils\RouteNameField;
 use App\Lib\Utils\Utilsv2;
 use App\Lib\Utils\ValidatorBuilder;
+use App\Models\SharePermissions;
+use App\Models\ShareTable;
 use App\Models\VirtualFile;
 use Exception;
 use Hamcrest\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\Str;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
+use Symfony\Component\HttpFoundation\Response as ResponseHTTP;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Yajra\DataTables\Facades\DataTables;
 use function Laravel\Prompts\error;
@@ -114,7 +121,65 @@ class ShareTablesController extends Controller
 
     public function shareTableItemCreatePost(Request $request)
     {
+        $CGLCI = self::baseControllerInit($request);
+        $fingerprint = $CGLCI->getFingerprint();
+        $key = 'sharTableItemPost' . $fingerprint;
+        if (Cache::has($key)) {
+            //dump($request->all());
+            $CSRF = new CSRF(RouteNameField::APIShareTableItemCreatePost->value);
+            $i18N = $CGLCI->getI18N();
+            $vb = new ValidatorBuilder($i18N, EValidatorType::SHARETABLECREATE);
+            $v = $vb->validate($request->all(), ['password', 'password_confirmation'], true);
+            if ($v instanceof MessageBag) {
+                $alertView = View::make('components.alert',
+                    ["type" => "%type%", "messages" => $v->all()]);
+                $CSRF->reset();
+                return response()->json([
+                    'type' => false,
+                    'token' => $CSRF->get(),
+                    "message" => $alertView->render(),
+                    "error_keys" => $v->keys(),
+                ], ResponseHTTP::HTTP_OK);
+            } else {
+                $CSRF->reset();
+                $password = $v['password'];
+                $shareTableName = $v['shareTableName'];
+                $shareTableShortCode = $v['shareTableShortCode'];
+                $shareTableDescription = $v['shareTableDescription'];
+                $shareTableType = $v['shareTableType'];
+                $shareMembers = $v['shareMembers'];
+                $files = $v['files'];
+                Log::info("Create share table item");
+                $shareTable =  ShareTable::createOrFirst([
+                    'name' => $shareTableName,
+                    'description' => $shareTableDescription,
+                    'type' => $shareTableType,
+                    'short_code' => $shareTableShortCode ?? Str::random(10),
+                    'secret' => (!empty($password))? Hash::make($password) : null,
+                    'expired_at' => now()->addDays(15)->timestamp,
+                    'member_id' => Auth::user()->id,
+                ]);
 
+                foreach ($shareMembers as $shareMember) {
+                    SharePermissions::create([
+                        'share_tables_id' => $shareTable->id,
+                        'member_id' => (int)$shareMember,
+                        'permission_type' => '7',
+                        'expired_at' => now()->addDays(15)->timestamp,
+                    ]);
+                }
+
+                $shareTable->virtualFiles()->attach($files);
+
+                VirtualFile::whereIn('uuid', $files)->update(['type' => 'persistent', 'expired_at' => now()->addDays(15)->timestamp]);
+
+                return response()->json([
+                    "type" => true,
+                    "message" => $i18N->getLanguage(ELanguageText::ShareTableItemCreatePostSuccessMessage),
+                    "redirect" => route(RouteNameField::PageHome->value),
+                ]);
+            }
+        }
     }
 
     public function shareTableItemPost(Request $request)
@@ -252,13 +317,14 @@ class ShareTablesController extends Controller
             $uuid = Str::uuid()->toString();
             VirtualFile::insert([
                 'uuid' => $uuid,
+                'members_id' => Auth::user()->id ?? null,
                 'type' => 'temporary',
                 'filename' => 'folder',
                 'path' => $path,
                 'disk' => 'local',
                 'extension' => 'null',
                 'minetypes' => 'null',
-                'expires_at' => now()->addMinutes(10)->timestamp,
+                'expired_at' => now()->addMinutes(10)->timestamp,
             ]);
             return response($uuid, 200);
         } else {
@@ -272,13 +338,14 @@ class ShareTablesController extends Controller
                         $uuid = Str::uuid();
                         VirtualFile::insert([
                             'uuid' => $uuid->toString(),
+                            'members_id' => Auth::user()->id ?? null,
                             'type' => 'temporary',
                             'filename' => $item->getClientOriginalName(),
                             'path' => $filePath,
                             'disk' => 'local',
                             'extension' => $item->getClientOriginalExtension(),
                             'minetypes' => $item->getMimeType(),
-                            'expires_at' => now()->addMinutes(10)->timestamp,
+                            'expired_at' => now()->addMinutes(10)->timestamp,
                         ]);
                         $file_path_array [] = $uuid;
                     }
@@ -316,6 +383,8 @@ class ShareTablesController extends Controller
         $fileId = $request->header('Upload-Id');
         $fileStream = $request->getContent(true); // 获取文件流
         $fileInfo = $request->route('fileinfo');
+
+
 
         $virtualFile = VirtualFile::where('uuid', '=', $fileInfo)->first();
 
@@ -359,11 +428,12 @@ class ShareTablesController extends Controller
 
         if ($offset === "0") {
             $virtualFile->update([
+                'members_id' => Auth::user()->id ?? null,
                 'filename' => $fileName,
                 'path' => $filePath,
                 'extension' => pathinfo($filePath, PATHINFO_EXTENSION),
                 'minetypes' => Storage::disk('local')->mimeType($filePath),
-                'expires_at' => now()->addMinutes(10)->timestamp,
+                'expired_at' => now()->addMinutes(10)->timestamp,
             ]);
         }
 

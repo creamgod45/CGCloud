@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->foreignId('share_tables_id')->references('id')->on('share_tables')->onDelete('cascade');
             $table->foreignId('member_id')->constrained('members');
             $table->string('permission_type');
-            $table->string('expires_at');
+            $table->string('expired_at');
             $table->timestamps();
             $table->engine('InnoDB');
         });

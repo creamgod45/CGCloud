@@ -20,7 +20,7 @@ class MemberFactory extends Factory
     {
         return [
             //
-            'username' => Str::random('10'),
+            'username' => "user_".Str::random('10'),
             'email' => $this->faker->unique()->safeEmail(),
             'password' => $this->faker->password(),
             'phone' => $this->faker->phoneNumber(),

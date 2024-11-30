@@ -216,5 +216,6 @@ class DictionaryMap
         $i->setLanguagev2(ELanguageText::passwords_throttled, "Please wait before retrying.");
         $i->setLanguagev2(ELanguageText::passwords_token, "This password reset token is invalid.");
         $i->setLanguagev2(ELanguageText::passwords_user, "We can't find a user with that email address.");
+        $i->setLanguagev2(ELanguageText::ShareTableItemCreatePostSuccessMessage, "File sharing data created successfully.");
     }
 }

@@ -23,4 +23,5 @@ enum EValidatorType
     case SEARCH;
     case IMAGESGEN;
     case SYSTEMSETTINGUPLOAD;
+    case SHARETABLECREATE;
 }

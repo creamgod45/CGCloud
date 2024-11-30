@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->enum('type', ['public', 'private'])->default('public');
             $table->integer('expired_at');
             $table->string('short_code')->comment("短連接代碼");
-            $table->integer('secret')->comment("金鑰");
+            $table->string('secret', 255)->comment("金鑰")->nullable();
             $table->timestamps();
             $table->engine('InnoDB');
         });
@@ -23,7 +23,8 @@ return new class extends Migration {
         Schema::create('share_table_virtual_file', function (Blueprint $table) {
             $table->id();
             $table->foreignId('share_table_id')->constrained()->onDelete('cascade');
-            $table->foreignId('virtual_file_id')->constrained()->onDelete('cascade');
+            $table->uuid('virtual_file_id');
+            $table->foreign('virtual_file_id')->references('uuid')->on('virtual_files')->onDelete('cascade');
             $table->timestamps();
         });
     }

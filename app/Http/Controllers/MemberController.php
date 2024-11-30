@@ -59,40 +59,6 @@ class MemberController extends Controller
         }
     }
 
-    public function CustomerOrderList(Request $request)
-    {
-        $id = $request->route('id', false);
-        $customerSaveOrder = null;
-        if($id !== false){
-            $customerSaveOrder = CustomerSaveOrder::find($id);
-        }
-        return view('Member.CustomerOrderList',
-            Controller::baseControllerInit($request, [ 'item' => $customerSaveOrder])->toArrayable());
-    }
-
-    public function CustomerOrderListPost()
-    {
-        $customerSaveOrders = CustomerSaveOrder
-            //::where('UUID', Auth::user()->UUID)
-            ::select([
-                'id',
-                'name',
-                'priceTotal',
-                'sentToLine',
-                'expired_at',
-                DB::raw('JSON_LENGTH(itemList) as countItem') // 使用 JSON_LENGTH 函數計算項目數量
-            ])->getQuery();
-        $array = DataTables::query($customerSaveOrders)
-            ->escapeColumns()
-            ->addColumn("checkbox", "rows[]")
-            ->addColumn("#", "")
-            ->addColumn("goto", '↗️')
-            ->editColumn('sentToLine', function ($row) {
-                return $row->sentToLine? '是' : '否';
-            });
-        return $array->toJson();
-    }
-
     public function emailVerify(Request $request)
     {
         // 用户验证逻辑

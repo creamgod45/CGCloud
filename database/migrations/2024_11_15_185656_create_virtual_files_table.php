@@ -10,13 +10,14 @@ return new class extends Migration {
         Schema::create('virtual_files', function (Blueprint $table) {
             $table->id();
             $table->uuid()->unique();
+            $table->foreignId('members_id')->nullable()->constrained()->onDelete('cascade');
             $table->enum('type', ['temporary', 'persistent']);
             $table->string('filename')->index('filename');
             $table->string('path');
             $table->string('extension');
             $table->string('minetypes');
             $table->string('disk');
-            $table->integer('expires_at');
+            $table->integer('expired_at');
             $table->timestamps();
             $table->engine('InnoDB');
         });

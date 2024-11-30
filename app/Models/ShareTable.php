@@ -21,7 +21,7 @@ class ShareTable extends Model
     ];
 
     protected $casts = [
-        'expires_at' => ExpiresAtCast::class,
+        'expired_at' => ExpiresAtCast::class,
     ];
 
     use HasFactory;

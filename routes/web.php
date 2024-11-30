@@ -26,33 +26,19 @@ Route::middleware("checkClientID")->group(function () {
     //Route::post('language', [InternalController::class, 'language'])->name(RouteNameField::APILanguage->value);
     //Route::post('user', [InternalController::class, 'user']);
     //Route::post('browser', [InternalController::class, 'browser'])->name(RouteNameField::APIBrowser->value);
-    // password reset
     Route::get('/', [InternalController::class, 'index'])->name(RouteNameField::PageHome->value);
     Route::post('/clientconfig', [InternalController::class, 'getClientConfig'])->name(RouteNameField::APIClientConfig->value);
-    Route::get('admin', [InternalController::class, 'SystemSettings'])->name(RouteNameField::PageSystemSettings->value);
-    Route::post('admin/upload', [InternalController::class, 'SystemSettingsUploadFile'])->name(RouteNameField::APISystemSettingUpload->value);
-    Route::get('custom/pages', [InternalController::class, 'CustomPages'])->name(RouteNameField::PageCustomPages->value);
-    Route::get('custom/page/{id}', [InternalController::class, 'CustomPage'])->name(RouteNameField::PageCustomPage->value);
-    Route::post('system/log', [InternalController::class, 'getSystemLogs'])->name(RouteNameField::APISystemLogs->value);
-    Route::group(['prefix' => "sharetable"], function () {
-        //Route::middleware(['auth', 'verified'])->group(function () {
-            Route::get('item/edit/{id}', [ShareTablesController::class, 'editor'])->name(RouteNameField::PageShopItemEditor->value);
-            Route::post('add', [ShareTablesController::class, 'shareTableItemPost'])->name(RouteNameField::PageShareTableItemPost->value);
-            Route::post('create', [ShareTablesController::class, 'shareTableItemCreatePost'])->name(RouteNameField::APIShareTableItemCreatePost->value);
-            Route::post('upload', [ShareTablesController::class, 'shareTableItemUploadImagePost'])->name(RouteNameField::APIShareTableItemUploadImage->value);
-            Route::delete('upload/revert', [ShareTablesController::class, 'shareTableItemUploadImageRevert'])->name(RouteNameField::APIShareTableItemUploadImageRevert->value);
-            Route::patch('upload/patch/{fileinfo}', [ShareTablesController::class, 'shareTableItemUploadImagePatch'])->name(RouteNameField::APIShareTableItemUploadImagePatch->value);
-            Route::get('upload/patch/{fileinfo}', [ShareTablesController::class, 'shareTableItemUploadImageHead'])->name(RouteNameField::APIShareTableItemUploadImageHead->value);
-            Route::get('fetch/{fileId}', [ShareTablesController::class, 'shareTableItemUploadImageFetch'])->name(RouteNameField::APIShareTableItemUploadImageFetch->value);
-            Route::get('preview/{fileId}', [ShareTablesController::class, 'apiPreviewFileTemporary'])->name(RouteNameField::APIPreviewFileTemporary->value)->middleware('signed');
-        //});
-        Route::get('item/{id}', [ShareTablesController::class, 'index'])->name(RouteNameField::PageShopItem->value);
-        Route::get('item/{id}/popover', [ShareTablesController::class, 'popover'])->name(RouteNameField::PageShopItemPopover->value);
-        Route::get('search', [ShareTablesController::class, 'search'])->name(RouteNameField::PageSearchShopItem->value);
-        Route::get('list', [ShareTablesController::class, 'list'])->name(RouteNameField::PageShopItemList->value);
-        Route::post('list/API', [ShareTablesController::class, 'shareTableItemListJson'])->name(RouteNameField::APIShareTableItemList->value);
+    Route::middleware(['auth', 'verified'])->prefix("sharetable")->group(function () {
+        Route::get('item/edit/{id}', [ShareTablesController::class, 'editor'])->name(RouteNameField::PageShopItemEditor->value);
+        Route::post('add', [ShareTablesController::class, 'shareTableItemPost'])->name(RouteNameField::PageShareTableItemPost->value);
+        Route::post('create', [ShareTablesController::class, 'shareTableItemCreatePost'])->name(RouteNameField::APIShareTableItemCreatePost->value);
+        Route::post('upload', [ShareTablesController::class, 'shareTableItemUploadImagePost'])->name(RouteNameField::APIShareTableItemUploadImage->value);
+        Route::delete('upload/revert', [ShareTablesController::class, 'shareTableItemUploadImageRevert'])->name(RouteNameField::APIShareTableItemUploadImageRevert->value);
+        Route::patch('upload/patch/{fileinfo}', [ShareTablesController::class, 'shareTableItemUploadImagePatch'])->name(RouteNameField::APIShareTableItemUploadImagePatch->value);
+        Route::get('upload/patch/{fileinfo}', [ShareTablesController::class, 'shareTableItemUploadImageHead'])->name(RouteNameField::APIShareTableItemUploadImageHead->value);
+        Route::get('fetch/{fileId}', [ShareTablesController::class, 'shareTableItemUploadImageFetch'])->name(RouteNameField::APIShareTableItemUploadImageFetch->value);
+        Route::get('preview/{fileId}', [ShareTablesController::class, 'apiPreviewFileTemporary'])->name(RouteNameField::APIPreviewFileTemporary->value)->middleware('signed');
     });
-    Route::get("image/{text}/{color}", [InternalController::class, "imageGen"])->name(RouteNameField::PageImageGenerator->value);
     Route::get('passwordreset', [MemberController::class, 'passwordReset'])->name(RouteNameField::PagePasswordReset->value);
     Route::post('passwordreset', [MemberController::class, 'passwordResetPost'])->name(RouteNameField::PagePasswordResetPost->value);
     // forgot password
@@ -65,17 +51,9 @@ Route::middleware("checkClientID")->group(function () {
         Route::get('members', [MemberController::class, 'index'])->name(RouteNameField::PageMembers->value);
     });
 
-    Route::group(["prefix" => "HTMLTemplate"], function () {
-        Route::post('Notification', [HTMLTemplateController::class, 'Notification'])->name(RouteNameField::APIHTMLTemplateNotification->value);
-    });
-
     Route::middleware('auth')->group(function () {
         Route::get('logout', [MemberController::class, 'logout'])->name(RouteNameField::PageLogout->value);
         Route::get('resendemail', [MemberController::class, 'resendEmail'])->name(RouteNameField::PageEmailReSendMailVerification->value);
-        Route::post('customer/order/list', [MemberController::class, 'CustomerOrderListPost'])
-            ->name(RouteNameField::APICustomerOrderListPost->value);
-        Route::get('customer/order/{id}', [MemberController::class, 'CustomerOrderList'])
-            ->name(RouteNameField::PageCustomerOrderList->value);
         // Profile Start
         Route::get('profile', [MemberController::class, 'profile'])->name(RouteNameField::PageProfile->value);
         Route::post('profile', [MemberController::class, 'profilePost'])->name(RouteNameField::PageProfilePost->value);

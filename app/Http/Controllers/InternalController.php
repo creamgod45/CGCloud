@@ -79,6 +79,11 @@ class InternalController extends Controller
             })->getQuery();
         }
 
+
+        if ($queryBuilder === null) {
+            return response()->json(['message' => 'No members found'], 404);
+        }
+
         $lengthAwarePaginator = $queryBuilder
             ->paginate($perPage, ['*'], 'page', $page)
             ->through(function ($item) {

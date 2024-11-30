@@ -356,6 +356,8 @@ enum ELanguageText
 
     case Unable_to_change_the_same_field;
 
+    case ShareTableItemCreatePostSuccessMessage;
+
     public static function isVaild(string $name): bool
     {
         foreach (ELanguageText::cases() as $case) {

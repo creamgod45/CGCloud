@@ -23,9 +23,9 @@ function TomSelect_() {
         let src = dataset.src;
         let perpage = dataset.perpage;
 
-        if(maxOptions === undefined) {
+        if (maxOptions === undefined) {
             maxOptions = null;
-        }else{
+        } else {
             maxOptions = parseInt(maxOptions);
         }
 
@@ -41,14 +41,11 @@ function TomSelect_() {
             preload: preload,
 
         };
-        if(src !== undefined) {
+        if (src !== undefined) {
             custome_options.valueField = 'value';
             custome_options.labelField = 'name';
             custome_options.searchField = 'name';
-            if(perpage !== undefined)
-                custome_options.maxOptions = parseInt(perpage);
-            else
-                custome_options.maxOptions = 15;
+            if (perpage !== undefined) custome_options.maxOptions = parseInt(perpage); else custome_options.maxOptions = 15;
             if (custome_options.hasOwnProperty('plugins')) {
                 custome_options['plugins'].push('virtual_scroll');
             } else {
@@ -61,38 +58,47 @@ function TomSelect_() {
             // custome_options.render.no_more_results = function(data,escape){
             //     return `<div class="no-more-results">No more results</div>`;
             // }
-            custome_options.firstUrl = function(query){
+            custome_options.firstUrl = function (query) {
                 return src;
             };
 
-            custome_options.shouldLoadMore = function() {
-               console.log(this.currentResults.items.length);
-               return true;
-            };
-            custome_options.shouldLoad = function(query) {
-               console.log(query);
-               console.log(this.currentResults.items.length);
-               console.log(this);
-               console.log(this.maxOptions);
-               if(this.currentResults.items.length < this.settings.maxOptions-3){
-                   console.log('load');
-                   this.load(query);
-               }
-               return true;
+            custome_options.shouldLoad = function (query) {
+                console.log(query);
+                console.log(this.currentResults.items.length);
+                console.log(this);
+                console.log(this.maxOptions);
+
+                const getUnixTime = () => {
+                    return Math.floor(Date.now() / 1000);
+                };
+
+                if (this.timeout === null || this.timeout === undefined) {
+                    this.timeout = getUnixTime();
+                }
+
+                if (this.currentResults.items.length < this.settings.maxOptions - 5 && this.currentResults.items.length !== 0 && getUnixTime() > this.timeout) {
+                    this.timeout = getUnixTime() + 3;
+                    console.log('load');
+                    let item = this.items;
+                    this.load(query, function (e) {
+                        item = e;
+                    });
+                }
+                return true;
             };
 
-            custome_options.load = function(query, callback) {
+            custome_options.load = function (query, callback) {
                 console.log(query);
-                const url = this.getUrl(query);
-                axios.post(url, {
-                    query: query,
-                    //selectedItems: this.items,
+                if(query === "") return callback([]);
+                //const url = this.getUrl(query);
+                axios.post(src, {
+                    query: query, selectedItems: this.items,
                 }).then(res => {
                     let items = res.data.data;
                     console.log(res.data);
                     console.log(items);
                     callback(items);
-                    this.setNextUrl(query, res.data.next_page_url)
+                    //this.setNextUrl(query, res.data.next_page_url)
                 }).catch(err => {
                     console.log(err);
                     callback([]);
@@ -100,16 +106,16 @@ function TomSelect_() {
             };
         }
 
-        if(items !== undefined) {
+        if (items !== undefined) {
             custome_options['items'] = JSON.parse(items);
         }
-        if(options !== undefined) {
+        if (options !== undefined) {
             custome_options['options'] = JSON.parse(options);
         }
-        if(maxItems !== undefined) {
+        if (maxItems !== undefined) {
             custome_options['maxItems'] = maxItems;
         }
-        if(allowclear) {
+        if (allowclear) {
             if (custome_options.hasOwnProperty('plugins')) {
                 custome_options['plugins'].push('clear_button');
             } else {

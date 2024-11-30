@@ -2,6 +2,7 @@
 
 namespace App\Lib\Utils;
 
+use App\Lib\EShareTableType;
 use App\Lib\I18N\ELanguageCode;
 use App\Lib\I18N\ELanguageText;
 use App\Lib\I18N\I18N;
@@ -81,6 +82,9 @@ class ValidatorBuilder
                 break;
             case EValidatorType::SYSTEMSETTINGUPLOAD:
                 $this->systemSettingUpload();
+                break;
+            case EValidatorType::SHARETABLECREATE:
+                $this->shareTableCreate();
                 break;
             case EValidatorType::NULL:
                 break;
@@ -497,6 +501,23 @@ class ValidatorBuilder
             'ShopAdItem.*' => 'file|max:1048576',
         ];
         $this->lastkey = 18;
+    }
+
+    private function shareTableCreate()
+    {
+        $this->customMessages = $this->initMessage();
+        $this->atters = $this->initAtters();
+        $this->rules = [
+            'token' => ['required', 'string'],
+            'shareTableName' => ['required', 'string', 'max:255'],
+            'shareTableDescription' => ['string', 'nullable'],
+            'shareTableShortCode' => ['string', 'nullable'],
+            'shareTableType' => ['required', 'string', Rule::enum(EShareTableType::class)],
+            'shareMembers' => ['nullable', 'array', 'exists:members,id'],
+            'password' => ['nullable', 'string', 'confirmed'],
+            'files' => ['required', 'array', 'exists:virtual_files,uuid']
+        ];
+        $this->lastkey = 19;
     }
 
     /**

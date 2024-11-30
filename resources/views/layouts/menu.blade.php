@@ -50,20 +50,20 @@
     </a>
     <div class="dropdown-menu-separator"></div>
     @guest
-    <div class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
+    <a href="{{ route(RouteNameField::PageLogin->value) }}" class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
         <div class="icon"><i class="fa-solid fa-computer"></i></div>
         <div class="dropdown-menu-title noto-serif-tc-black">登入</div>
-    </div>
-    <div class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
+    </a>
+    <a href="{{ route(RouteNameField::PageRegister->value) }}" class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
         <div class="icon"><i class="fa-solid fa-computer"></i></div>
         <div class="dropdown-menu-title noto-serif-tc-black">註冊</div>
-    </div>
+    </a>
     @endguest
     @auth
-    <div class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
+    <a href="{{ route(RouteNameField::PageLogout->value) }}" class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
         <div class="icon"><i class="fa-solid fa-computer"></i></div>
         <div class="dropdown-menu-title noto-serif-tc-black">登出</div>
-    </div>
+    </a>
     @endauth
 </div>
 {{-- <menu class="float-menu" data-sticky-container>

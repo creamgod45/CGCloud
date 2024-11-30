@@ -11,16 +11,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class  SharePermissions extends Model
 {
     protected $fillable = [
-        'share_table_id',
+        'share_tables_id',
         'member_id',
         'permission_type',
-        'expires_at',
+        'expired_at',
     ];
 
     use HasFactory;
 
     protected $casts = [
-        'expires_at' => ExpiresAtCast::class,
+        'expired_at' => ExpiresAtCast::class,
     ];
 
     public function shareTable(): BelongsTo

@@ -16,6 +16,7 @@ class VirtualFile extends Model
 
     protected $fillable = [
         'uuid',
+        'members_id',
         'filename',
         'path',
         'extension',
@@ -23,6 +24,11 @@ class VirtualFile extends Model
         'disk',
         'expires_at',
     ];
+
+    public function members()
+    {
+        return $this->belongsTo(Member::class);
+    }
 
     protected $casts = [
         'expires_at' => ExpiresAtCast::class,

@@ -282,12 +282,18 @@ function ShareTable_add(element) {
     let password = options.tracksList.password;
     let shareTableName = options.tracksList.shareTableName;
     let shareTableShortCode = options.tracksList.shareTableShortCode;
-    let files = options.tracksList.files;
+    let shareTableDescription = options.tracksList.shareTableDescription;
+    let shareTableType = options.tracksList.shareTableType;
+    let shareMembers = options.tracksList.shareMembers;
+    let files = options.tracksList["files*"];
+    let refetchFn = options.tracksList["files*_refetch"];
+    let filelabel = options.tracksList['#filelabel'];
 
     console.log(i++)
     let alert = element.querySelector(options.rawOptions.target);
     let validateFn = () => {
-        let b = password.validateStatus && password_confirmation.validateStatus && password.value === password_confirmation.value && shareTableName.validateStatus && shareTableShortCode.validateStatus;
+        files = refetchFn();
+        let b = password.validateStatus && password_confirmation.validateStatus && password.value === password_confirmation.value && shareTableName.validateStatus && shareTableShortCode.validateStatus && files.length > 0;
         if (!b) {
             if (!shareTableName.validateStatus) {
                 shareTableName.tippy.show();
@@ -304,16 +310,30 @@ function ShareTable_add(element) {
             if (password.value !== password_confirmation.value) {
                 password_confirmation.tippy.show();
             }
+            if(files.length === 0){
+                console.log("no file");
+                filelabel.tippy.show();
+            }
         }
         return b;
     };
     let proccessFn = () => {
-        axios.post('/passwordreset', {
-            password: Utils.encodeContext(password.value)['compress'],
-            password_confirmation: Utils.encodeContext(password_confirmation.value)['compress'],
-            token2: element.token,
-            token: token2.value,
-            email: email.value,
+        console.log(files);
+        let files_array = [];
+        for (let file of files) {
+            files_array.push(file.value);
+        }
+        let encodeContextElement = Utils.encodeContext(password.value)['compress'];
+        axios.post(element.action, {
+            password: encodeContextElement,
+            password_confirmation: encodeContextElement,
+            token: element.token,
+            shareTableName: shareTableName.value,
+            shareTableShortCode: shareTableShortCode.value,
+            files: files_array,
+            shareTableDescription: shareTableDescription.value,
+            shareTableType: shareTableType.value,
+            shareMembers: shareMembers.tomselect.items,
         }, {
             adapter: "fetch",
             method: "POST",
@@ -329,6 +349,9 @@ function ShareTable_add(element) {
             if (data.error_keys !== undefined) {
                 for (let key of data.error_keys) {
                     if (key !== "token" && key !== "resetpassword") {
+                        if (key === 'files') {
+                            key = 'files*';
+                        }
                         options.tracksList[key].tippy.show();
                     }
                 }
@@ -474,10 +497,23 @@ function form_ct() {
         let trackslist = [];
         if (tracks.split(",").length > 0) {
             for (let track of tracks.split(",")) {
-                if (form.querySelector(track) === null) {
-                    trackslist[track] = form[track];
-                } else {
-                    trackslist[track] = form.querySelector(track);
+                if (track.indexOf('*') !== -1) {
+                    let ttrack = 'input[name="'+track.replace("*", "") + '[]"]';
+                    if (form.querySelector(ttrack) === null) {
+                        console.log("untracked input: "+ttrack);
+                        trackslist[track] = form[track];
+                    } else {
+                        trackslist[track] = form.querySelectorAll(ttrack) ?? new NodeList();
+                        trackslist[track+'_refetch'] = function (){
+                            return form.querySelectorAll(ttrack) ?? new NodeList();
+                        };
+                    }
+                }else{
+                    if (form.querySelector(track) === null) {
+                        trackslist[track] = form[track];
+                    } else {
+                        trackslist[track] = form.querySelector(track);
+                    }
                 }
             }
         } else {

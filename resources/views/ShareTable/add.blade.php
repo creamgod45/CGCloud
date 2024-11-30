@@ -42,11 +42,12 @@
         <div class="container2">
             <form class="form-ct w-full"
                   data-fn="ShareTable.add"
-                  data-tracks="files,shareTableName,shareTableType,shareTableDescription,shareTableShortCode,password,password_confirmation,addFile,shareMembers"
+                  data-tracks="files*,shareTableName,shareTableType,shareTableDescription,shareTableShortCode,password,password_confirmation,addFile,shareMembers,#filelabel"
                   data-target="#alert"
                   data-token="{{(new CSRF(RouteNameField::APIShareTableItemCreatePost->value))->get()}}"
                   action="{{ route(RouteNameField::APIShareTableItemCreatePost->value) }}"
                   method="post">
+                <div id="filelabel" class="tippyer text-2xl !border-0" data-placement="auto" data-trigger="manual" data-theme="light" data-zindex="19" data-htmlable="true" data-content="<li class='flex flex-nowrap'>⭕必填項目</li><li class='flex flex-nowrap'>❌必須有 1 個檔案</li>">檔案</div>
                 <div class="file-driver">
                 @foreach($newFiles as $file)
                     <div class="fd-item">
@@ -64,10 +65,11 @@
                 </div>
                 <div class="share-tables-form">
                     <div class="fdi-content">
+                        <div id="alert"></div>
                         <input type="submit" name="addFile" value="建立檔案" class="btn btn-ripple btn-color7">
                         <div class="fdic-field">
                             <label for="shareTableName">分享名稱<span class="text-red-500">*</span></label>
-                            <input class="form-solid validate tippyer" data-placement="auto" data-trigger="manual" data-theme="light" data-zindex="19" data-htmlable="true" data-content="<li class='flex flex-nowrap'>⭕必填項目</li><li class='flex flex-nowrap'>❌最大的長度為255</li>" data-method="required" type="text" name="shareTableName" maxlength="255" required>
+                            <input class="form-solid validate tippyer" data-placement="auto" data-trigger="manual" data-theme="light" data-zindex="19" data-htmlable="true" data-content="<li class='flex flex-nowrap'>⭕必填項目</li><li class='flex flex-nowrap'>❌最大的長度為255</li>" data-method="required" type="text" name="shareTableName" maxlength="255">
                         </div>
                         <div class="fdic-field">
                             <label for="shareTableDescription">說明</label>
@@ -75,7 +77,7 @@
                         </div>
                         <div class="fdic-field">
                             <label for="shareTableType">類型</label>
-                            <select class="tom-select" data-width="66%" name="shareTableType" required>
+                            <select class="tom-select w-2/3" data-width="66%" name="shareTableType" required>
                                 <option value="public">公開</option>
                                 <option value="private">私人</option>
                             </select>
@@ -89,7 +91,7 @@
                         </div>
                         <div class="fdic-field">
                             <label for="shareMembers">分享使用者</label>
-                            <select class="tom-select" data-src="{{ route(RouteNameField::APIGetUsers->value) }}" data-width="66%" name="shareMembers" multiple required></select>
+                            <select class="tom-select w-2/3" data-src="{{ route(RouteNameField::APIGetUsers->value) }}" data-width="66%" name="shareMembers" multiple></select>
                         </div>
                         <div class="fdic-field">
                             <label for="password">分享密碼</label>
