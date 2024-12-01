@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Lib\EShareTableType;
 use App\Lib\I18N\ELanguageCode;
 use App\Lib\I18N\ELanguageText;
 use App\Lib\Type\String\CGStringable;
@@ -12,6 +13,7 @@ use App\Lib\Utils\Utils;
 use App\Lib\Utils\Utilsv2;
 use App\Lib\Utils\ValidatorBuilder;
 use App\Models\Member;
+use App\Models\ShareTable;
 use App\Models\ShopConfig;
 use App\Models\SystemLog;
 use Exception;
@@ -19,7 +21,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
@@ -313,7 +317,11 @@ class InternalController extends Controller
 
     public function index(Request $request)
     {
-        return view('index', Controller::baseControllerInit($request, [])->toArrayable());
+        $shareTables = Cache::remember('shareTableIndexCache_p_'.$request->get('page', 1), now()->addMinutes(), function (){
+            return ShareTable::where('type', '=', EShareTableType::public->value)->paginate(30);
+        });
+
+        return view('index', Controller::baseControllerInit($request, [ '$shareTables' => $shareTables])->toArrayable());
     }
 
     public function index2(Request $request)

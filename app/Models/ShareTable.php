@@ -6,6 +6,7 @@ use App\Casts\ExpiresAtCast;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Log;
 use RahulHaque\Filepond\Models\Filepond;
 
 class ShareTable extends Model
@@ -25,6 +26,12 @@ class ShareTable extends Model
     ];
 
     use HasFactory;
+
+    public function getAllVirtualFiles()
+    {
+        $allRelatedIds = $this->virtualFiles()->allRelatedIds();
+        return VirtualFile::whereIn('uuid', $allRelatedIds)->get();
+    }
 
     public function virtualFiles()
     {

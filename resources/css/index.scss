@@ -111,6 +111,10 @@ body {
                             @apply mb-2;
                         }
 
+                        .pfc-fileinfo-item {
+                            @apply my-2 bg-white p-2 text-black rounded-md;
+                        }
+
                         .pfc-preview {
                             video {
                                 @apply rounded-lg;

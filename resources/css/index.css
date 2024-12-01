@@ -2610,6 +2610,9 @@ body main .container1 .panel-field-list .panel-field-card.vertical {
 body main .container1 .panel-field-list .panel-field-card.vertical .pfc-icon, body main .container1 .panel-field-list .panel-field-card.vertical .pfc-title, body main .container1 .panel-field-list .panel-field-card.vertical .pfc-operator, body main .container1 .panel-field-list .panel-field-card.vertical .pfc-fileinfo {
   @apply mb-2;
 }
+body main .container1 .panel-field-list .panel-field-card.vertical .pfc-fileinfo-item {
+  @apply my-2 bg-white p-2 text-black rounded-md;
+}
 body main .container1 .panel-field-list .panel-field-card.vertical .pfc-preview video {
   @apply rounded-lg;
 }

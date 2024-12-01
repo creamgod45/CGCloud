@@ -17,7 +17,9 @@
      */
     $newFiles=[];
     if(!empty($moreParams)){
-        $newFiles = $moreParams[0]['files'];
+        if(isset($moreParams[0]['files'])){
+            $newFiles = $moreParams[0]['files'];
+        }
     }
 @endphp
 @extends('layouts.default')
