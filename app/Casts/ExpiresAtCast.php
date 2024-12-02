@@ -14,6 +14,6 @@ class ExpiresAtCast implements CastsAttributes
 
     public function set($model, string $key, $value, array $attributes)
     {
-        return $value == -1 ? -1 : Carbon::parse($value)->timestamp;
+        return $value;
     }
 }

@@ -39,6 +39,8 @@ function vjs() {
         let airplay = vjs.dataset.airplay === 'true';
         let playerlist = vjs.dataset.playerlist === 'true';
         let playerlistjson = vjs.dataset.playerlistjson === 'true';
+        let type = vjs.dataset.type ?? 'normal';
+        let minetype = vjs.dataset.minetype ?? 'video/mp4';
         if(src === undefined) continue;
         let player = videojs(vjs, {
             controls: controls,
@@ -50,10 +52,17 @@ function vjs() {
             width: width ?? '300px',
         });
         player.ready(function() {
-            player.src({
-                src: src,
-                type: 'application/dash+xml'
-            });
+            if(type === "dash") {
+                player.src({
+                    src: src,
+                    type: 'application/dash+xml'
+                });
+            } else {
+                player.src({
+                    src: src,
+                    type: minetype,
+                });
+            }
         });
         player.qualityMenu();
 

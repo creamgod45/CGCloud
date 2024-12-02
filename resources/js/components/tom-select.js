@@ -22,6 +22,7 @@ function TomSelect_() {
         let preload = dataset.preload === "true";
         let src = dataset.src;
         let perpage = dataset.perpage;
+        let disabled = dataset.disabled === "true";
 
         if (maxOptions === undefined) {
             maxOptions = null;
@@ -39,7 +40,6 @@ function TomSelect_() {
             duplicates: duplicates,
             maxOptions: maxOptions,
             preload: preload,
-
         };
         if (src !== undefined) {
             custome_options.valueField = 'value';
@@ -123,6 +123,10 @@ function TomSelect_() {
             }
         }
         let tomSelect = new TomSelect(tomSelectElement, custome_options);
+
+        if(disabled){
+            tomSelect.disable();
+        }
     }
 }
 

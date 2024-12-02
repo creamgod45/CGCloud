@@ -40,6 +40,7 @@
 @endsection
 @section('content')
     {{--@dump($request)--}}
+    <x-scroll-indicator indicator-target="body"></x-scroll-indicator>
     <main>
         <div class="container2">
             <form class="form-ct w-full"

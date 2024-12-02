@@ -743,6 +743,48 @@ function popover2(ct, target) {
 }
 
 /**
+ * 綁定一個元素的點擊事件，點擊後展示目標元素並載入自定義頁面。
+ *
+ * @param {HTMLElement} ct 綁定點擊事件的元素
+ * @param {string} target 目標元素的選擇器
+ * @return {boolean|void} 點擊時目標元素為 null 返回 false，否則無返回值
+ */
+function popover3(ct, target) {
+    ct.addEventListener("click", function () {
+        if (target === null) return false;
+        let targetEl = document.querySelector(target);
+        if (targetEl === null) return;
+        let source = ct.dataset.source;
+        let children = targetEl.children;
+        let item = null;
+        let dialog_vt = targetEl.querySelector(".dialog-vt");
+        if (dialog_vt !== null) {
+            let shop_iframe = dialog_vt.querySelector(".custom-page-iframe");
+            let shop_popover_loader = dialog_vt.querySelector(".shop-popover-placeholder");
+            if (shop_iframe !== null && shop_popover_loader !== null) {
+                shop_iframe.onload = () => {
+                    shop_popover_loader.classList.add('hidden');
+                };
+                shop_popover_loader.classList.remove("hidden");
+                shop_iframe.src = "/sharetable/item/" + source + '?popup=1';
+                targetEl.classList.remove("!hidden");
+                document.body.style.overflow = "hidden";
+            }
+            let dialog_closebtn = dialog_vt.querySelector(".dialog-closebtn");
+            if (dialog_closebtn !== null && shop_iframe !== null && shop_popover_loader !== null) {
+                dialog_closebtn.onclick = () => {
+                    document.body.style.overflow = "";
+                    targetEl.classList.add("!hidden");
+                    shop_popover_loader.classList.remove("hidden");
+                    shop_iframe.contentWindow.document.write("");
+                    shop_iframe.contentWindow.document.close();
+                };
+            }
+        }
+    });
+}
+
+/**
  * 根據.ct元素的data屬性執行相應的函數。每個.ct元素必須具備data-fn與data-target屬性，
  * 函數會依據data-fn屬性的值來決定呼叫哪一個功能，並將data-target屬性的值傳給該功能。
  * 支援的功能包括：toggleable、password-toggle、datalist_selector、profile.email.sendMailVerifyCode、
@@ -798,6 +840,9 @@ function customTrigger() {
                     break;
                 case "popover2":
                     popover2(ct, target);
+                    break;
+                case "popover3":
+                    popover3(ct, target);
                     break;
             }
         }

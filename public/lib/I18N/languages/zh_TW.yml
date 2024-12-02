@@ -374,4 +374,5 @@ validator_field_VerificationCode: 驗證碼
 ValidatorBuilderFailed: 驗證失敗
 MailSalutation: 'by %appname%'
 ResetPasswordgreeting: 'Hello!! Dear.%username%'
-ShareTableItemCreatePostSuccessMessage: '檔案共享數據成功創建。'
+ShareTableItemCreatePostSuccessMessage: 檔案共享數據成功創建。
+ShareTableItemViewNoAuthorizationUser: 你沒有設定授權用戶

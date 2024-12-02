@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->string('extension');
             $table->string('minetypes');
             $table->string('disk');
+            $table->integer('size');
             $table->integer('expired_at');
             $table->timestamps();
             $table->engine('InnoDB');

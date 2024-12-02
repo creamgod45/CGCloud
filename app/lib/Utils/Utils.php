@@ -551,6 +551,7 @@ class Utils
 
     public static function convertByte($size)
     {
+        if($size === 0) return "0B";
         $unit = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
         return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2) . ' ' . $unit[$i];
     }

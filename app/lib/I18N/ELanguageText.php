@@ -357,6 +357,7 @@ enum ELanguageText
     case Unable_to_change_the_same_field;
 
     case ShareTableItemCreatePostSuccessMessage;
+    case ShareTableItemViewNoAuthorizationUser;
 
     public static function isVaild(string $name): bool
     {

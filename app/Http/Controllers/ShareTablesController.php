@@ -30,6 +30,7 @@ use Nette\Utils\Json;
 use Nette\Utils\JsonException;
 use Symfony\Component\HttpFoundation\Response as ResponseHTTP;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\String\ByteString;
 use Yajra\DataTables\Facades\DataTables;
 use function Laravel\Prompts\error;
 
@@ -39,6 +40,30 @@ class ShareTablesController extends Controller
     public function index(Request $request)
     {
 
+    }
+
+    public function viewShareTableItem(Request $request)
+    {
+        $popup = $request->get('popup', false) === '1';
+        $shareTableId = $request->route('id', 1);
+        $shareTable = ShareTable::find($shareTableId)->first();
+        if($shareTable !== null){
+            $virtualFiles = $shareTable->getAllVirtualFiles();
+            foreach ($virtualFiles as $virtualFile) {
+                $virtualFile['#'] = '';
+                $virtualFile['goto'] = '↗️';
+                $virtualFile['action'] = '';
+            }
+            $sharePermissions = SharePermissions::where('share_tables_id', '=', $shareTableId)->get();
+            return view('ShareTable.view', Controller::baseControllerInit($request, [
+                "shareTable" => $shareTable,
+                "virtualFiles" => $virtualFiles,
+                'sharePermissions' => $sharePermissions,
+                'popup' => $popup,
+            ])->toArrayable());
+        } else {
+            abort(404);
+        }
     }
 
     public function list(Request $request)
@@ -171,7 +196,14 @@ class ShareTablesController extends Controller
 
                 $shareTable->virtualFiles()->attach($files);
 
-                VirtualFile::whereIn('uuid', $files)->update(['type' => 'persistent', 'expired_at' => now()->addDays(15)->timestamp]);
+                $virtualFiles = VirtualFile::whereIn('uuid', $files)->get();
+                foreach ($virtualFiles as $virtualFile) {
+                    $virtualFile->update([
+                        'size' => Storage::disk($virtualFile->disk)->size($virtualFile->path),
+                        'type' => 'persistent',
+                        'expired_at' => now()->addDays(15)->timestamp,
+                    ]);
+                }
 
                 return response()->json([
                     "type" => true,
@@ -315,7 +347,7 @@ class ShareTablesController extends Controller
             $path = 'ShareTable/TEMP/Patch/TEMP_' . Str::random(10);
             Storage::disk('local')->makeDirectory($path);
             $uuid = Str::uuid()->toString();
-            VirtualFile::insert([
+            VirtualFile::create([
                 'uuid' => $uuid,
                 'members_id' => Auth::user()->id ?? null,
                 'type' => 'temporary',
@@ -324,6 +356,7 @@ class ShareTablesController extends Controller
                 'disk' => 'local',
                 'extension' => 'null',
                 'minetypes' => 'null',
+                'size' => '0',
                 'expired_at' => now()->addMinutes(10)->timestamp,
             ]);
             return response($uuid, 200);
@@ -336,7 +369,7 @@ class ShareTablesController extends Controller
                     if ($item instanceof UploadedFile) {
                         $filePath = $item->storePublicly('ShareTable/TEMP/Block/' . $random, 'local');
                         $uuid = Str::uuid();
-                        VirtualFile::insert([
+                        VirtualFile::create([
                             'uuid' => $uuid->toString(),
                             'members_id' => Auth::user()->id ?? null,
                             'type' => 'temporary',
@@ -345,6 +378,7 @@ class ShareTablesController extends Controller
                             'disk' => 'local',
                             'extension' => $item->getClientOriginalExtension(),
                             'minetypes' => $item->getMimeType(),
+                            'size' => $item->getSize(),
                             'expired_at' => now()->addMinutes(10)->timestamp,
                         ]);
                         $file_path_array [] = $uuid;

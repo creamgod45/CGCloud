@@ -22,7 +22,8 @@ class VirtualFile extends Model
         'extension',
         'minetypes',
         'disk',
-        'expires_at',
+        'expired_at',
+        'size',
     ];
 
     public function members()
@@ -31,7 +32,7 @@ class VirtualFile extends Model
     }
 
     protected $casts = [
-        'expires_at' => ExpiresAtCast::class,
+        'expired_at' => ExpiresAtCast::class,
     ];
 
     public function shareTables()
