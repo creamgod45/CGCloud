@@ -1,3 +1,4 @@
+@use 'colors';
 .tooltip-orange-theme {
     @apply text-orange-600 py-1;
     &:before {
@@ -301,35 +302,35 @@
 }
 
 .tooltip-color1 {
-    color: $color1 !important;
+    color: colors.$color1 !important;
 
     .tooltip-left {
         &::after {
-            border-left-color: $color1 !important;
+            border-left-color: colors.$color1 !important;
         }
     }
 
     .tooltip-top {
         &::after {
-            border-top-color: $color1 !important;
+            border-top-color: colors.$color1 !important;
         }
     }
 
     .tooltip-bottom {
         &::after {
-            border-bottom-color: $color1 !important;
+            border-bottom-color: colors.$color1 !important;
         }
     }
 
     .tooltip-right {
         &::after {
-            border-right-color: $color1 !important;
+            border-right-color: colors.$color1 !important;
         }
     }
 
     .tooltip {
         @apply border-solid border-2;
-        border-color: $color1;
+        border-color: colors.$color1;
         background-color: white !important;
         color: black;
     }

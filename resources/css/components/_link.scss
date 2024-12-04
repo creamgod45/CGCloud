@@ -1,0 +1,14 @@
+.link{
+    @apply underline-offset-2 cursor-pointer;
+}
+
+.link-hover{
+    @apply hover:underline;
+}
+
+.link-color1{
+    @apply decoration-color1;
+}
+
+
+

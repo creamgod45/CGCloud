@@ -76,21 +76,29 @@
                 </form>
             @endauth
             <div class="panel-field-list">
-                <div class="panel-field-card vertical">
-                    <div class="pfc-preview">
-                        <video class="vjs video-js vjs-theme-forest" data-type="dash"
-                               data-src="{{ asset('videos/Csgo331/Csgo331.mpd')}}" controls></video>
-                    </div>
-                </div>
                 @foreach($shareTables as $shareTable)
                     @if($shareTable instanceof \App\Models\ShareTable)
+                        @guest
+                            <div class="panel-field-card vertical">
+                                <div class="pfc-icon"><i class="fa-solid fa-file"></i></div>
+                                <div class="pfc-title tippyer" data-placement="bottom" data-htmlable="true" data-content="登入了解更多"><i class="fa-solid fa-circle-info"></i> {{ $shareTable->name }}
+                                </div>
+                                <div class="pfc-preview">
+                                    <img class="fdi-imginfo" src="{{ asset('assets/images/hidden.webp') }}" alt="登入了解更多">
+                                </div>
+                                <div class="pfc-operator">
+                                    <div class="btn-md btn-border-0 btn btn-ripple btn-color2 tippyer" data-placement="bottom" data-content="登入解鎖操作"><i class="fa-solid fa-lock"></i></div>
+                                </div>
+                            </div>
+                        @endguest
+                        @auth
                         <div class="panel-field-card vertical">
                             @php
                                 $virtualFiles = $shareTable->getAllVirtualFiles();
                                 $id = "PFC_".\Illuminate\Support\Str::random(5);
                             @endphp
                             <div class="pfc-icon ct" data-fn="popover3" data-source="{{ $shareTable->id }}" data-target="#{{ $popoverid }}"><i class="fa-solid fa-file"></i></div>
-                            <div class="pfc-title tippyer" data-placement="auto" data-htmlable="true"
+                            <div class="pfc-title tippyer" data-placement="bottom" data-htmlable="true"
                                  data-content="#{{ $id }}"><i
                                     class="fa-solid fa-circle-info"></i> {{ $shareTable->name }}
                             </div>
@@ -143,6 +151,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endauth
                     @endif
                 @endforeach
                 {{--

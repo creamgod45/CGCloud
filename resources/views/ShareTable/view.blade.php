@@ -60,69 +60,75 @@
     <x-scroll-indicator indicator-target="body"></x-scroll-indicator>
     <main>
         <div class="share-table-view">
-            <div class="form-content-group">
-                <div class="form-content-header">
-                    分享資訊名稱
+            <div class="form-panel-box">
+                <h1 class="form-panel-box-title">詳細資訊</h1>
+                <div class="form-content-group">
+                    <div class="form-content-header">
+                        分享資訊名稱
+                    </div>
+                    <div class="form-content-content">
+                        <input class="form-solid" readonly value="{{ $shareTable->name }}">
+                    </div>
                 </div>
-                <div class="form-content-content">
-                    <input class="form-solid w-1/2" readonly value="{{ $shareTable->name }}">
+                <div class="form-content-group">
+                    <div class="form-content-header">
+                        分享資訊說明
+                    </div>
+                    <div class="form-content-content">
+                        <textarea class="form-solid">{{ $shareTable->description }}</textarea>
+                    </div>
+                </div>
+                <div class="form-content-group">
+                    <div class="form-content-header">
+                        短連接代碼
+                    </div>
+                    <div class="form-content-content">
+                        <input class="form-solid" readonly value="{{ $shareTable->short_code }}">
+                    </div>
+                </div>
+                <div class="form-content-group">
+                    <div class="form-content-header">
+                        分享資訊可見度
+                    </div>
+                    <div class="form-content-content">
+                        <select class="tom-select" data-disabled="true" readonly data-width="50%">
+                            <option selected>{{ $shareTable->type }}</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-content-group">
+                    <div class="form-content-header">
+                        分享資訊指定授權用戶
+                    </div>
+                    <div class="form-content-content">
+                        <ul>
+                            @if($sharePermissions->isEmpty())
+                                <li>{{ $i18N->getLanguage(ELanguageText::ShareTableItemViewNoAuthorizationUser) }}</li>
+                            @endif
+                            @foreach($sharePermissions as $sharePermission)
+                                @php
+                                    $member = $sharePermission->member()->first()@endphp
+                                <li class="link link-hover link-color1 decoration-2">{{ $member->username }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
                 </div>
             </div>
-            <div class="form-content-group">
-                <div class="form-content-header">
-                    分享資訊說明
-                </div>
-                <div class="form-content-content">
-                    <textarea class="form-solid w-1/2">{{ $shareTable->description }}</textarea>
-                </div>
+            <div class="form-panel-box">
+                <h1 class="form-panel-box-title">檔案列表</h1>
+                @php
+                    $columns = [
+                        [ "data" => 'id', "name" => "id", "title" => "ID", "footer" => "ID" ],
+                        [ "data" => 'goto', "title" => "前往", "footer" => "前往", "className" => 'clickable', "orderable"=> false,"searchable"=> false, ],
+                        [ "data" => 'filename', "name" => "filename", "title" => "名稱", "footer" => "名稱" ],
+                        [ "data" => 'created_at', "name" => "created_at", "title" => "建立時間" , "footer" => "建立時間" ],
+                        [ "data" => 'size', "name" => "size", "title" => "大小", "footer" => "大小" ],
+                        [ "data" => 'action', "name" => "action", "title" => "操作", "footer" => "操作" ],
+                    ];
+                @endphp
+                <table class="datatable" data-cgdatatype="JSON" data-cgdata="{{ Json::encode($virtualFiles) }}" data-cgcolumns="{{ Json::encode($columns) }}" data-cgfixedtable="true">
+                </table>
             </div>
-            <div class="form-content-group">
-                <div class="form-content-header">
-                    短連接代碼
-                </div>
-                <div class="form-content-content">
-                    <input class="form-solid w-1/2" readonly value="{{ $shareTable->short_code }}">
-                </div>
-            </div>
-            <div class="form-content-group">
-                <div class="form-content-header">
-                    分享資訊可見度
-                </div>
-                <div class="form-content-content">
-                    <select class="tom-select w-1/2" data-disabled="true" readonly data-width="50%">
-                        <option selected>{{ $shareTable->type }}</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-content-group">
-                <div class="form-content-header">
-                    分享資訊指定授權用戶
-                </div>
-                <div class="form-content-content">
-                    <ul>
-                    @if($sharePermissions->isEmpty())
-                        <li>{{ $i18N->getLanguage(ELanguageText::ShareTableItemViewNoAuthorizationUser) }}</li>
-                    @endif
-                    @foreach($sharePermissions as $sharePermission)
-                        @php
-                            $member = $sharePermission->member()->first()@endphp
-                        <li>{{ $member->username }}</li>
-                    @endforeach
-                    </ul>
-                </div>
-            </div>
-            @php
-                $columns = [
-                    [ "data" => 'id', "name" => "id", "title" => "ID", "footer" => "ID" ],
-                    [ "data" => 'goto', "title" => "前往", "footer" => "前往", "className" => 'clickable', "orderable"=> false,"searchable"=> false, ],
-                    [ "data" => 'filename', "name" => "filename", "title" => "名稱", "footer" => "名稱" ],
-                    [ "data" => 'created_at', "name" => "created_at", "title" => "建立時間" , "footer" => "建立時間" ],
-                    [ "data" => 'size', "name" => "size", "title" => "大小", "footer" => "大小" ],
-                    [ "data" => 'action', "name" => "action", "title" => "操作", "footer" => "操作" ],
-                ];
-            @endphp
-            <table class="datatable" data-cgdatatype="JSON" data-cgdata="{{ Json::encode($virtualFiles) }}" data-cgcolumns="{{ Json::encode($columns) }}" data-cgfixedtable="true">
-            </table>
         </div>
     </main>
 @endsection

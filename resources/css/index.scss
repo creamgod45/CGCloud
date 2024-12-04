@@ -1,7 +1,7 @@
+@use "include";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import "include";
 
 body {
     @apply w-screen h-fit max-h-fit overflow-x-hidden;
@@ -133,6 +133,10 @@ body {
                         }
 
                         .pfc-preview {
+                            @apply my-3;
+                            .fdi-imginfo{
+                                @apply rounded-lg;
+                            }
                             video {
                                 @apply rounded-lg;
                             }
@@ -207,14 +211,42 @@ body {
             sm:w-screen
             xs:w-screen
             us:w-screen    ;
+            .form-panel-box{
+                @apply flex flex-wrap gap-y-3 w-full py-5 ring-1 ring-slate-200 rounded-md shadow-lg mx-5;
 
-            .form-content-group{
-                @apply flex flex-nowrap w-full gap-x-3;
-                .form-content-header{
-                    @apply w-1/3 text-end text-xl font-bold;
+                .form-panel-box-title{
+                    @apply font-bold text-2xl text-start break-keep mx-5;
                 }
-                .form-content-content{
-                    @apply w-2/3;
+
+                .form-content-group{
+                    @apply flex flex-nowrap w-full gap-x-3;
+                    .form-content-header{
+                        @apply w-1/3 text-end text-xl font-bold
+                        xxl:w-1/3
+                        xl:w-1/3
+                        menu:w-1/3
+                        lg:w-1/3
+                        md:w-1/2
+                        footer:w-1/2
+                        sm:w-1/2
+                        xs:w-1/2
+                        us:w-1/2;
+                    }
+                    .form-content-content{
+                        @apply w-2/3 pe-5
+                        xxl:w-2/3
+                        xl:w-2/3
+                        menu:w-2/3
+                        lg:w-2/3
+                        md:w-1/2
+                        footer:w-1/2
+                        sm:w-1/2
+                        xs:w-1/2
+                        us:w-1/2;
+                        input, select, textarea{
+                            @apply w-full;
+                        }
+                    }
                 }
             }
         }
