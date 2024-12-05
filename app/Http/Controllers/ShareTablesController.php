@@ -39,7 +39,7 @@ class ShareTablesController extends Controller
 
     public function index(Request $request)
     {
-
+        phpinfo();
     }
 
     public function viewShareTableItem(Request $request)
@@ -101,16 +101,14 @@ class ShareTablesController extends Controller
             $disk = Storage::disk($virtualFile->disk);
             $filename = $virtualFile->path;
 
-            return new StreamedResponse(function () use ($disk, $filename) {
-                $stream = $disk->readStream($filename);
-                fpassthru($stream);
-                if (is_resource($stream)) {
-                    fclose($stream);
-                }
+            $stream = $disk->readStream($filename);
+            return new StreamedResponse(function () use ($stream) {
+                stream_copy_to_stream($stream, fopen('php://output', 'wb'));
+                fclose($stream);
             }, 200, [
                 'Content-Type' => $disk->mimeType($filename),
                 'Content-Length' => $disk->size($filename),
-                'Content-Disposition' => 'inline; filename="'.$filename.'"',
+                'Content-Disposition' => 'inline; filename="'.basename($filename).'"',
             ]);
         }
         abort(404);
