@@ -69,6 +69,35 @@ class ShareTablesController extends Controller
         }
     }
 
+    public function downloadShareTableItem(Request $request)
+    {
+        $shareTableId = $request->route('id', 1);
+        $fileId = $request->route('fileId', 1);
+
+        $shareTable = ShareTable::find($shareTableId);
+        if($shareTable !== null){
+            $allRelatedIds = $shareTable->virtualFiles()->allRelatedIds()->toArray();
+            if(in_array($fileId, $allRelatedIds)){
+                $virtualFile = VirtualFile::where('uuid','=',$fileId)->get()->first();
+
+                if ($virtualFile !== null) {
+                    $disk = Storage::disk($virtualFile->disk);
+                    $path = $virtualFile->path;
+
+                    if ($disk->exists($path)) {
+                        return $disk->download($path);
+                    } else {
+                        abort(404, 'File not in physics storage.');
+                    }
+                } else {
+                    abort(404, 'Virtual file not found.');
+                }
+            }
+            abort(404, 'File not found.');
+        }
+        abort(404, 'Sharetable not found.');
+    }
+
     public function list(Request $request)
     {
         return view('Shop.ShopItemTables',

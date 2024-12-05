@@ -40,6 +40,7 @@ enum RouteNameField: string
     case PageCustomerOrderList = 'root.customer.order.list';
     case PageShareTableItemPost = 'root.sharetable.item.post';
     case PageShareTableItemView = 'root.sharetable.item.view';
+    case PageShareTableItemDownload = 'root.sharetable.item.download';
 
     // API
     case APIEncodeJson = 'root.api.EncodeJson';

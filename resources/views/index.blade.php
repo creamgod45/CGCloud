@@ -114,8 +114,13 @@
                                         <div class="pfcf-text">過期日期：{{ $virtualFile->expired_at }}</div>
                                         <div class="pfcf-text">
                                             擁有者：{{ $virtualFile->members()->first()->username }}</div>
-                                        <div class="pfcf-text">預覽網址：<a target="_blank" rel="noreferrer noopener"
-                                                                           href="{{ $virtualFile->getTemporaryUrl(now()->addMinutes(10)) }}">傳送門</a>
+                                        <div class="pfcf-text">
+                                            預覽網址：
+                                            <a target="_blank" rel="noreferrer noopener" href="{{ $virtualFile->getTemporaryUrl(now()->addMinutes(10)) }}">傳送門</a>
+                                        </div>
+                                        <div class="pfcf-text">
+                                            下載網址：
+                                            <a target="_blank" rel="noreferrer noopener" href="{{ route(RouteNameField::PageShareTableItemDownload->value, ['id'=>$shareTable->id,"fileId"=> $virtualFile->uuid ]) }}">傳送門</a>
                                         </div>
                                     </div>
                                 @endforeach
