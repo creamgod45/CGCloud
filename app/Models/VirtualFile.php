@@ -50,7 +50,7 @@ class VirtualFile extends Model
     public function getTemporaryUrl(DateTimeInterface $expiration = null)
     {
         if($expiration === null) {
-            $expiration = now()->addMinutes ();
+            $expiration = now()->addMinutes();
         }
         $temporaryUrl = URL::temporarySignedRoute(
             RouteNameField::APIPreviewFileTemporary->value,

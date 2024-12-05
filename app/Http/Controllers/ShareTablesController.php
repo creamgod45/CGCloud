@@ -9,6 +9,7 @@ use App\Lib\Type\String\CGString;
 use App\Lib\Type\String\CGStringable;
 use App\Lib\Utils\EValidatorType;
 use App\Lib\Utils\RouteNameField;
+use App\Lib\Utils\Utils;
 use App\Lib\Utils\Utilsv2;
 use App\Lib\Utils\ValidatorBuilder;
 use App\Models\SharePermissions;
@@ -20,6 +21,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -39,20 +41,21 @@ class ShareTablesController extends Controller
 
     public function index(Request $request)
     {
-        phpinfo();
+
     }
 
     public function viewShareTableItem(Request $request)
     {
         $popup = $request->get('popup', false) === '1';
         $shareTableId = $request->route('id', 1);
-        $shareTable = ShareTable::find($shareTableId)->first();
+        $shareTable = ShareTable::find($shareTableId);
         if($shareTable !== null){
             $virtualFiles = $shareTable->getAllVirtualFiles();
             foreach ($virtualFiles as $virtualFile) {
                 $virtualFile['#'] = '';
                 $virtualFile['goto'] = '↗️';
                 $virtualFile['action'] = '';
+                $virtualFile['size'] = Utils::convertByte($virtualFile['size']);
             }
             $sharePermissions = SharePermissions::where('share_tables_id', '=', $shareTableId)->get();
             return view('ShareTable.view', Controller::baseControllerInit($request, [

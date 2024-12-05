@@ -115,19 +115,19 @@
                                         <div class="pfcf-text">
                                             擁有者：{{ $virtualFile->members()->first()->username }}</div>
                                         <div class="pfcf-text">預覽網址：<a target="_blank" rel="noreferrer noopener"
-                                                                           href="{{ $virtualFile->getTemporaryUrl() }}">傳送門</a>
+                                                                           href="{{ $virtualFile->getTemporaryUrl(now()->addMinutes(10)) }}">傳送門</a>
                                         </div>
                                     </div>
                                 @endforeach
                             </div>
                             <div class="pfc-preview">
                                 @if(Utilsv2::isSupportImageFile($virtualFiles[0]->minetypes))
-                                    <img class="fdi-imginfo" src="{{ $virtualFiles[0]->getTemporaryUrl() }}"
+                                    <img class="fdi-imginfo" src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10)) }}"
                                          alt="{{ $virtualFiles[0]->filename }}">
                                 @elseif(Utilsv2::isSupportVideoFile($virtualFiles[0]->minetypes))
                                     <video class="vjs video-js vjs-theme-forest"
                                            data-minetype="{{ $virtualFiles[0]->minetypes }}" controls
-                                           data-src="{{ $virtualFiles[0]->getTemporaryUrl() }}"></video>
+                                           data-src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10)) }}"></video>
                                 @endif
                                 {{--<video class="dashvideo" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video> --}}
                                 <div class="vjs-playlist"></div>
