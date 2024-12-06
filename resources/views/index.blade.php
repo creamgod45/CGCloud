@@ -76,89 +76,95 @@
                 </form>
             @endauth
             <div class="panel-field-list">
-                @foreach($shareTables as $shareTable)
-                    @if($shareTable instanceof \App\Models\ShareTable)
-                        @guest
-                            <div class="panel-field-card vertical">
-                                <div class="pfc-icon"><i class="fa-solid fa-file"></i></div>
-                                <div class="pfc-title tippyer" data-placement="bottom" data-htmlable="true" data-content="登入了解更多"><i class="fa-solid fa-circle-info"></i> {{ $shareTable->name }}
+                @if(!empty($shareTables))
+                    @foreach($shareTables as $shareTable)
+                        @if($shareTable instanceof \App\Models\ShareTable)
+                            @guest
+                                <div class="panel-field-card vertical">
+                                    <div class="pfc-icon"><i class="fa-solid fa-file"></i></div>
+                                    <div class="pfc-title tippyer" data-placement="bottom" data-htmlable="true" data-content="登入了解更多"><i class="fa-solid fa-circle-info"></i> {{ $shareTable->name }}
+                                    </div>
+                                    <div class="pfc-preview">
+                                        <img class="fdi-imginfo" src="{{ asset('assets/images/hidden.webp') }}" alt="登入了解更多">
+                                    </div>
+                                    <div class="pfc-operator">
+                                        <div class="btn-md btn-border-0 btn btn-ripple btn-color2 tippyer" data-placement="bottom" data-content="登入解鎖操作"><i class="fa-solid fa-lock"></i></div>
+                                    </div>
                                 </div>
-                                <div class="pfc-preview">
-                                    <img class="fdi-imginfo" src="{{ asset('assets/images/hidden.webp') }}" alt="登入了解更多">
-                                </div>
-                                <div class="pfc-operator">
-                                    <div class="btn-md btn-border-0 btn btn-ripple btn-color2 tippyer" data-placement="bottom" data-content="登入解鎖操作"><i class="fa-solid fa-lock"></i></div>
-                                </div>
-                            </div>
-                        @endguest
-                        @auth
-                        <div class="panel-field-card vertical">
-                            @php
-                                $virtualFiles = $shareTable->getAllVirtualFiles();
-                                $id = "PFC_".\Illuminate\Support\Str::random(5);
-                            @endphp
-                            <div class="pfc-icon ct" data-fn="popover3" data-source="{{ $shareTable->id }}" data-target="#{{ $popoverid }}"><i class="fa-solid fa-file"></i></div>
-                            <div class="pfc-title tippyer" data-placement="bottom" data-htmlable="true"
-                                 data-content="#{{ $id }}"><i
-                                    class="fa-solid fa-circle-info"></i> {{ $shareTable->name }}
-                            </div>
-                            <div id="{{ $id }}" class="pfc-fileinfo !hidden">
-                                {{ $shareTable->description }}
-                                @foreach($virtualFiles as $virtualFile)
-                                    <div class="pfc-fileinfo-item">
-                                        <div class="pfcf-text">檔案名稱：{{ $virtualFile->filename }}</div>
-                                        <div class="pfcf-text">
-                                            檔案大小：{{ \App\Lib\Utils\Utils::convertByte($virtualFile->size) }}</div>
-                                        <div class="pfcf-text">檔案類型：{{ $virtualFile->minetypes }}</div>
-                                        <div class="pfcf-text">建立日期：{{ $virtualFile->created_at }}</div>
-                                        <div class="pfcf-text">過期日期：{{ $virtualFile->expired_at }}</div>
-                                        <div class="pfcf-text">
-                                            擁有者：{{ $virtualFile->members()->first()->username }}</div>
-                                        <div class="pfcf-text">
-                                            預覽網址：
-                                            <a target="_blank" rel="noreferrer noopener" href="{{ $virtualFile->getTemporaryUrl(now()->addMinutes(10)) }}">傳送門</a>
-                                        </div>
-                                        <div class="pfcf-text">
-                                            下載網址：
-                                            <a target="_blank" rel="noreferrer noopener" href="{{ route(RouteNameField::PageShareTableItemDownload->value, ['id'=>$shareTable->id,"fileId"=> $virtualFile->uuid ]) }}">傳送門</a>
+                            @endguest
+                            @auth
+                                <div class="panel-field-card vertical">
+                                    @php
+                                        $virtualFiles = $shareTable->getAllVirtualFiles();
+                                        $id = "PFC_".\Illuminate\Support\Str::random(5);
+                                    @endphp
+                                    <div class="pfc-icon ct" data-fn="popover3" data-source="{{ $shareTable->id }}" data-target="#{{ $popoverid }}"><i class="fa-solid fa-file"></i></div>
+                                    <div class="pfc-title tippyer" data-placement="bottom" data-htmlable="true"
+                                         data-content="#{{ $id }}"><i
+                                            class="fa-solid fa-circle-info"></i> {{ $shareTable->name }}
+                                    </div>
+                                    <div id="{{ $id }}" class="pfc-fileinfo !hidden">
+                                        {{ $shareTable->description }}
+                                        @foreach($virtualFiles as $virtualFile)
+                                            <div class="pfc-fileinfo-item">
+                                                <div class="pfcf-text">檔案名稱：{{ $virtualFile->filename }}</div>
+                                                <div class="pfcf-text">
+                                                    檔案大小：{{ \App\Lib\Utils\Utils::convertByte($virtualFile->size) }}</div>
+                                                <div class="pfcf-text">檔案類型：{{ $virtualFile->minetypes }}</div>
+                                                <div class="pfcf-text">建立日期：{{ $virtualFile->created_at }}</div>
+                                                <div class="pfcf-text">過期日期：{{ $virtualFile->expired_at }}</div>
+                                                <div class="pfcf-text">
+                                                    擁有者：{{ $virtualFile->members()->first()->username }}</div>
+                                                <div class="pfcf-text">
+                                                    預覽網址：
+                                                    <a target="_blank" rel="noreferrer noopener" href="{{ $virtualFile->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}">傳送門</a>
+                                                </div>
+                                                <div class="pfcf-text">
+                                                    下載網址：
+                                                    <a target="_blank" rel="noreferrer noopener" href="{{ route(RouteNameField::PageShareTableItemDownload->value, ['id'=>$shareTable->id,"fileId"=> $virtualFile->uuid ]) }}">傳送門</a>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <div class="pfc-preview">
+                                        @if($virtualFiles[0] !== null || !empty($virtualFiles))
+                                            @if(Utilsv2::isSupportImageFile($virtualFiles[0]->minetypes))
+                                                <img class="fdi-imginfo" src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}" alt="{{ $virtualFiles[0]->filename }}">
+                                            @elseif(Utilsv2::isSupportVideoFile($virtualFiles[0]->minetypes) && $virtualFiles[0]->size <= 150 * 1024 * 1024)
+                                                <video class="vjs video-js vjs-theme-forest"
+                                                       data-minetype="{{ $virtualFiles[0]->minetypes }}" controls
+                                                       data-src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}"></video>
+
+                                            @elseif(Utilsv2::isSupportVideoFile($virtualFiles[0]->minetypes))
+                                                <img class="fdi-imginfo tippyer" data-content="{{ $i18N->getLanguage(ELanguageText::FileSizeTooLarge) }}" src="{{ asset('assets/images/warning_file_size_large.webp') }}" alt="{{ $virtualFiles[0]->filename }}">
+                                            @endif
+                                        @endif
+                                        {{--<video class="dashvideo" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video> --}}
+                                        <div class="vjs-playlist"></div>
+                                    </div>
+                                    <div class="pfc-operator">
+                                        <div class="btn-group">
+                                            <div class="btn-md btn-border-0 btn btn-ripple btn-color2 tippyer"
+                                                 data-placement="auto"
+                                                 data-content="分享給"><i class="fa-solid fa-share"></i></div>
+                                            <div class="btn-md btn-border-0 btn btn-ripple btn-ok tippyer" data-placement="auto"
+                                                 data-content="複製"><i class="fa-solid fa-link"></i></div>
+                                            <div class="btn-md btn-border-0 btn btn-ripple btn-color7 tippyer"
+                                                 data-placement="auto"
+                                                 data-content="下載"><i class="fa-solid fa-download"></i></div>
+                                            <div class="btn-md btn-border-0 btn btn-ripple btn-warning tippyer"
+                                                 data-placement="auto"
+                                                 data-content="編輯"><i class="fa-solid fa-pen-to-square"></i></div>
+                                            <div class="btn-md btn-border-0 btn btn-ripple btn-error tippyer last"
+                                                 data-placement="auto"
+                                                 data-content="刪除"><i class="fa-solid fa-trash"></i></div>
                                         </div>
                                     </div>
-                                @endforeach
-                            </div>
-                            <div class="pfc-preview">
-                                @if(Utilsv2::isSupportImageFile($virtualFiles[0]->minetypes))
-                                    <img class="fdi-imginfo" src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10)) }}"
-                                         alt="{{ $virtualFiles[0]->filename }}">
-                                @elseif(Utilsv2::isSupportVideoFile($virtualFiles[0]->minetypes))
-                                    <video class="vjs video-js vjs-theme-forest"
-                                           data-minetype="{{ $virtualFiles[0]->minetypes }}" controls
-                                           data-src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10)) }}"></video>
-                                @endif
-                                {{--<video class="dashvideo" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video> --}}
-                                <div class="vjs-playlist"></div>
-                            </div>
-                            <div class="pfc-operator">
-                                <div class="btn-group">
-                                    <div class="btn-md btn-border-0 btn btn-ripple btn-color2 tippyer"
-                                         data-placement="auto"
-                                         data-content="分享給"><i class="fa-solid fa-share"></i></div>
-                                    <div class="btn-md btn-border-0 btn btn-ripple btn-ok tippyer" data-placement="auto"
-                                         data-content="複製"><i class="fa-solid fa-link"></i></div>
-                                    <div class="btn-md btn-border-0 btn btn-ripple btn-color7 tippyer"
-                                         data-placement="auto"
-                                         data-content="下載"><i class="fa-solid fa-download"></i></div>
-                                    <div class="btn-md btn-border-0 btn btn-ripple btn-warning tippyer"
-                                         data-placement="auto"
-                                         data-content="編輯"><i class="fa-solid fa-pen-to-square"></i></div>
-                                    <div class="btn-md btn-border-0 btn btn-ripple btn-error tippyer last"
-                                         data-placement="auto"
-                                         data-content="刪除"><i class="fa-solid fa-trash"></i></div>
                                 </div>
-                            </div>
-                        </div>
-                        @endauth
-                    @endif
-                @endforeach
+                            @endauth
+                        @endif
+                    @endforeach
+                @endif
                 {{--
                 <div class="panel-field-card vertical">
                      <div class="pfc-icon"><i class="fa-solid fa-file"></i></div>

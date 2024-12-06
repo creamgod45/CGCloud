@@ -317,7 +317,18 @@ class InternalController extends Controller
 
     public function index(Request $request)
     {
-        $shareTables = Cache::remember('shareTableIndexCache_p_'.$request->get('page', 1), now()->addMinutes(), function (){
+        $pageKey = 'shareTableIndexCache_p_' . $request->get('page', 1);
+        $shareTables = Cache::remember($pageKey, now()->addMinutes(), function () use ($pageKey) {
+            $key = 'shareTableIndexCaches';
+            if (Cache::has($key)) {
+                $var = Cache::get($key);
+                if (is_array($var)) {
+                    $var [] = $pageKey;
+                }
+                Cache::put($key, $var, now()->addDays());
+            } else {
+                Cache::put($key, [$pageKey], now()->addDays());
+            }
             return ShareTable::where('type', '=', EShareTableType::public->value)->paginate(30);
         });
 

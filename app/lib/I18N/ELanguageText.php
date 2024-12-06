@@ -358,6 +358,7 @@ enum ELanguageText
 
     case ShareTableItemCreatePostSuccessMessage;
     case ShareTableItemViewNoAuthorizationUser;
+    case FileSizeTooLarge;
 
     public static function isVaild(string $name): bool
     {

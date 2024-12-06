@@ -218,5 +218,6 @@ class DictionaryMap
         $i->setLanguagev2(ELanguageText::passwords_user, "We can't find a user with that email address.");
         $i->setLanguagev2(ELanguageText::ShareTableItemCreatePostSuccessMessage, "File sharing data created successfully.");
         $i->setLanguagev2(ELanguageText::ShareTableItemViewNoAuthorizationUser, "You have not set up an authorized user");
+        $i->setLanguagev2(ELanguageText::FileSizeTooLarge, "File size too large");
     }
 }

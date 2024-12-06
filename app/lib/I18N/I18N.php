@@ -237,6 +237,7 @@ class I18N
     }
 
     /**
+     * @param                 $languageCode
      * @param ELanguageCode[] $limitMode
      *
      * @return void
@@ -245,9 +246,9 @@ class I18N
     {
         $this->buildLanguageMap();
         if (!empty($limitMode)) {
-            $this->extracted($limitMode);
+            $this->processLanguageCodes($limitMode);
         } else {
-            $this->extracted(ELanguageCode::cases());
+            $this->processLanguageCodes(ELanguageCode::cases());
         }
         if ($languageCode instanceof ELanguageCode) {
             // 選擇語系
@@ -262,40 +263,44 @@ class I18N
      *
      * @return void
      */
-    private function extracted(array $ELanguageCodeList): void
+    private function processLanguageCodes(array $ELanguageCodeList): void
     {
-        $flag_a = true;
+        $languageDir = "lib/I18N/languages/";
+
         foreach ($ELanguageCodeList as $case) {
-            if (!file_exists("lib/I18N/languages/" . $case->name . ".yml")) {
-                //Utils::pinv("1");
-                $listtext = [];
-                //dump($this->languageTextList);
-                foreach ($this->languageTextList as $item) {
-                    $listtext [] = $item[0];
-                }
-                $dump = Yaml::dump($listtext);
-                FileSystem::write("lib/I18N/languages/" . $case->name . ".yml", $dump);
-                continue;
+            $languageFile = $languageDir . $case->name . ".yml";
+
+            if (!file_exists($languageFile)) {
+                $this->createLanguageFile($languageFile);
+            } else {
+                $this->updateLanguageFile($languageFile);
             }
-            $languageYaml = $this->yamlController("lib/I18N/languages/" . $case->name . ".yml");
-            //Utils::pinv($languageYaml, "before: ".$case->name);
-            $change = 0;
-            $cgkeys = new CGArray($languageYaml);
-            //debugbar()->info($this->languageTextList);
-            foreach ($this->languageTextList as $key => $c) {
-                if (is_array($c)) {
-                    if (!$cgkeys->hasKey($key) || $this->languageTextList[$key][1]) {
-                        $languageYaml[$key] = $this->languageTextList[$key][0];
-                        $change++;
-                    }
-                }
+        }
+    }
+
+    private function createLanguageFile(string $languageFile): void
+    {
+        $listText = array_map(fn($item) => $item[0], $this->languageTextList);
+        $dump = Yaml::dump($listText);
+        FileSystem::write($languageFile, $dump);
+    }
+
+    private function updateLanguageFile(string $languageFile): void
+    {
+        $languageYaml = $this->yamlController($languageFile);
+        $changeCount = 0;
+        $cgKeys = new CGArray($languageYaml);
+
+        foreach ($this->languageTextList as $key => $textArray) {
+            if (is_array($textArray) && (!$cgKeys->hasKey($key) || $textArray[1])) {
+                $languageYaml[$key] = $textArray[0];
+                $changeCount++;
             }
-            //Utils::pinv($languageYaml, "after: ".$case->name);
-            if ($change > 0) {
-                //Utils::pinv($change, "2");
-                $dump = Yaml::dump($languageYaml);
-                FileSystem::write("lib/I18N/languages/" . $case->name . ".yml", $dump);
-            }
+        }
+
+        if ($changeCount > 0) {
+            $dump = Yaml::dump($languageYaml);
+            FileSystem::write($languageFile, $dump);
         }
     }
 
@@ -339,7 +344,7 @@ class I18N
     #[Deprecated(replacement: '%class%->setLanguagev2(%parametersList%)')]
     public function setLanguage(ELanguageText $elanguageText, string $value): static
     {
-        $this->languageTextList[$elanguageText->name] = $value;
+        error_log("[WARNING]nothing to do. I18N::setLanguage() is deprecated. Please use I18N::setLanguagev2() instead.");
         return $this;
     }
 

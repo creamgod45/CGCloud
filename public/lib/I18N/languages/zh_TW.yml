@@ -376,3 +376,4 @@ MailSalutation: 'by %appname%'
 ResetPasswordgreeting: 'Hello!! Dear.%username%'
 ShareTableItemCreatePostSuccessMessage: 檔案共享數據成功創建。
 ShareTableItemViewNoAuthorizationUser: 你沒有設定授權用戶
+FileSizeTooLarge: '檔案大小太大'

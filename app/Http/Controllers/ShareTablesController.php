@@ -125,10 +125,24 @@ class ShareTablesController extends Controller
         return $array->toJson();*/
     }
 
-    public function apiPreviewFileTemporary(Request $request)
+    /**
+     * Streams the contents of a virtual file to the response.
+     *
+     * If the virtual file is not null, it attempts to read the file from the specified disk
+     * and streams its contents directly to the output. The streamed response includes headers
+     * indicating the content type, content length, and content disposition to facilitate inline
+     * display of the file in a browser.
+     *
+     * In case the virtual file is null, the function will abort the request with a 404 error.
+     *
+     * @param mixed $virtualFile An object containing the disk and path of the file to be streamed.
+     *
+     * @return StreamedResponse The HTTP streamed response with the file content.
+     *
+     * @throws HttpException If the file is not found or cannot be read, a 404 error is returned.
+     */
+    private function filePreview($virtualFile): StreamedResponse
     {
-        $fileUUID = $request->route('fileId');
-        $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->first();
         if($virtualFile !== null) {
             $disk = Storage::disk($virtualFile->disk);
             $filename = $virtualFile->path;
@@ -142,6 +156,37 @@ class ShareTablesController extends Controller
                 'Content-Length' => $disk->size($filename),
                 'Content-Disposition' => 'inline; filename="'.basename($filename).'"',
             ]);
+        }
+        abort(404);
+    }
+
+    public function apiPreviewFileTemporary(Request $request)
+    {
+        $fileUUID = $request->route('fileId');
+        $CGLCI = self::baseControllerInit($request);
+        $fingerprint = $CGLCI->getFingerprint();
+        $key = 'sharTableItemPost' . $fingerprint;
+        if (Cache::has($key)) {
+            $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->first();
+            return $this->filePreview($virtualFile);
+        } else {
+            abort(404);
+        }
+    }
+
+    public function apiPreviewFileTemporary2(Request $request)
+    {
+        $fileUUID = $request->route('fileId');
+        $shareTableId = $request->route('shareTableId');
+        if($shareTableId !== null) {
+            $shareTable = ShareTable::find($shareTableId);
+            if($shareTable !== null) {
+                $collection = $shareTable->virtualFiles()->allRelatedIds();
+                if($collection->contains($fileUUID)) {
+                    $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->get()->first();
+                    return $this->filePreview($virtualFile);
+                }
+            }
         }
         abort(404);
     }
@@ -172,6 +217,18 @@ class ShareTablesController extends Controller
             }
         }
         return view('Shop.AddShopItem', Controller::baseControllerInit($request, ["files" => $files])->toArrayable());
+    }
+
+    private function clearShareTableIndexCaches()
+    {
+        if (Cache::has('shareTableIndexCaches')) {
+            $var = Cache::get('shareTableIndexCaches');
+            if(is_array($var)) {
+                foreach ($var as $value) {
+                    Cache::forget($value);
+                }
+            }
+        }
     }
 
     public function shareTableItemCreatePost(Request $request)
@@ -234,6 +291,7 @@ class ShareTablesController extends Controller
                         'expired_at' => now()->addDays(15)->timestamp,
                     ]);
                 }
+                $this->clearShareTableIndexCaches();
 
                 return response()->json([
                     "type" => true,

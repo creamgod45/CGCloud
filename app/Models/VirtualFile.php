@@ -24,6 +24,7 @@ class VirtualFile extends Model
         'disk',
         'expired_at',
         'size',
+        'type',
     ];
 
     public function members()
@@ -47,16 +48,29 @@ class VirtualFile extends Model
     }
 
 
-    public function getTemporaryUrl(DateTimeInterface $expiration = null)
+    public function getTemporaryUrl(DateTimeInterface $expiration = null, $shareTableId = null)
     {
         if($expiration === null) {
             $expiration = now()->addMinutes();
         }
-        $temporaryUrl = URL::temporarySignedRoute(
-            RouteNameField::APIPreviewFileTemporary->value,
-            $expiration,
-            [ 'fileId' => $this->uuid ]
-        );
+        $temporaryUrl = "";
+
+        if($shareTableId === null) {
+            $temporaryUrl = URL::temporarySignedRoute(
+                RouteNameField::APIPreviewFileTemporary->value,
+                $expiration,
+                ['fileId' => $this->uuid],
+            );
+        } else {
+            $temporaryUrl = URL::temporarySignedRoute(
+                RouteNameField::APIPreviewFileTemporary2->value,
+                $expiration,
+                [
+                    'fileId' => $this->uuid,
+                    'shareTableId' => $shareTableId,
+                ],
+            );
+        }
         return $temporaryUrl;
     }
 
