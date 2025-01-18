@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Casts\ExpiresAtCast;
+use App\Lib\Utils\RouteNameField;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use RahulHaque\Filepond\Models\Filepond;
 
 class ShareTable extends Model
@@ -41,5 +43,14 @@ class ShareTable extends Model
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);
+    }
+
+    public function shareURL(): string
+    {
+        return URL::temporarySignedRoute(
+            RouteNameField::PageShareableShareTableItem->value,
+            now()->addDays(),
+            ['id' => $this->id],
+        );
     }
 }

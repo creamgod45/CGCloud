@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Lib\Inventory;
+namespace App\Lib\Type;
+
+use Intervention\Image\Interfaces\ImageInterface;
 
 class Image
 {
@@ -12,6 +14,7 @@ class Image
     private string $title;
     private string $description;
     private bool $isValid = true;
+    private ImageInterface $image;
 
     public function __construct(
         string $uri,
@@ -21,6 +24,7 @@ class Image
         string $title,
         string $description,
         string $exif = "",
+        ImageInterface $image = null
     ) {
         if ($uri === "null") {
             $this->isValid = false;
@@ -32,6 +36,26 @@ class Image
         $this->exif = $exif;
         $this->title = $title;
         $this->description = $description;
+        $this->image = $image;
+    }
+
+    /**
+     * @return ImageInterface
+     */
+    public function getImage(): ImageInterface
+    {
+        return $this->image;
+    }
+
+    /**
+     * @param ImageInterface $image
+     *
+     * @return Image
+     */
+    public function setImage(ImageInterface $image): Image
+    {
+        $this->image = $image;
+        return $this;
     }
 
     /**

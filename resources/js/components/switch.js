@@ -62,6 +62,7 @@ function switcher() {
                 });
             }
         };
+
         switch1.onclick = function () {
             let id = switch1.id;
             if (switch1.value === null) {
@@ -122,7 +123,9 @@ function switcher() {
         };
     }
 }
-
+document.addEventListener('CGSW::init', function () {
+   switcher();
+});
 document.addEventListener('DOMContentLoaded', function () {
     switcher();
 });

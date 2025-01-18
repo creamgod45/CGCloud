@@ -1,0 +1,47 @@
+.shareable-popover{
+    @apply bg-white shadow-lg rounded-lg h-1/2 p-0
+    xxl:w-9/12
+    xl:w-9/12
+    menu:w-9/12
+    lg:w-9/12
+    md:w-11/12
+    footer:w-11/12
+    sm:w-11/12
+    xs:w-11/12
+    us:w-full;
+    .shareable-popover-header{
+        @apply border-b-2 border-neutral-600 pt-6 pb-2 mt-0 m-4 mb-4 z-30 bg-white sticky top-0;
+        .shareable-popover-title{
+            @apply text-2xl font-bold inline-block;
+        }
+        .shareable-popover-close{
+            @apply float-right;
+        }
+    }
+    .shareable-popover-itembar{
+        @apply flex space-x-5 border-b-2 border-neutral-600 pb-8 m-4 mb-4 pl-4;
+        .shareable-popover-item{
+            @apply cursor-pointer select-none relative size-12 bg-white ring-1 ring-slate-200 bg-center bg-no-repeat rounded-4xl shadow-lg flex justify-center items-center;
+            .shareable-popover-item-float-text{
+                @apply break-keep text-nowrap flex justify-center items-center absolute -bottom-7 left-0 w-full text-black font-bold;
+            }
+        }
+    }
+
+    .shareable-popover-other {
+        @apply flex flex-col overflow-y-auto h-max m-4;
+        .shareable-popover-status-field {
+            @apply flex flex-nowrap items-center mb-3;
+            .shareable-popover-status-field-title{
+                @apply inline-block text-lg w-full;
+            }
+            .shareable-popover-status-field-operator{
+                @apply text-nowrap break-keep;
+            }
+        }
+    }
+}
+
+.shareable-popover::backdrop {
+    @apply backdrop-blur-sm bg-neutral-800/50;
+}

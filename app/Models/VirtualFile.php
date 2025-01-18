@@ -3,12 +3,16 @@
 namespace App\Models;
 
 use App\Casts\ExpiresAtCast;
+use App\Lib\Type\Image;
 use App\Lib\Utils\RouteNameField;
 use DateTimeInterface;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class VirtualFile extends Model
 {
@@ -47,6 +51,20 @@ class VirtualFile extends Model
         return Storage::url($this->path);
     }
 
+    public function getFileSystem(): Filesystem
+    {
+        return Storage::disk($this->disk);
+    }
+
+    public function getImage($shareTableId): Image
+    {
+        $manager = new ImageManager(new Driver());
+        $filesystem = $this->getFileSystem();
+        $image = $manager->read($filesystem->readStream($this->path));
+        $internalImage = new Image($this->getTemporaryUrl(null, $shareTableId), $image->size()->width(),
+            $image->size()->height(), $this->minetypes, "", "", image: $image);
+        return $internalImage;
+    }
 
     public function getTemporaryUrl(DateTimeInterface $expiration = null, $shareTableId = null)
     {

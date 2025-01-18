@@ -85,7 +85,7 @@ a.btn {
 }
 
 .switch {
-    @apply relative inline-block;
+    @apply relative inline-block select-none cursor-pointer;
     .switch-border {
         @apply pointer-events-auto h-6 w-10 rounded-full p-1 ring-1 ring-inset transition duration-500 ease-in-out bg-slate-900/10 ring-slate-900/5;
         .switch-dot {

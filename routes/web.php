@@ -29,6 +29,8 @@ Route::middleware("checkClientID")->group(function () {
     Route::get('/', [InternalController::class, 'index'])->name(RouteNameField::PageHome->value);
     Route::post('/clientconfig', [InternalController::class, 'getClientConfig'])->name(RouteNameField::APIClientConfig->value);
     Route::middleware(['auth', 'verified'])->prefix("sharetable")->group(function () {
+        Route::get('share/{id}', [ShareTablesController::class, 'shareableShareTableItem'])->name(RouteNameField::PageShareableShareTableItem->value);
+        Route::post('share/{id}', [ShareTablesController::class, 'shareableShareTableItemPost'])->name(RouteNameField::APIShareableShareTableItem->value);
         Route::get('item/{id}', [ShareTablesController::class, 'viewShareTableItem'])->name(RouteNameField::PageShareTableItemView->value);
         Route::get('item/download/{id}/{fileId}', [ShareTablesController::class, 'downloadShareTableItem'])->name(RouteNameField::PageShareTableItemDownload->value);
         Route::get('item/edit/{id}', [ShareTablesController::class, 'editor'])->name(RouteNameField::PageShopItemEditor->value);

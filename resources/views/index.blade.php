@@ -1,5 +1,5 @@
 @vite(['resources/css/index.css', 'resources/js/index.js'])
-@use (App\Lib\I18N\ELanguageText;use App\Lib\I18N\I18N;use App\Lib\Utils\Htmlv2;use App\Lib\Utils\Utilsv2;use App\View\Components\PopoverOptions;use Illuminate\Http\Request;use Illuminate\Pagination\LengthAwarePaginator;use Illuminate\Support\Facades\Config; use Nette\Utils\Json;use App\Lib\Utils\RouteNameField)
+@use (App\Lib\I18N\ELanguageText;use App\Lib\I18N\I18N;use App\Lib\Utils\Htmlv2;use App\Lib\Utils\Utils;use App\Lib\Utils\Utilsv2;use App\View\Components\PopoverOptions;use Illuminate\Http\Request;use Illuminate\Pagination\LengthAwarePaginator;use Illuminate\Support\Facades\Config; use Nette\Utils\Json;use App\Lib\Utils\RouteNameField)
 @php
     /***
      * @var string[] $urlParams 當前 URL 參數
@@ -42,7 +42,9 @@
             $popoverid = "popover_".\Illuminate\Support\Str::random(5);
             $popoverOptions = new PopoverOptions()@endphp
         <div class="container1">
-            <x-popover-windows :id="$popoverid" :popover-options="$popoverOptions" popover-title="預覽分享資訊" class="shop-popover !hidden">
+            <button popovertarget="taseas" class="btn btn-color7 btn-ripple"> popover</button>
+            <x-popover-windows :id="$popoverid" :popover-options="$popoverOptions" popover-title="預覽分享資訊"
+                               class="shop-popover !hidden">
                 <div class="shop-popover-placeholder placeholder placeholder-full-wh">
                     <div class="shop-popover-loader" role="status">
                         <svg aria-hidden="true"
@@ -82,23 +84,32 @@
                             @guest
                                 <div class="panel-field-card vertical">
                                     <div class="pfc-icon"><i class="fa-solid fa-file"></i></div>
-                                    <div class="pfc-title tippyer" data-placement="bottom" data-htmlable="true" data-content="登入了解更多"><i class="fa-solid fa-circle-info"></i> {{ $shareTable->name }}
+                                    <div class="pfc-title tippyer" data-placement="bottom" data-htmlable="true"
+                                         data-content="登入了解更多"><i
+                                            class="fa-solid fa-circle-info"></i> {{ $shareTable->name }}
                                     </div>
                                     <div class="pfc-preview">
-                                        <img class="fdi-imginfo" src="{{ asset('assets/images/hidden.webp') }}" alt="登入了解更多">
+                                        <img class="fdi-imginfo presize" data-prewidth="100%" data-preheight="300px"
+                                             src="{{ asset('assets/images/hidden.webp') }}" alt="登入了解更多">
                                     </div>
                                     <div class="pfc-operator">
-                                        <div class="btn-md btn-border-0 btn btn-ripple btn-color2 tippyer" data-placement="bottom" data-content="登入解鎖操作"><i class="fa-solid fa-lock"></i></div>
+                                        <div class="btn-md btn-border-0 btn btn-ripple btn-color2 tippyer"
+                                             data-placement="bottom" data-content="登入解鎖操作"><i
+                                                class="fa-solid fa-lock"></i></div>
                                     </div>
                                 </div>
                             @endguest
                             @auth
                                 <div class="panel-field-card vertical">
                                     @php
+                                        /**
+                                         * @var \App\Models\VirtualFile[]|Illuminate\Database\Eloquent\Collection $virtualFiles
+                                         **/
                                         $virtualFiles = $shareTable->getAllVirtualFiles();
                                         $id = "PFC_".\Illuminate\Support\Str::random(5);
                                     @endphp
-                                    <div class="pfc-icon ct" data-fn="popover3" data-source="{{ $shareTable->id }}" data-target="#{{ $popoverid }}"><i class="fa-solid fa-file"></i></div>
+                                    <div class="pfc-icon ct" data-fn="popover3" data-source="{{ $shareTable->id }}"
+                                         data-target="#{{ $popoverid }}"><i class="fa-solid fa-file"></i></div>
                                     <div class="pfc-title tippyer" data-placement="bottom" data-htmlable="true"
                                          data-content="#{{ $id }}"><i
                                             class="fa-solid fa-circle-info"></i> {{ $shareTable->name }}
@@ -117,11 +128,13 @@
                                                     擁有者：{{ $virtualFile->members()->first()->username }}</div>
                                                 <div class="pfcf-text">
                                                     預覽網址：
-                                                    <a target="_blank" rel="noreferrer noopener" href="{{ $virtualFile->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}">傳送門</a>
+                                                    <a target="_blank" rel="noreferrer noopener"
+                                                       href="{{ $virtualFile->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}">傳送門</a>
                                                 </div>
                                                 <div class="pfcf-text">
                                                     下載網址：
-                                                    <a target="_blank" rel="noreferrer noopener" href="{{ route(RouteNameField::PageShareTableItemDownload->value, ['id'=>$shareTable->id,"fileId"=> $virtualFile->uuid ]) }}">傳送門</a>
+                                                    <a target="_blank" rel="noreferrer noopener"
+                                                       href="{{ route(RouteNameField::PageShareTableItemDownload->value, ['id'=>$shareTable->id,"fileId"=> $virtualFile->uuid ]) }}">傳送門</a>
                                                 </div>
                                             </div>
                                         @endforeach
@@ -129,14 +142,51 @@
                                     <div class="pfc-preview">
                                         @if($virtualFiles[0] !== null || !empty($virtualFiles))
                                             @if(Utilsv2::isSupportImageFile($virtualFiles[0]->minetypes))
-                                                <img class="fdi-imginfo" src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}" alt="{{ $virtualFiles[0]->filename }}">
+                                                @php
+                                                    // 獲取圖片物件
+                                                    $image = $virtualFiles[0]->getImage($shareTable->id);
+
+                                                    // 獲取圖片的原始寬度與高度
+                                                    $width = $image->getWidth();
+                                                    $height = $image->getHeight();
+
+                                                    // 初始化縮放寬度與高度的變數
+                                                    $scaledWidth = 0;
+                                                    $scaledHeight = 0;
+
+                                                    // 確保寬高值皆有效，避免計算錯誤
+                                                    if ($width > 0 && $height > 0) {
+                                                        if ($height > 300) {
+                                                            // 如果原始高度大於 300，等比例縮小到高度 300 並調整寬度
+                                                            $scaledHeight = 180;
+                                                            $scaledWidth = ($width / $height) * $scaledHeight;
+                                                        } else {
+                                                            // 如果原始高度小於等於 300，放大高度到 300 並調整寬度
+                                                            $scaledHeight = 180;
+                                                            $scaledWidth = ($width / $height) * $scaledHeight;
+                                                        }
+                                                    } else {
+                                                        // 如果寬高無效，設定為預設值 0 以便後續檢查
+                                                        $scaledWidth = 0;
+                                                        $scaledHeight = 0;
+                                                    }
+                                                @endphp
+                                                <img class="fdi-imginfo presize" loading="lazy"
+                                                     data-prewidth="{{ $scaledWidth }}px"
+                                                     data-preheight="{{ $scaledHeight }}px"
+                                                     src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}"
+                                                     alt="{{ $virtualFiles[0]->filename }}">
                                             @elseif(Utilsv2::isSupportVideoFile($virtualFiles[0]->minetypes) && $virtualFiles[0]->size <= 150 * 1024 * 1024)
-                                                <video class="vjs video-js vjs-theme-forest"
+                                                <video class="vjs video-js vjs-theme-forest presize"
                                                        data-minetype="{{ $virtualFiles[0]->minetypes }}" controls
                                                        data-src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}"></video>
-
                                             @elseif(Utilsv2::isSupportVideoFile($virtualFiles[0]->minetypes))
-                                                <img class="fdi-imginfo tippyer" data-content="{{ $i18N->getLanguage(ELanguageText::FileSizeTooLarge) }}" src="{{ asset('assets/images/warning_file_size_large.webp') }}" alt="{{ $virtualFiles[0]->filename }}">
+                                                <img class="fdi-imginfo tippyer presize" loading="lazy"
+                                                     data-prewidth="100%"
+                                                     data-preheight="300px"
+                                                     data-content="{{ $i18N->getLanguage(ELanguageText::FileSizeTooLarge) }}"
+                                                     src="{{ asset('assets/images/warning_file_size_large.webp') }}"
+                                                     alt="{{ $virtualFiles[0]->filename }}">
                                             @endif
                                         @endif
                                         {{--<video class="dashvideo" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video> --}}
@@ -144,12 +194,38 @@
                                     </div>
                                     <div class="pfc-operator">
                                         <div class="btn-group">
-                                            <div class="btn-md btn-border-0 btn btn-ripple btn-color2 tippyer"
+                                            @php
+                                                $random = $shareTable->id;
+                                                $url = $shareTable->shareURL();
+                                            @endphp
+                                            <a data-href="{{ $url }}"
+                                               data-id="{{ $random }}"
+                                               data-type="share"
+                                               data-user="{{ route(RouteNameField::APIGetUsers->value) }}"
+                                               popovertarget="{{ "shareable_".$random }}"
+                                               class="btn-md btn-border-0 btn btn-ripple btn-color2 shareable tippyer"
+                                               data-placement="auto"
+                                               data-content="分享給"><i class="fa-solid fa-share"></i></a>
+                                            <div class="btn-md btn-border-0 btn btn-ripple btn-ok tippyer copyer"
+                                                 data-url="{{ $url }}"
                                                  data-placement="auto"
-                                                 data-content="分享給"><i class="fa-solid fa-share"></i></div>
-                                            <div class="btn-md btn-border-0 btn btn-ripple btn-ok tippyer" data-placement="auto"
                                                  data-content="複製"><i class="fa-solid fa-link"></i></div>
-                                            <div class="btn-md btn-border-0 btn btn-ripple btn-color7 tippyer"
+
+                                            @php
+                                                $random1 = $shareTable->id;
+                                                $url = $shareTable->shareURL();
+                                                $v = $virtualFiles->setVisible(['id','uuid', 'filename', 'size', 'created_at'])->toArray();
+                                                foreach ($v as $key => $item) {
+                                                    $v[$key]['size'] = Utils::convertByte($item['size']);
+                                                    $v[$key]['action'] = '<a href="%url%" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a>';
+                                                }
+                                            @endphp
+                                            <div data-id="{{ $random1 }}"
+                                                 data-type="download"
+                                                 data-href="{{ route(RouteNameField::PageShareTableItemDownload->value, ['id'=> "%id%","fileId"=> "%fileId%" ]) }}"
+                                                 data-data="{{ json_encode($v) }}"
+                                                 popovertarget="{{ "download_".$random1 }}"
+                                                 class="btn-md btn-border-0 btn btn-ripple btn-color7 shareable tippyer"
                                                  data-placement="auto"
                                                  data-content="下載"><i class="fa-solid fa-download"></i></div>
                                             <div class="btn-md btn-border-0 btn btn-ripple btn-warning tippyer"

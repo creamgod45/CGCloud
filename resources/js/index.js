@@ -38,12 +38,19 @@ import './components/videoJs.js';
 import './components/file-driver.js';
 import './components/imginfo.js';
 import './components/tom-select.js';
+import './components/presize.js';
+import './components/shareable.js';
+import './components/copyer.js';
 import Masonry from 'masonry-layout/masonry.js'
+import axios from "axios";
 
 document.addEventListener('DOMContentLoaded', async function () {
-    var masonry = new Masonry('.panel-field-list', {
-        itemSelector: '.panel-field-card',
-        percentPosition: true,
-        gutter: 12,
-    });
+    if(document.querySelector('.panel-field-list') !== null){
+        var masonry = new Masonry('.panel-field-list', {
+            itemSelector: '.panel-field-card',
+            percentPosition: true,
+            gutter: 12,
+        });
+    }
+
 });

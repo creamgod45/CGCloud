@@ -4,8 +4,9 @@ import axios from "axios";
 
 //https://tom-select.js.org/docs/
 function TomSelect_() {
-    let tomSelectElements = document.querySelectorAll('.tom-select');
+    let tomSelectElements = document.querySelectorAll('.tom-select:not(.tom-select-rendered)');
     for (let tomSelectElement of tomSelectElements) {
+        tomSelectElement.classList.add('tom-select-rendered');
         let dataset = tomSelectElement.dataset;
         let multiple = dataset.multiple;
         let allowclear = dataset.allowclear == 'true';
@@ -23,6 +24,8 @@ function TomSelect_() {
         let src = dataset.src;
         let perpage = dataset.perpage;
         let disabled = dataset.disabled === "true";
+
+        if(dataset.allowemptyoption === undefined) allowEmptyOption = true;
 
         if (maxOptions === undefined) {
             maxOptions = null;
@@ -130,4 +133,5 @@ function TomSelect_() {
     }
 }
 
+document.addEventListener('CGTS::init', TomSelect_);
 document.addEventListener('DOMContentLoaded', TomSelect_);

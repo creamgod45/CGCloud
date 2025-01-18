@@ -143,9 +143,10 @@ DataTable.ext.errMode = 'throw';
  * @return {Promise<boolean|void>} 如果某些必要的資料屬性（如 columns 或 fixedtable）缺失則返回 false，否則無返回值。
  */
 async function datatables() {
-    const datatables = document.querySelectorAll(".datatable");
+    const datatables = document.querySelectorAll(".datatable:not(.initialized)");
 
     for (let datatableEl of datatables) {
+        datatableEl.classList.add("initialized");
         let {
             cgcaption: caption,
             cgdata: data = JSON.parse("{}"),
@@ -159,8 +160,13 @@ async function datatables() {
             cgscrolly: scrollY = null,
             cgfixedtable: fixedtable,
             cgpaging: paging = true,
+            cgdefaulthash: defaulthash,
             cgpopover: popover
         } = datatableEl.dataset;
+        if(defaulthash === undefined){
+            defaulthash = true;
+        }
+        if(defaulthash !== "true") defaulthash = false;
 
         scrollY = scrollY ? parseInt(scrollY) : null;
         if (scroller && scroller !== "[]") scroller = JSON.parse(scroller);
@@ -169,20 +175,22 @@ async function datatables() {
 
         try {
             columns = JSON.parse(columns);
-            columns.unshift({
-                data: null,
-                orderable: false,
-                searchable: false,
-                footer: '#',
-                render: DataTable.render.select('id', 'checkbox')
-            });
-            columns.unshift({
-                data: '#',
-                title: '#',
-                footer: '#',
-                orderable: false,
-                searchable: false
-            });
+            if(defaulthash){
+                columns.unshift({
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    footer: '',
+                    render: DataTable.render.select('id', 'checkbox')
+                });
+                columns.unshift({
+                    data: '#',
+                    title: '#',
+                    footer: '#',
+                    orderable: false,
+                    searchable: false
+                });
+            }
             fixedtable = JSON.parse(fixedtable);
         } catch (e) {
             break;
@@ -445,4 +453,5 @@ function handleRowClick(datatableEl, popover, event) {
     }
 }
 
+document.addEventListener('CGTABLE::init', datatables);
 document.addEventListener('DOMContentLoaded', datatables);

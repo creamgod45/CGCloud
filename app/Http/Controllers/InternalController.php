@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\DB;
@@ -318,7 +319,9 @@ class InternalController extends Controller
     public function index(Request $request)
     {
         $pageKey = 'shareTableIndexCache_p_' . $request->get('page', 1);
+        DB::enableQueryLog();
         $shareTables = Cache::remember($pageKey, now()->addMinutes(), function () use ($pageKey) {
+            // 紀錄所有快取後的分頁
             $key = 'shareTableIndexCaches';
             if (Cache::has($key)) {
                 $var = Cache::get($key);
@@ -329,21 +332,22 @@ class InternalController extends Controller
             } else {
                 Cache::put($key, [$pageKey], now()->addDays());
             }
-            return ShareTable::where('type', '=', EShareTableType::public->value)->paginate(30);
+            $user = Auth::user();
+            DB::enableQueryLog();
+            if ($user !== null) {
+                $shareTable = ShareTable::where('type', '=', EShareTableType::public->value)
+                    ->orWhere(function ($query) use ($user) {
+                        $query->where('type', '=', EShareTableType::private->value)
+                            ->where('member_id', '=', $user->id);
+                    });
+            } else {
+                $shareTable = ShareTable::where('type', '=', EShareTableType::public->value);
+            }
+            $shareTables = $shareTable->paginate(30);
+            dump(DB::getQueryLog());
+            return $shareTables;
         });
-
         return view('index', Controller::baseControllerInit($request, [ '$shareTables' => $shareTables])->toArrayable());
-    }
-
-    public function index2(Request $request)
-    {
-        list($maxPrice, $minPrice, $inventoryPaginate) = $this->ShopListLoader($request);
-        return view('index2', Controller::baseControllerInit($request, [
-            "inventorys" => $inventoryPaginate,
-            "search" => null,
-            'maxPrice' => $maxPrice,
-            'minPrice' => $minPrice,
-        ])->toArrayable());
     }
 
     public function getClientConfig()

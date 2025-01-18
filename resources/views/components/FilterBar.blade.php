@@ -2,7 +2,6 @@
     use App\Lib\Utils\RouteNameField;use Illuminate\Support\MessageBag;if($errors===null){
         $errors = new MessageBag();
     }
-    // @todo 新增打字輸入功能
 @endphp
 <form id="filter-bar" action="{{ route(RouteNameField::PageSearchShopItem->value) }}" method="GET"
       class="filter-bar filter-bar-off hidden form-common" data-status="off">

@@ -44,8 +44,22 @@ class ShareTablesController extends Controller
 
     }
 
+    public function shareableShareTableItem(Request $request)
+    {
+        $id = $request->route('id', 0);
+
+    }
+
+    public function shareableShareTableItemPost(Request $request)
+    {
+        $id = $request->route('id', 0);
+
+    }
+
     public function viewShareTableItem(Request $request)
     {
+        // TODO XSS RCE TYPE CHECKER
+
         $popup = $request->get('popup', false) === '1';
         $shareTableId = $request->route('id', 1);
         $shareTable = ShareTable::find($shareTableId);
@@ -71,6 +85,7 @@ class ShareTablesController extends Controller
 
     public function downloadShareTableItem(Request $request)
     {
+        // TODO XSS RCE TYPE CHECKER
         $shareTableId = $request->route('id', 1);
         $fileId = $request->route('fileId', 1);
 
@@ -85,6 +100,10 @@ class ShareTablesController extends Controller
                     $path = $virtualFile->path;
 
                     if ($disk->exists($path)) {
+                        // Set headers
+                        header('Content-Description: File Transfer');
+                        header('Content-Type: application/octet-stream');
+                        header('Content-Disposition: attachment; filename="' . $virtualFile->filename . '"');
                         return $disk->download($path);
                     } else {
                         abort(404, 'File not in physics storage.');
@@ -225,6 +244,8 @@ class ShareTablesController extends Controller
             $var = Cache::get('shareTableIndexCaches');
             if(is_array($var)) {
                 foreach ($var as $value) {
+                    $pageKey = 'shareTableIndexCache_p_' . $value;
+                    Cache::forget($pageKey);
                     Cache::forget($value);
                 }
             }
@@ -507,7 +528,6 @@ class ShareTablesController extends Controller
         $fileInfo = $request->route('fileinfo');
 
 
-
         $virtualFile = VirtualFile::where('uuid', '=', $fileInfo)->first();
 
         Log::debug(new CGStringable([
@@ -519,7 +539,7 @@ class ShareTablesController extends Controller
 
         // 确保上传目录存在
         if ($offset === "0" and !str_contains($virtualFile->path, $fileName)) {
-            $filePath = $virtualFile->path . '/' . $fileName;
+            $filePath = $virtualFile->path . '/' . base64_encode($fileName);
         } else {
             $filePath = $virtualFile->path;
         }
@@ -553,7 +573,7 @@ class ShareTablesController extends Controller
                 'members_id' => Auth::user()->id ?? null,
                 'filename' => $fileName,
                 'path' => $filePath,
-                'extension' => pathinfo($filePath, PATHINFO_EXTENSION),
+                'extension' => pathinfo($fileName, PATHINFO_EXTENSION),
                 'minetypes' => Storage::disk('local')->mimeType($filePath),
                 'expired_at' => now()->addMinutes(10)->timestamp,
             ]);
