@@ -101,8 +101,6 @@ class ShareTablesController extends Controller
 
                     if ($disk->exists($path)) {
                         // Set headers
-                        header('Content-Description: File Transfer');
-                        header('Content-Type: application/octet-stream');
                         header('Content-Disposition: attachment; filename="' . $virtualFile->filename . '"');
                         return $disk->download($path);
                     } else {
