@@ -77,7 +77,7 @@
                            name="ItemImages[]"/>
                 </form>
             @endauth
-            <div class="panel-field-list">
+            <div class="panel-field-list placeholder">
                 @if(!empty($shareTables))
                     @foreach($shareTables as $shareTable)
                         @if($shareTable instanceof \App\Models\ShareTable)

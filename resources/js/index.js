@@ -45,12 +45,16 @@ import Masonry from 'masonry-layout/masonry.js'
 import axios from "axios";
 
 document.addEventListener('DOMContentLoaded', async function () {
-    if(document.querySelector('.panel-field-list') !== null){
-        var masonry = new Masonry('.panel-field-list', {
-            itemSelector: '.panel-field-card',
-            percentPosition: true,
-            gutter: 12,
-        });
+    let element = document.querySelector('.panel-field-list');
+    if(element !== null){
+        setTimeout(() => {
+            new Masonry('.panel-field-list', {
+                itemSelector: '.panel-field-card',
+                percentPosition: true,
+                gutter: 12,
+            });
+            element.classList.remove('placeholder');
+        }, 2000);
     }
 
 });
