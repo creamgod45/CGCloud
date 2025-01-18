@@ -101,8 +101,7 @@ class ShareTablesController extends Controller
 
                     if ($disk->exists($path)) {
                         // Set headers
-                        header('Content-Disposition: attachment; filename="' . $virtualFile->filename . '"');
-                        return $disk->download($path);
+                        return $disk->download($path, $virtualFile->filename);
                     } else {
                         abort(404, 'File not in physics storage.');
                     }
