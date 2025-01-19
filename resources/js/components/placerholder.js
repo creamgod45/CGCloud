@@ -31,6 +31,9 @@ function placerholder() {
     }
 }
 
+document.addEventListener('CGPLACEHOLDER::init', () => {
+    placerholder()
+});
 document.addEventListener('DOMContentLoaded', () => {
     placerholder()
 });

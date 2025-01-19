@@ -42,6 +42,8 @@ enum RouteNameField: string
     case PageShareTableItemView = 'root.sharetable.item.view';
     case PageShareTableItemDownload = 'root.sharetable.item.download';
     case PageShareableShareTableItem = 'root.shareable.sharetable.item';
+    case PageShareTableItemDelete = 'root.sharetable.item.delete';
+    case PageShareTableDelete = 'root.sharetable.delete';
 
     // API
     case APIEncodeJson = 'root.api.EncodeJson';

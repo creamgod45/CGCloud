@@ -83,6 +83,62 @@ class ShareTablesController extends Controller
         }
     }
 
+    public function deleteShareTable(Request $request)
+    {
+        // TODO XSS RCE TYPE CHECKER
+        $shareTableId = $request->route('id', 1);
+        $fileId = $request->route('fileId', 1);
+        $shareTable = ShareTable::find($shareTableId);
+        if($shareTable !== null){
+            $shareTable->getAllVirtualFiles()->each(function ($virtualFile) {
+                Storage::disk($virtualFile->disk)->delete($virtualFile->path);
+                $virtualFile->delete();
+            });
+            $shareTable->delete();
+            $this->clearShareTableIndexCaches();
+            return view('ShareTable.delete', Controller::baseControllerInit($request, [
+                '$href' => back()->getTargetUrl(),
+                '$content' => '分享資源 '.e($shareTable->name).' 刪除成功 5秒後自動跳轉(如果沒有請點我跳轉)'
+            ])->toArrayable());
+        }
+    }
+
+    public function deleteShareTableItem(Request $request)
+    {
+        // TODO XSS RCE TYPE CHECKER
+        $shareTableId = $request->route('id', 1);
+        $fileId = $request->route('fileId', 1);
+        $shareTable = ShareTable::find($shareTableId);
+        if($shareTable !== null){
+            $allRelatedIds = $shareTable->virtualFiles()->allRelatedIds()->toArray();
+            if(in_array($fileId, $allRelatedIds)){
+                $virtualFile = VirtualFile::where('uuid','=',$fileId)->get()->first();
+
+                if ($virtualFile !== null) {
+                    $disk = Storage::disk($virtualFile->disk);
+                    $path = $virtualFile->path;
+
+                    if ($disk->exists($path)) {
+                        $disk->delete($path);
+                        $shareTable->virtualFiles()->detach($fileId);
+                        $filename  = $virtualFile->filename;
+                        $virtualFile->delete();
+                        return view('ShareTable.delete', Controller::baseControllerInit($request, [
+                            '$href' => back()->getTargetUrl(),
+                            '$content' => '檔案 '.e($filename).' 刪除成功 5秒後自動跳轉(如果沒有請點我跳轉)'
+                        ])->toArrayable());
+                    } else {
+                        abort(404, 'File not in physics storage.');
+                    }
+                } else {
+                    abort(404, 'Virtual file not found.');
+                }
+            }
+            abort(404, 'File not found.');
+        }
+        abort(404, 'Sharetable not found.');
+    }
+
     public function downloadShareTableItem(Request $request)
     {
         // TODO XSS RCE TYPE CHECKER
@@ -100,7 +156,6 @@ class ShareTablesController extends Controller
                     $path = $virtualFile->path;
 
                     if ($disk->exists($path)) {
-                        // Set headers
                         return $disk->download($path, $virtualFile->filename);
                     } else {
                         abort(404, 'File not in physics storage.');
@@ -157,7 +212,7 @@ class ShareTablesController extends Controller
      *
      * @throws HttpException If the file is not found or cannot be read, a 404 error is returned.
      */
-    private function filePreview($virtualFile): StreamedResponse
+    private function filePreview(VirtualFile $virtualFile): StreamedResponse
     {
         if($virtualFile !== null) {
             $disk = Storage::disk($virtualFile->disk);
@@ -170,7 +225,7 @@ class ShareTablesController extends Controller
             }, 200, [
                 'Content-Type' => $disk->mimeType($filename),
                 'Content-Length' => $disk->size($filename),
-                'Content-Disposition' => 'inline; filename="'.basename($filename).'"',
+                'Content-Disposition' => 'inline; filename="'.$virtualFile->filename.'"',
             ]);
         }
         abort(404);
@@ -328,6 +383,7 @@ class ShareTablesController extends Controller
         if (Cache::has($key)) {
             $files = [];
             foreach ($request->get('ItemImages') as $item) {
+                if(!is_string($item)) continue;
                 $gallery = $item;
                 $string = new CGString($gallery);
 

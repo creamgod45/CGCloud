@@ -7,6 +7,7 @@ use App\Lib\Utils\RouteNameField;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use RahulHaque\Filepond\Models\Filepond;
@@ -35,7 +36,7 @@ class ShareTable extends Model
         return VirtualFile::whereIn('uuid', $allRelatedIds)->get();
     }
 
-    public function virtualFiles()
+    public function virtualFiles(): BelongsToMany
     {
         return $this->belongsToMany(VirtualFile::class, 'share_table_virtual_file');
     }

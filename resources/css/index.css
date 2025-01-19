@@ -2624,6 +2624,18 @@ body .SI-Pre_sale {
 body .SI-Sold_out {
   @apply border-2 p-1 w-fit border-solid border-red-700 text-red-700;
 }
+body .tippy-box .pfcf-text[data-filename=true] {
+  @apply text-lg flex;
+}
+body .tippy-box .pfcf-text[data-filename=true] .pfcf-text-filename {
+  @apply truncate max-w-[60%];
+}
+body .tippy-box .pfc-shell {
+  @apply max-h-[300px] overflow-y-auto;
+}
+body .tippy-box .pfcf-text {
+  @apply text-lg;
+}
 body main {
   @apply w-full flex justify-center overflow-x-hidden overflow-y-auto dark:bg-neutral-800;
   /*xxl:   */

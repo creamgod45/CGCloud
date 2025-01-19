@@ -41,6 +41,7 @@ import './components/tom-select.js';
 import './components/presize.js';
 import './components/shareable.js';
 import './components/copyer.js';
+import './components/ConfirmBox.js';
 import Masonry from 'masonry-layout/masonry.js'
 import axios from "axios";
 

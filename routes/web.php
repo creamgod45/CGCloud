@@ -33,6 +33,8 @@ Route::middleware("checkClientID")->group(function () {
         Route::post('share/{id}', [ShareTablesController::class, 'shareableShareTableItemPost'])->name(RouteNameField::APIShareableShareTableItem->value);
         Route::get('item/{id}', [ShareTablesController::class, 'viewShareTableItem'])->name(RouteNameField::PageShareTableItemView->value);
         Route::get('item/download/{id}/{fileId}', [ShareTablesController::class, 'downloadShareTableItem'])->name(RouteNameField::PageShareTableItemDownload->value);
+        Route::get('item/delete/{id}/{fileId}', [ShareTablesController::class, 'deleteShareTableItem'])->name(RouteNameField::PageShareTableItemDelete->value);
+        Route::get('delete/{id}', [ShareTablesController::class, 'deleteShareTable'])->name(RouteNameField::PageShareTableDelete->value);
         Route::get('item/edit/{id}', [ShareTablesController::class, 'editor'])->name(RouteNameField::PageShopItemEditor->value);
         Route::post('add', [ShareTablesController::class, 'shareTableItemPost'])->name(RouteNameField::PageShareTableItemPost->value);
         Route::post('create', [ShareTablesController::class, 'shareTableItemCreatePost'])->name(RouteNameField::APIShareTableItemCreatePost->value);

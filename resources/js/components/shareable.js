@@ -162,7 +162,7 @@ function initPopupElement(id, user, href) {
     });
 }
 
-function initDownloadMenuPopupElement(id, href, json) {
+function initDownloadMenuPopupElement(id, href, json, delete_url) {
     if (document.getElementById(id) !== null) return;
 
     let shareablePopover = document.createElement("div");
@@ -193,20 +193,23 @@ function initDownloadMenuPopupElement(id, href, json) {
     content.classList.add("shareable-popover-other");
 
     let table = document.createElement("table");
-    table.classList.add("table", "table-striped", "table-row-hover", "table-border-0", "datatable");
+    table.classList.add("table", "table-striped", "table-row-hover", "table-border-0", "datatable", "placeholder", "placeholder-ct", "placeholder-full-wh");
 
     let object = JSON.parse(json);
     for (let objectKey in object) {
         let a = href.replace("%id%", id);
         a = a.replace("%fileId%", object[objectKey]['uuid']);
-        object[objectKey]['action'] = object[objectKey]['action'].replace("%url%", a);
+        let b = delete_url.replace("%id%", id);
+        b = b.replace("%fileId%", object[objectKey]['uuid']);
+        object[objectKey]['action'] = object[objectKey]['action'].replace("%url-1%", a);
+        object[objectKey]['action'] = object[objectKey]['action'].replace("%url-2%", b);
     }
+    table.dataset.placeholderdelay = "1000";
     table.dataset.cgdatatype = "JSON";
     table.dataset.cgdata = JSON.stringify(object);
     table.dataset.cgfixedtable = "true";
     table.dataset.cgdefaulthash = "false";
     table.dataset.cgcolumns = "[" +
-        "{\"data\":\"uuid\",\"name\":\"uuid\",\"title\":\"UUID\",\"footer\":\"UUID\"}," +
         "{\"data\":\"filename\",\"name\":\"filename\",\"title\":\"名稱\",\"footer\":\"名稱\"}," +
         "{\"data\":\"created_at\",\"name\":\"created_at\",\"title\":\"建立時間\",\"footer\":\"建立時間\"}," +
         "{\"data\":\"size\",\"name\":\"size\",\"title\":\"大小\",\"footer\":\"大小\"}," +
@@ -221,6 +224,10 @@ function initDownloadMenuPopupElement(id, href, json) {
 
     document.body.appendChild(shareablePopover);
     document.dispatchEvent(new CustomEvent('CGTABLE::init'));
+    document.dispatchEvent(new CustomEvent('CGPLACEHOLDER::init'));
+    setTimeout(()=>{
+        document.dispatchEvent(new CustomEvent('CGCONFIRMBOX::init'));
+    }, 1000);
 }
 
 function shareable() {
@@ -237,7 +244,9 @@ function shareable() {
             let popover;
             if (type === "download") {
                 if (data === undefined) return;
-                initDownloadMenuPopupElement(id, href, data);
+                let delete_url = shareable.dataset.delete;
+                if(delete_url === undefined) return;
+                initDownloadMenuPopupElement(id, href, data, delete_url);
                 popover = document.getElementById("download_"+id);
             } else if(type === "share") {
                 if (user === undefined) {

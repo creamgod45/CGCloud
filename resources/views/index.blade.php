@@ -116,9 +116,10 @@
                                     </div>
                                     <div id="{{ $id }}" class="pfc-fileinfo !hidden">
                                         {{ $shareTable->description }}
+                                        <div class="pfc-shell">
                                         @foreach($virtualFiles as $virtualFile)
                                             <div class="pfc-fileinfo-item">
-                                                <div class="pfcf-text">檔案名稱：{{ $virtualFile->filename }}</div>
+                                                <div class="pfcf-text" data-filename="true">檔案名稱：<span class="pfcf-text-filename" title="{{ $virtualFile->filename }}">{{ $virtualFile->filename }}</span></div>
                                                 <div class="pfcf-text">
                                                     檔案大小：{{ \App\Lib\Utils\Utils::convertByte($virtualFile->size) }}</div>
                                                 <div class="pfcf-text">檔案類型：{{ $virtualFile->minetypes }}</div>
@@ -131,62 +132,60 @@
                                                     <a target="_blank" rel="noreferrer noopener"
                                                        href="{{ $virtualFile->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}">傳送門</a>
                                                 </div>
-                                                <div class="pfcf-text">
-                                                    下載網址：
-                                                    <a target="_blank" rel="noreferrer noopener"
-                                                       href="{{ route(RouteNameField::PageShareTableItemDownload->value, ['id'=>$shareTable->id,"fileId"=> $virtualFile->uuid ]) }}">傳送門</a>
-                                                </div>
                                             </div>
                                         @endforeach
+                                        </div>
                                     </div>
                                     <div class="pfc-preview">
-                                        @if($virtualFiles[0] !== null || !empty($virtualFiles))
-                                            @if(Utilsv2::isSupportImageFile($virtualFiles[0]->minetypes))
-                                                @php
-                                                    // 獲取圖片物件
-                                                    $image = $virtualFiles[0]->getImage($shareTable->id);
+                                        @if(isset($virtualFiles[0]))
+                                            @if($virtualFiles[0] !== null || !empty($virtualFiles))
+                                                @if(Utilsv2::isSupportImageFile($virtualFiles[0]->minetypes))
+                                                    @php
+                                                        // 獲取圖片物件
+                                                        $image = $virtualFiles[0]->getImage($shareTable->id);
 
-                                                    // 獲取圖片的原始寬度與高度
-                                                    $width = $image->getWidth();
-                                                    $height = $image->getHeight();
+                                                        // 獲取圖片的原始寬度與高度
+                                                        $width = $image->getWidth();
+                                                        $height = $image->getHeight();
 
-                                                    // 初始化縮放寬度與高度的變數
-                                                    $scaledWidth = 0;
-                                                    $scaledHeight = 0;
-
-                                                    // 確保寬高值皆有效，避免計算錯誤
-                                                    if ($width > 0 && $height > 0) {
-                                                        if ($height > 300) {
-                                                            // 如果原始高度大於 300，等比例縮小到高度 300 並調整寬度
-                                                            $scaledHeight = 180;
-                                                            $scaledWidth = ($width / $height) * $scaledHeight;
-                                                        } else {
-                                                            // 如果原始高度小於等於 300，放大高度到 300 並調整寬度
-                                                            $scaledHeight = 180;
-                                                            $scaledWidth = ($width / $height) * $scaledHeight;
-                                                        }
-                                                    } else {
-                                                        // 如果寬高無效，設定為預設值 0 以便後續檢查
+                                                        // 初始化縮放寬度與高度的變數
                                                         $scaledWidth = 0;
                                                         $scaledHeight = 0;
-                                                    }
-                                                @endphp
-                                                <img class="fdi-imginfo presize" loading="lazy"
-                                                     data-prewidth="{{ $scaledWidth }}px"
-                                                     data-preheight="{{ $scaledHeight }}px"
-                                                     src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}"
-                                                     alt="{{ $virtualFiles[0]->filename }}">
-                                            @elseif(Utilsv2::isSupportVideoFile($virtualFiles[0]->minetypes) && $virtualFiles[0]->size <= 150 * 1024 * 1024)
-                                                <video class="vjs video-js vjs-theme-forest presize"
-                                                       data-minetype="{{ $virtualFiles[0]->minetypes }}" controls
-                                                       data-src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}"></video>
-                                            @elseif(Utilsv2::isSupportVideoFile($virtualFiles[0]->minetypes))
-                                                <img class="fdi-imginfo tippyer presize" loading="lazy"
-                                                     data-prewidth="100%"
-                                                     data-preheight="300px"
-                                                     data-content="{{ $i18N->getLanguage(ELanguageText::FileSizeTooLarge) }}"
-                                                     src="{{ asset('assets/images/warning_file_size_large.webp') }}"
-                                                     alt="{{ $virtualFiles[0]->filename }}">
+
+                                                        // 確保寬高值皆有效，避免計算錯誤
+                                                        if ($width > 0 && $height > 0) {
+                                                            if ($height > 300) {
+                                                                // 如果原始高度大於 300，等比例縮小到高度 300 並調整寬度
+                                                                $scaledHeight = 180;
+                                                                $scaledWidth = ($width / $height) * $scaledHeight;
+                                                            } else {
+                                                                // 如果原始高度小於等於 300，放大高度到 300 並調整寬度
+                                                                $scaledHeight = 180;
+                                                                $scaledWidth = ($width / $height) * $scaledHeight;
+                                                            }
+                                                        } else {
+                                                            // 如果寬高無效，設定為預設值 0 以便後續檢查
+                                                            $scaledWidth = 0;
+                                                            $scaledHeight = 0;
+                                                        }
+                                                    @endphp
+                                                    <img class="fdi-imginfo presize" loading="lazy"
+                                                         data-prewidth="{{ $scaledWidth }}px"
+                                                         data-preheight="{{ $scaledHeight }}px"
+                                                         src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}"
+                                                         alt="{{ $virtualFiles[0]->filename }}">
+                                                @elseif(Utilsv2::isSupportVideoFile($virtualFiles[0]->minetypes) && $virtualFiles[0]->size <= 150 * 1024 * 1024)
+                                                    <video class="vjs video-js vjs-theme-forest presize"
+                                                           data-minetype="{{ $virtualFiles[0]->minetypes }}" controls
+                                                           data-src="{{ $virtualFiles[0]->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}"></video>
+                                                @elseif(Utilsv2::isSupportVideoFile($virtualFiles[0]->minetypes))
+                                                    <img class="fdi-imginfo tippyer presize" loading="lazy"
+                                                         data-prewidth="100%"
+                                                         data-preheight="300px"
+                                                         data-content="{{ $i18N->getLanguage(ELanguageText::FileSizeTooLarge) }}"
+                                                         src="{{ asset('assets/images/warning_file_size_large.webp') }}"
+                                                         alt="{{ $virtualFiles[0]->filename }}">
+                                                @endif
                                             @endif
                                         @endif
                                         {{--<video class="dashvideo" data-src="{{ asset('videos/Csgo331/Csgo331.mpd') }}" controls></video> --}}
@@ -204,36 +203,42 @@
                                                data-user="{{ route(RouteNameField::APIGetUsers->value) }}"
                                                popovertarget="{{ "shareable_".$random }}"
                                                class="btn-md btn-border-0 btn btn-ripple btn-color2 shareable tippyer"
-                                               data-placement="auto"
+                                               data-placement="bottom"
                                                data-content="分享給"><i class="fa-solid fa-share"></i></a>
                                             <div class="btn-md btn-border-0 btn btn-ripple btn-ok tippyer copyer"
                                                  data-url="{{ $url }}"
-                                                 data-placement="auto"
+                                                 data-placement="bottom"
                                                  data-content="複製"><i class="fa-solid fa-link"></i></div>
-
                                             @php
                                                 $random1 = $shareTable->id;
                                                 $url = $shareTable->shareURL();
                                                 $v = $virtualFiles->setVisible(['id','uuid', 'filename', 'size', 'created_at'])->toArray();
                                                 foreach ($v as $key => $item) {
                                                     $v[$key]['size'] = Utils::convertByte($item['size']);
-                                                    $v[$key]['action'] = '<a href="%url%" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a>';
+                                                    $v[$key]['action'] = '<div class="flex gap-3"><a href="%url-0%" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><div class="flex gap-3"><a href="%url-1%" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="shareable_delete_file" data-type="error" data-parent="#download_'.$random1.'" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="%url-2%" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
                                                 }
                                             @endphp
                                             <div data-id="{{ $random1 }}"
                                                  data-type="download"
-                                                 data-href="{{ route(RouteNameField::PageShareTableItemDownload->value, ['id'=> "%id%","fileId"=> "%fileId%" ]) }}"
+                                                 data-href="{{ route(RouteNameField::PageShareTableItemDownload->value, ['id'=> $shareTable->id,"fileId"=> "%fileId%" ]) }}"
+                                                 data-delete="{{ route(RouteNameField::PageShareTableItemDelete->value, ['id'=> $shareTable->id,"fileId"=> "%fileId%" ]) }}"
                                                  data-data="{{ json_encode($v) }}"
                                                  popovertarget="{{ "download_".$random1 }}"
                                                  class="btn-md btn-border-0 btn btn-ripple btn-color7 shareable tippyer"
-                                                 data-placement="auto"
-                                                 data-content="下載"><i class="fa-solid fa-download"></i></div>
+                                                 data-placement="bottom"
+                                                 data-confirmboxcontent="下載"><i class="fa-solid fa-download"></i></div>
                                             <div class="btn-md btn-border-0 btn btn-ripple btn-warning tippyer"
-                                                 data-placement="auto"
+                                                 data-placement="bottom"
                                                  data-content="編輯"><i class="fa-solid fa-pen-to-square"></i></div>
-                                            <div class="btn-md btn-border-0 btn btn-ripple btn-error tippyer last"
-                                                 data-placement="auto"
-                                                 data-content="刪除"><i class="fa-solid fa-trash"></i></div>
+                                            <div class="btn-md btn-border-0 btn btn-ripple btn-error tippyer last confirm-box"
+                                                 data-fn="shareable_delete"
+                                                 data-title="你確定要刪除此分享資源?"
+                                                 data-confirmboxcontent="此操作將會永遠的刪除!!"
+                                                 data-type="error"
+                                                 data-href="{{ route(RouteNameField::PageShareTableDelete->value, ['id'=> $shareTable->id ]) }}"
+                                                 data-placement="bottom"
+                                                 data-content="刪除"><i class="fa-solid fa-trash"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
