@@ -333,7 +333,7 @@ class InternalController extends Controller
                 Cache::put($key, [$pageKey], now()->addDays());
             }
             $user = Auth::user();
-            DB::enableQueryLog();
+            //DB::enableQueryLog();
             if ($user !== null) {
                 $shareTable = ShareTable::where('type', '=', EShareTableType::public->value)
                     ->orWhere(function ($query) use ($user) {
@@ -344,7 +344,7 @@ class InternalController extends Controller
                 $shareTable = ShareTable::where('type', '=', EShareTableType::public->value);
             }
             $shareTables = $shareTable->paginate(30);
-            dump(DB::getQueryLog());
+            Log::info(json_encode(DB::getQueryLog(), JSON_PRETTY_PRINT));
             return $shareTables;
         });
         return view('index', Controller::baseControllerInit($request, [ '$shareTables' => $shareTables])->toArrayable());
