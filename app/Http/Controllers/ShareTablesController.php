@@ -245,6 +245,33 @@ class ShareTablesController extends Controller
         }
     }
 
+    /**
+     * @throws JsonException
+     */
+    public function apiPreviewFileTemporary3(Request $request)
+    {
+        $fileUUID = $request->get('fileId');
+        $shareTableId = $request->get('shareTableId');
+        if($shareTableId !== null) {
+            $shareTable = ShareTable::find($shareTableId);
+            if($shareTable !== null && is_array($fileUUID)) {
+                $collection = $shareTable->virtualFiles()->allRelatedIds();
+                $toArray = $collection->toArray();
+                if(
+                    sort($fileUUID) === sort($toArray)
+                ) {
+                    $virtualFile = VirtualFile::whereIn('uuid', $fileUUID)->get();
+                    $urls = [];
+                    foreach ($virtualFile as $item) {
+                        $urls[] = $item->getTemporaryUrl(null, $shareTable->id);
+                    }
+                    return response()->json($urls);
+                }
+            }
+        }
+        abort(403);
+    }
+
     public function apiPreviewFileTemporary2(Request $request)
     {
         $fileUUID = $request->route('fileId');

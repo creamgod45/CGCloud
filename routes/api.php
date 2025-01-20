@@ -24,6 +24,8 @@ use Illuminate\Support\Str;
 //Route::middleware(EMiddleWareAliases::auth->name)->post('/user', [InternalController::class, 'apiGetUsers'])->name(RouteNameField::APIGetUsers->value);
 Route::post('/user', [InternalController::class, 'apiGetUsers'])->name(RouteNameField::APIGetUsers->value);
 
+Route::post('/sharetable/create/preview', [\App\Http\Controllers\ShareTablesController::class, 'apiPreviewFileTemporary3']);
+
 //Route::apiResource('animal', AnimalController::class);
 
 Route::post('hashmaker', function () {

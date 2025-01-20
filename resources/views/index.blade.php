@@ -42,7 +42,6 @@
             $popoverid = "popover_".\Illuminate\Support\Str::random(5);
             $popoverOptions = new PopoverOptions()@endphp
         <div class="container1">
-            <button popovertarget="taseas" class="btn btn-color7 btn-ripple"> popover</button>
             <x-popover-windows :id="$popoverid" :popover-options="$popoverOptions" popover-title="預覽分享資訊"
                                class="shop-popover !hidden">
                 <div class="shop-popover-placeholder placeholder placeholder-full-wh">
@@ -77,12 +76,12 @@
                            name="ItemImages[]"/>
                 </form>
             @endauth
-            <div class="panel-field-list placeholder">
+            <div class="panel-field-list">
                 @if(!empty($shareTables))
                     @foreach($shareTables as $shareTable)
                         @if($shareTable instanceof \App\Models\ShareTable)
                             @guest
-                                <div class="panel-field-card vertical">
+                                <div class="panel-field-card vertical placeholder-ct placeholder" data-placeholderdelay="3000">
                                     <div class="pfc-icon"><i class="fa-solid fa-file"></i></div>
                                     <div class="pfc-title tippyer" data-placement="bottom" data-htmlable="true"
                                          data-content="登入了解更多"><i
@@ -100,7 +99,7 @@
                                 </div>
                             @endguest
                             @auth
-                                <div class="panel-field-card vertical">
+                                <div class="panel-field-card vertical placeholder-ct placeholder" data-placeholderdelay="3000">
                                     @php
                                         /**
                                          * @var \App\Models\VirtualFile[]|Illuminate\Database\Eloquent\Collection $virtualFiles
@@ -127,11 +126,6 @@
                                                 <div class="pfcf-text">過期日期：{{ $virtualFile->expired_at }}</div>
                                                 <div class="pfcf-text">
                                                     擁有者：{{ $virtualFile->members()->first()->username }}</div>
-                                                <div class="pfcf-text">
-                                                    預覽網址：
-                                                    <a target="_blank" rel="noreferrer noopener"
-                                                       href="{{ $virtualFile->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}">傳送門</a>
-                                                </div>
                                             </div>
                                         @endforeach
                                         </div>
@@ -215,7 +209,7 @@
                                                 $v = $virtualFiles->setVisible(['id','uuid', 'filename', 'size', 'created_at'])->toArray();
                                                 foreach ($v as $key => $item) {
                                                     $v[$key]['size'] = Utils::convertByte($item['size']);
-                                                    $v[$key]['action'] = '<div class="flex gap-3"><a href="%url-0%" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><div class="flex gap-3"><a href="%url-1%" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="shareable_delete_file" data-type="error" data-parent="#download_'.$random1.'" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="%url-2%" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
+                                                    $v[$key]['action'] = '<div class="flex gap-3"><a target="_blank" rel="noreferrer noopener" href="%url-0%" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><div class="flex gap-3"><a href="%url-1%" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="shareable_delete_file" data-type="error" data-parent="#download_'.$random1.'" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="%url-2%" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
                                                 }
                                             @endphp
                                             <div data-id="{{ $random1 }}"

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 function initPopupElement(id, user, href) {
-    if (document.getElementById(id) !== null) return;
+    if (document.getElementById( "shareable_"+id) !== null) return;
 
     let shareablePopover = document.createElement("div");
     shareablePopover.id = "shareable_"+id;
@@ -162,8 +162,8 @@ function initPopupElement(id, user, href) {
     });
 }
 
-function initDownloadMenuPopupElement(id, href, json, delete_url) {
-    if (document.getElementById(id) !== null) return;
+async function initDownloadMenuPopupElement(id, href, json, delete_url) {
+    if (document.getElementById("download_"+id) !== null) return;
 
     let shareablePopover = document.createElement("div");
     shareablePopover.id = "download_"+id;
@@ -196,20 +196,39 @@ function initDownloadMenuPopupElement(id, href, json, delete_url) {
     table.classList.add("table", "table-striped", "table-row-hover", "table-border-0", "datatable", "placeholder", "placeholder-ct", "placeholder-full-wh");
 
     let object = JSON.parse(json);
-    for (let objectKey in object) {
-        let a = href.replace("%id%", id);
-        a = a.replace("%fileId%", object[objectKey]['uuid']);
-        let b = delete_url.replace("%id%", id);
-        b = b.replace("%fileId%", object[objectKey]['uuid']);
-        object[objectKey]['action'] = object[objectKey]['action'].replace("%url-1%", a);
-        object[objectKey]['action'] = object[objectKey]['action'].replace("%url-2%", b);
+    let uuids=[];
+    for (let objectElement of object) {
+        uuids.push(objectElement['uuid']);
     }
+
+    await axios.post('/api/sharetable/create/preview', {
+        fileId: uuids,
+        shareTableId: id,
+    }, { adapter: "fetch", method: 'post',responseType:'json'}).then(res => {
+        console.log(res);
+        let data = res.data;
+
+        for (let objectKey in object) {
+            let a = href.replace("%id%", id);
+            a = a.replace("%fileId%", object[objectKey]['uuid']);
+            let b = delete_url.replace("%id%", id);
+            b = b.replace("%fileId%", object[objectKey]['uuid']);
+
+            let uuid = object[objectKey]['uuid'];
+            let resDataValue = data.find(item => item.includes(uuid));
+            object[objectKey]['action'] = object[objectKey]['action'].replace("%url-0%", resDataValue);
+            object[objectKey]['action'] = object[objectKey]['action'].replace("%url-1%", a);
+            object[objectKey]['action'] = object[objectKey]['action'].replace("%url-2%", b);
+        }
+    });
+
     table.dataset.placeholderdelay = "1000";
     table.dataset.cgdatatype = "JSON";
     table.dataset.cgdata = JSON.stringify(object);
     table.dataset.cgfixedtable = "true";
     table.dataset.cgdefaulthash = "false";
     table.dataset.cgcolumns = "[" +
+        "{\"data\":\"id\",\"name\":\"ID\",\"title\":\"ID\",\"footer\":\"ID\"}," +
         "{\"data\":\"filename\",\"name\":\"filename\",\"title\":\"名稱\",\"footer\":\"名稱\"}," +
         "{\"data\":\"created_at\",\"name\":\"created_at\",\"title\":\"建立時間\",\"footer\":\"建立時間\"}," +
         "{\"data\":\"size\",\"name\":\"size\",\"title\":\"大小\",\"footer\":\"大小\"}," +
@@ -230,46 +249,36 @@ function initDownloadMenuPopupElement(id, href, json, delete_url) {
     }, 1000);
 }
 
-function shareable() {
+async function shareable() {
     let shareables = document.querySelectorAll(".shareable");
     for (let shareable of shareables) {
         shareable.classList.add("shareableed");
-        shareable.onclick = () => {
+        shareable.onclick = async () => {
             let id = shareable.dataset.id;
             let href = shareable.dataset.href;
             let user = shareable.dataset.user;
             let type = shareable.dataset.type;
             let data = shareable.dataset.data;
-            if(type === undefined) return;
+            if (type === undefined) return;
             let popover;
             if (type === "download") {
                 if (data === undefined) return;
                 let delete_url = shareable.dataset.delete;
-                if(delete_url === undefined) return;
-                initDownloadMenuPopupElement(id, href, data, delete_url);
-                popover = document.getElementById("download_"+id);
-            } else if(type === "share") {
+                if (delete_url === undefined) return;
+                await initDownloadMenuPopupElement(id, href, data, delete_url);
+                popover = document.getElementById("download_" + id);
+            } else if (type === "share") {
                 if (user === undefined) {
                     console.log("user url is undefined");
                     return;
                 }
-                initPopupElement(id, user, href);
-                popover = document.getElementById("shareable_"+id);
+                await initPopupElement(id, user, href);
+                popover = document.getElementById("shareable_" + id);
             }
             if (popover.open) {
-                popover.hidePopover();
+                await popover.hidePopover();
             } else {
-                popover.showPopover();
-            }
-            if (href !== undefined) {
-                axios.post(href, {}, {adapter: "fetch", method: 'get'}).then(res => {
-                    let data = res.data;
-                    console.log(data);
-                    let redirect = data['redirect'];
-                    if (redirect !== undefined) {
-                        window.location.href = redirect;
-                    }
-                });
+                await popover.showPopover();
             }
         }
     }
