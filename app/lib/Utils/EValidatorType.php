@@ -24,4 +24,5 @@ enum EValidatorType
     case IMAGESGEN;
     case SYSTEMSETTINGUPLOAD;
     case SHARETABLECREATE;
+    case SHARETABLEEDIT;
 }

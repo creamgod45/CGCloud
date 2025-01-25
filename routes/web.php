@@ -31,11 +31,13 @@ Route::middleware("checkClientID")->group(function () {
     Route::middleware(['auth', 'verified'])->prefix("sharetable")->group(function () {
         Route::get('share/{id}', [ShareTablesController::class, 'shareableShareTableItem'])->name(RouteNameField::PageShareableShareTableItem->value);
         Route::post('share/{id}', [ShareTablesController::class, 'shareableShareTableItemPost'])->name(RouteNameField::APIShareableShareTableItem->value);
-        Route::get('item/{id}', [ShareTablesController::class, 'viewShareTableItem'])->name(RouteNameField::PageShareTableItemView->value);
+        Route::get('item/success', [ShareTablesController::class, 'successShareTable'])->name(RouteNameField::PageShareTableItemSuccess->value);
         Route::get('item/download/{id}/{fileId}', [ShareTablesController::class, 'downloadShareTableItem'])->name(RouteNameField::PageShareTableItemDownload->value);
         Route::get('item/delete/{id}/{fileId}', [ShareTablesController::class, 'deleteShareTableItem'])->name(RouteNameField::PageShareTableItemDelete->value);
+        Route::get('item/edit/{id}', [ShareTablesController::class, 'editShareTable'])->name(RouteNameField::PageShopItemEditor->value);
+        Route::post('item/edit/{id}', [ShareTablesController::class, 'editShareTablePost'])->name(RouteNameField::APIShareTableItemEditPost->value);
         Route::get('delete/{id}', [ShareTablesController::class, 'deleteShareTable'])->name(RouteNameField::PageShareTableDelete->value);
-        Route::get('item/edit/{id}', [ShareTablesController::class, 'editor'])->name(RouteNameField::PageShopItemEditor->value);
+        Route::get('item/{id}', [ShareTablesController::class, 'viewShareTableItem'])->name(RouteNameField::PageShareTableItemView->value);
         Route::post('add', [ShareTablesController::class, 'shareTableItemPost'])->name(RouteNameField::PageShareTableItemPost->value);
         Route::post('create', [ShareTablesController::class, 'shareTableItemCreatePost'])->name(RouteNameField::APIShareTableItemCreatePost->value);
         Route::post('upload', [ShareTablesController::class, 'shareTableItemUploadImagePost'])->name(RouteNameField::APIShareTableItemUploadImage->value);

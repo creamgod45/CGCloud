@@ -40,6 +40,11 @@ class VirtualFile extends Model
         'expired_at' => ExpiresAtCast::class,
     ];
 
+    public function deleteEntry(){
+        Storage::disk($this->disk)->delete($this->path);
+        $this->delete();
+    }
+
     public function shareTables()
     {
         return $this->belongsToMany(ShareTable::class, 'share_table_virtual_file');

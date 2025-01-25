@@ -12,16 +12,14 @@ use App\Lib\Utils\RouteNameField;
 use App\Lib\Utils\Utils;
 use App\Lib\Utils\Utilsv2;
 use App\Lib\Utils\ValidatorBuilder;
+use App\Models\Member;
 use App\Models\SharePermissions;
 use App\Models\ShareTable;
 use App\Models\VirtualFile;
-use Exception;
-use Hamcrest\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -30,11 +28,9 @@ use Illuminate\Support\MessageBag;
 use Illuminate\Support\Str;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Response as ResponseHTTP;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\String\ByteString;
-use Yajra\DataTables\Facades\DataTables;
-use function Laravel\Prompts\error;
 
 class ShareTablesController extends Controller
 {
@@ -59,7 +55,6 @@ class ShareTablesController extends Controller
     public function viewShareTableItem(Request $request)
     {
         // TODO XSS RCE TYPE CHECKER
-
         $popup = $request->get('popup', false) === '1';
         $shareTableId = $request->route('id', 1);
         $shareTable = ShareTable::find($shareTableId);
@@ -85,9 +80,7 @@ class ShareTablesController extends Controller
 
     public function deleteShareTable(Request $request)
     {
-        // TODO XSS RCE TYPE CHECKER
         $shareTableId = $request->route('id', 1);
-        $fileId = $request->route('fileId', 1);
         $shareTable = ShareTable::find($shareTableId);
         if($shareTable !== null){
             $shareTable->getAllVirtualFiles()->each(function ($virtualFile) {
@@ -100,6 +93,99 @@ class ShareTablesController extends Controller
                 '$href' => back()->getTargetUrl(),
                 '$content' => '分享資源 '.e($shareTable->name).' 刪除成功 5秒後自動跳轉(如果沒有請點我跳轉)'
             ])->toArrayable());
+        } else {
+            return view('ShareTable.delete', Controller::baseControllerInit($request, [
+                '$href' => back()->getTargetUrl(),
+                '$content' => '分享資源刪除失敗 5秒後自動跳轉(如果沒有請點我跳轉)'
+            ])->toArrayable());
+        }
+    }
+
+    public function successShareTable(Request $request)
+    {
+        $popup = $request->get('popup', 0);
+        return view('ShareTable.success', Controller::baseControllerInit($request, [
+            '$content' => '編輯成功(將會自動關閉)',
+            '$popup' => $popup,
+        ])->toArrayable());
+    }
+
+    public function editShareTablePost(Request $request)
+    {
+        $CGLCI = self::baseControllerInit($request);
+        $shareTableId = $request->route('id', 0);
+        $CSRF = new CSRF(RouteNameField::APIShareTableItemCreatePost->value);
+
+        $i18N = $CGLCI->getI18N();
+        $shareTable = ShareTable::find($shareTableId);
+        if ($shareTable !== null){
+            $vb = new ValidatorBuilder($i18N, EValidatorType::SHARETABLEEDIT);
+            $v = $vb->validate($request->all(), ['current_password','password', 'password_confirmation'], true);
+            if ($v instanceof MessageBag) {
+                $alertView = View::make('components.alert',
+                    ["type" => "%type%", "messages" => $v->all()]);
+                $CSRF->reset();
+                return response()->json([
+                    'type' => false,
+                    'token' => $CSRF->get(),
+                    "message" => $alertView->render(),
+                    "error_keys" => $v->keys(),
+                ], ResponseHTTP::HTTP_OK);
+            } else {
+                $CSRF->release();
+                $files = $shareTable->getAllVirtualFiles();
+                foreach ($v['files'] as $file) {
+                    if (!$files->pluck('uuid')->contains($file)) {
+                        $virtualFile = VirtualFile::where('uuid', '=', $file)->count();
+                        if ($virtualFile < 0) {
+                        } else {
+                            // 有
+                        }
+                    } else {
+
+                    }
+                }
+                $shareTable->update([
+                    'name' => $v['shareTableName'],
+                    'description' => $v['shareTableDescription'],
+                    'type' => $v['shareTableType'],
+                    'secret' => (!empty($v['password']))? Hash::make($v['password']) : null,
+                ]);
+
+                $this->clearShareTableIndexCaches();
+
+                return response()->json([
+                    "type" => true,
+                    "message" => "編輯分享資源成功",
+                    "redirect" => route(RouteNameField::PageShareTableItemSuccess->value, ['popup' => 1]),
+                ]);
+            }
+        }
+    }
+
+    public function editShareTable(Request $request)
+    {
+        $shareTableId = $request->route('id', 0);
+        $popup = $request->get('popup', 0);
+        $shareTable = ShareTable::find($shareTableId);
+        if ($shareTable !== null){
+            $virtualFiles = $shareTable->getAllVirtualFiles();
+            return view('ShareTable.add', Controller::baseControllerInit($request, [
+                "files" => $virtualFiles,
+                "popup" => $popup,
+                "value" => [
+                    "shareTableId" => $shareTable->id,
+                    "shareTableType" => $shareTable->type,
+                    "shareTableName" => $shareTable->name,
+                    "shareTableDescription" => $shareTable->description,
+                    "shareMembers" => $shareTable->shareTablePermission()->setVisible(['member_id'])->map(function ($value){
+                        $member = Member::find($value->member_id);
+                        return $member;
+                    }) ?? [],
+                ]
+            ])->toArrayable());
+        } else {
+            abort(404);
         }
     }
 
@@ -141,6 +227,7 @@ class ShareTablesController extends Controller
 
     public function downloadShareTableItem(Request $request)
     {
+        set_time_limit(60*60*24);
         // TODO XSS RCE TYPE CHECKER
         $shareTableId = $request->route('id', 1);
         $fileId = $request->route('fileId', 1);
@@ -156,7 +243,23 @@ class ShareTablesController extends Controller
                     $path = $virtualFile->path;
 
                     if ($disk->exists($path)) {
-                        return $disk->download($path, $virtualFile->filename);
+                        $stream = $disk->readStream($path);
+                        $chunkSize = 1024 * 8; // 每次传输的字节数
+                        $rateLimit = 1024 * 1024; // 每秒最大传输速率
+                        return new StreamedResponse(function () use ($stream, $chunkSize, $rateLimit) {
+                            $delay = $chunkSize / $rateLimit; // 每次传输后的延迟时间
+                            while (!feof($stream)) {
+                                echo fread($stream, $chunkSize);
+                                flush(); // 確保輸出的數據立即傳輸到客戶端
+                                // 限制传输速率，通过延迟来实现
+                                usleep($delay * 1e6); // 将秒数转换为微秒
+                            }
+                            fclose($stream);
+                        }, 200, [
+                            'Content-Type' => $disk->mimeType($path),
+                            'Content-Length' => $disk->size($path),
+                            'Content-Disposition' => 'attachment; filename="' . $virtualFile->filename . '"',
+                        ]);
                     } else {
                         abort(404, 'File not in physics storage.');
                     }
@@ -231,6 +334,53 @@ class ShareTablesController extends Controller
         abort(404);
     }
 
+    private function filePreviewLimitSpeed(VirtualFile $virtualFile): StreamedResponse
+    {
+        set_time_limit(60*60*24);
+        if($virtualFile !== null) {
+            $disk = Storage::disk($virtualFile->disk);
+            $filename = $virtualFile->path;
+
+            $stream = $disk->readStream($filename);
+            return new StreamedResponse(function () use ($stream, $disk, $filename, $virtualFile) {
+                $chunkSize = 1024 * 8; // 每次传输的字节数
+                $rateLimit = 1024 * 1024; // 每秒最大传输速率
+                $delay = $chunkSize / $rateLimit; // 每次传输后的延迟时间
+
+                // 打开 php://output 流
+                $output = fopen('php://output', 'wb');
+
+                if (!$output || !$stream) {
+                    throw new RuntimeException('Failed to open streams for reading or writing.');
+                }
+
+                while (!feof($stream)) {
+                    // 从输入流读取一块数据
+                    $buffer = fread($stream, $chunkSize);
+
+                    // 写入到输出流
+                    fwrite($output, $buffer);
+
+                    // 清空 PHP 输出缓冲区，确保及时发送数据
+                    flush();
+                    ob_flush();
+
+                    // 限制传输速率，通过延迟来实现
+                    usleep($delay * 1e6); // 将秒数转换为微秒
+                }
+
+                // 关闭流
+                fclose($stream);
+                fclose($output);
+            }, 200, [
+                'Content-Type' => $disk->mimeType($filename),
+                'Content-Length' => $disk->size($filename),
+                'Content-Disposition' => 'inline; filename="'.$virtualFile->filename.'"',
+            ]);
+        }
+        abort(404);
+    }
+
     public function apiPreviewFileTemporary(Request $request)
     {
         $fileUUID = $request->route('fileId');
@@ -263,7 +413,7 @@ class ShareTablesController extends Controller
                     $virtualFile = VirtualFile::whereIn('uuid', $fileUUID)->get();
                     $urls = [];
                     foreach ($virtualFile as $item) {
-                        $urls[] = $item->getTemporaryUrl(null, $shareTable->id);
+                        $urls[] = $item->getTemporaryUrl(now()->addDays(), $shareTable->id);
                     }
                     return response()->json($urls);
                 }
@@ -282,7 +432,7 @@ class ShareTablesController extends Controller
                 $collection = $shareTable->virtualFiles()->allRelatedIds();
                 if($collection->contains($fileUUID)) {
                     $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->get()->first();
-                    return $this->filePreview($virtualFile);
+                    return $this->filePreviewLimitSpeed($virtualFile);
                 }
             }
         }

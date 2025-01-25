@@ -10,20 +10,20 @@ import FilePondPluginFilePoster from 'filepond-plugin-file-poster';
 import FilePondPluginImageValidateSize from 'filepond-plugin-image-validate-size';
 import * as Utils from "./utils.js";
 import axios from "axios";
+// 註冊所有需要使用的 FilePond 插件
+FilePond.registerPlugin(FilePondPluginImagePreview);
+FilePond.registerPlugin(FilePondPluginImageTransform);
+FilePond.registerPlugin(FilePondPluginImageExifOrientation);
+FilePond.registerPlugin(FilePondPluginFileValidateSize);
+FilePond.registerPlugin(FilePondPluginFileValidateType);
+FilePond.registerPlugin(FilePondPluginFilePoster);
+FilePond.registerPlugin(FilePondPluginImageValidateSize);
 
 // 初始化 FilePond 插件並應用到所有包含標籤 'filepond' 的元素。
 function filepondLoader() {
     let filepond = document.querySelectorAll(".filepond"); // 選擇所有類名為 ‘filepond’ 的元素
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content'); // 獲取 CSRF token
     for (let filepondElement of filepond) { // 遍歷每個元素
-        // 註冊所有需要使用的 FilePond 插件
-        FilePond.registerPlugin(FilePondPluginImagePreview);
-        FilePond.registerPlugin(FilePondPluginImageTransform);
-        FilePond.registerPlugin(FilePondPluginImageExifOrientation);
-        FilePond.registerPlugin(FilePondPluginFileValidateSize);
-        FilePond.registerPlugin(FilePondPluginFileValidateType);
-        FilePond.registerPlugin(FilePondPluginFilePoster);
-        FilePond.registerPlugin(FilePondPluginImageValidateSize);
 
         // 獲取上傳、取消和修補的 URL
         let process = filepondElement.dataset.upload;

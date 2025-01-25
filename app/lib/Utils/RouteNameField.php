@@ -44,6 +44,7 @@ enum RouteNameField: string
     case PageShareableShareTableItem = 'root.shareable.sharetable.item';
     case PageShareTableItemDelete = 'root.sharetable.item.delete';
     case PageShareTableDelete = 'root.sharetable.delete';
+    case PageShareTableItemSuccess = 'root.sharetable.item.success';
 
     // API
     case APIEncodeJson = 'root.api.EncodeJson';
@@ -52,6 +53,7 @@ enum RouteNameField: string
     case APIBroadcast = 'root.api.Broadcast';
     case APIHTMLTemplateNotification = 'root.api.HTMLTemplateNotification';
     case APIShareTableItemCreatePost = 'root.api.sharetable.item.create.post';
+    case APIShareTableItemEditPost = 'root.api.sharetable.item.edit.post';
     case APIShareTableItemUploadImage = 'root.api.shop.item.upload';
     case APIShareTableItemUploadImageRevert = 'root.api.sharetable.item.upload.revert';
     case APIShareTableItemUploadImagePatch = 'root.api.sharetable.item.upload.patch';

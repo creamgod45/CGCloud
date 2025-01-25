@@ -86,6 +86,9 @@ class ValidatorBuilder
             case EValidatorType::SHARETABLECREATE:
                 $this->shareTableCreate();
                 break;
+            case EValidatorType::SHARETABLEEDIT:
+                $this->shareTableEdit();
+                break;
             case EValidatorType::NULL:
                 break;
         }
@@ -518,6 +521,24 @@ class ValidatorBuilder
             'files' => ['required', 'array', 'exists:virtual_files,uuid']
         ];
         $this->lastkey = 19;
+    }
+
+    private function shareTableEdit()
+    {
+        $this->customMessages = $this->initMessage();
+        $this->atters = $this->initAtters();
+        $this->rules = [
+            'token' => ['required', 'string'],
+            'shareTableId' => ['required', 'string', 'max:255'],
+            'shareTableName' => ['required', 'string', 'max:255'],
+            'shareTableDescription' => ['string', 'nullable'],
+            'shareTableType' => ['required', 'string', Rule::enum(EShareTableType::class)],
+            'shareMembers' => ['nullable', 'array', 'exists:members,id'],
+            'current-password' => ['nullable', 'string'],
+            'password' => ['nullable', 'string', 'confirmed'],
+            'files' => ['required', 'array', 'exists:virtual_files,uuid']
+        ];
+        $this->lastkey = 20;
     }
 
     /**

@@ -1,5 +1,4 @@
 import * as Utils from './utils.js';
-
 /**
  * 切換密碼輸入欄位的顯示和隱藏狀態。
  *
@@ -759,6 +758,10 @@ function popover3(ct, target) {
         let item = null;
         let dialog_vt = targetEl.querySelector(".dialog-vt");
         if (dialog_vt !== null) {
+            let dialog_title = dialog_vt.querySelector(".dialog-title > .dialog-title-field");
+            if(dialog_title !== null){
+                dialog_title.innerText = "預覽分享資訊";
+            }
             let shop_iframe = dialog_vt.querySelector(".custom-page-iframe");
             let shop_popover_loader = dialog_vt.querySelector(".shop-popover-placeholder");
             if (shop_iframe !== null && shop_popover_loader !== null) {
@@ -782,6 +785,62 @@ function popover3(ct, target) {
             }
         }
     });
+}
+
+/**
+ * 綁定一個元素的點擊事件，點擊後展示目標元素並載入自定義頁面。
+ *
+ * @param {HTMLElement} ct 綁定點擊事件的元素
+ * @param {string} target 目標元素的選擇器
+ * @return {boolean|void} 點擊時目標元素為 null 返回 false，否則無返回值
+ */
+function popover4(ct, target) {
+    let afn = function () {
+        if (target === null) return false;
+        let targetEl = document.querySelector(target);
+        if (targetEl === null) return;
+        let source = ct.dataset.source;
+        let children = targetEl.children;
+        let item = null;
+        let dialog_vt = targetEl.querySelector(".dialog-vt");
+        if (dialog_vt !== null) {
+            let dialog_title = dialog_vt.querySelector(".dialog-title > .dialog-title-field");
+            if(dialog_title !== null){
+                dialog_title.innerText = "編輯分享資訊";
+            }
+            let shop_iframe = dialog_vt.querySelector(".custom-page-iframe");
+            let shop_popover_loader = dialog_vt.querySelector(".shop-popover-placeholder");
+            if (shop_iframe !== null && shop_popover_loader !== null) {
+                shop_iframe.onload = () => {
+                    shop_popover_loader.classList.add('hidden');
+                };
+                shop_popover_loader.classList.remove("hidden");
+                shop_iframe.src = "/sharetable/item/edit/" + source + '?popup=1';
+                targetEl.classList.remove("!hidden");
+                document.body.style.overflow = "hidden";
+            }
+            let dialog_closebtn = dialog_vt.querySelector(".dialog-closebtn");
+            if (dialog_closebtn !== null && shop_iframe !== null && shop_popover_loader !== null) {
+                let closefn = () => {
+                    document.body.style.overflow = "";
+                    targetEl.classList.add("!hidden");
+                    shop_popover_loader.classList.remove("hidden");
+                    shop_iframe.contentWindow.document.write("");
+                    shop_iframe.contentWindow.document.close();
+                };
+                dialog_closebtn.onclick = closefn;
+                window.addEventListener('message', function(event) {
+                    if (event.data === 'close') {
+                        closefn();
+                    } else if (event.data === 'open') {
+                        document.dispatchEvent(new CustomEvent('CGPOPOVER::init'));
+                    }
+                });
+            }
+        }
+    };
+    ct.addEventListener("CGPOPOVER::init", afn);
+    ct.addEventListener("click", afn);
 }
 
 /**
@@ -843,6 +902,9 @@ function customTrigger() {
                     break;
                 case "popover3":
                     popover3(ct, target);
+                    break;
+                case "popover4":
+                    popover4(ct, target);
                     break;
             }
         }

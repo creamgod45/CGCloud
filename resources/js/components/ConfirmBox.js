@@ -3,8 +3,8 @@ import * as utils from './utils.js';
 function ConfirmBox(){
     let confirmBoxes = document.querySelectorAll('.confirm-box:not(.confirm-box-rendered)');
     for (let confirmBox of confirmBoxes) {
-        console.log(confirmBox);
-        console.log("init");
+        //console.log(confirmBox);
+        //console.log("init");
         confirmBox.classList.add('confirm-box-rendered');
         let dataset = confirmBox.dataset;
         let title = dataset.title;

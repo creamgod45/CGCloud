@@ -372,6 +372,124 @@ function ShareTable_add(element) {
     addFile.onclick = submitFn;
 }
 
+function ShareTable_edit(element) {
+    let options = element.cgoptions;
+    let i = 0;
+    console.log(options);
+    if (options.rawOptions.target === null) return false;
+    console.log(i++)
+    for (let tracksListElement of options.tracksList) {
+        if (tracksListElement === null) return false;
+    }
+    console.log(i++)
+    /**
+     * resetpassword,password_confirmation,password
+     * @var {HTMLButtonElement}
+     */
+    let addFile = options.tracksList.addFile;
+    /**
+     * @var {HTMLInputElement}
+     */
+    let password_confirmation = options.tracksList.password_confirmation;
+    /**
+     * @var {HTMLInputElement}
+     */
+    let password = options.tracksList.password;
+    let shareTableName = options.tracksList.shareTableName;
+    let shareTableId = options.tracksList.shareTableId;
+    let shareTableDescription = options.tracksList.shareTableDescription;
+    let shareTableType = options.tracksList.shareTableType;
+    let shareMembers = options.tracksList.shareMembers;
+    let current_password = options.tracksList.current_password;
+    let files = options.tracksList["files*"];
+    let refetchFn = options.tracksList["files*_refetch"];
+    let filelabel = options.tracksList['#filelabel'];
+
+    console.log(i++)
+    let alert = element.querySelector(options.rawOptions.target);
+    let validateFn = () => {
+        files = refetchFn();
+        let b = password.validateStatus && password_confirmation.validateStatus && password.value === password_confirmation.value && shareTableName.validateStatus && files.length > 0 && current_password.validateStatus;
+        if (!b) {
+            if (!shareTableName.validateStatus) {
+                shareTableName.tippy.show();
+            }
+            if (!current_password.validateStatus) {
+                current_password.tippy.show();
+            }
+            if (!password.validateStatus) {
+                password.tippy.show();
+            }
+            if (!password_confirmation.validateStatus) {
+                password_confirmation.tippy.show();
+            }
+            if (password.value !== password_confirmation.value) {
+                password_confirmation.tippy.show();
+            }
+            if(files.length === 0){
+                console.log("no file");
+                filelabel.tippy.show();
+            }
+        }
+        return b;
+    };
+    let proccessFn = () => {
+        console.log(files);
+        let files_array = [];
+        for (let file of files) {
+            files_array.push(file.value);
+        }
+        let encodeContextElement = Utils.encodeContext(password.value)['compress'];
+        let encodeContextElement1 = Utils.encodeContext(current_password.value)['compress'];
+        axios.post(element.action, {
+            password: encodeContextElement,
+            password_confirmation: encodeContextElement,
+            token: element.token,
+            shareTableName: shareTableName.value,
+            current_password: encodeContextElement1,
+            files: files_array,
+            shareTableDescription: shareTableDescription.value,
+            shareTableType: shareTableType.value,
+            shareMembers: shareMembers.tomselect.items,
+            shareTableId: shareTableId.value,
+        }, {
+            adapter: "fetch",
+            method: "POST",
+            responseType: "json",
+        }).then((response) => {
+            let data = response.data;
+            element.token = data.token;
+            console.log(data);
+            console.log(element.token);
+            if (alert !== null) {
+                alert.innerHTML = data.message;
+            }
+            if (data.error_keys !== undefined) {
+                for (let key of data.error_keys) {
+                    if (key !== "token" && key !== "resetpassword") {
+                        if (key === 'files') {
+                            key = 'files*';
+                        }
+                        options.tracksList[key].tippy.show();
+                    }
+                }
+            }
+            common_proccess(data);
+        });
+    }
+    let submitFn = () => {
+        if (element.dataset.token === undefined) return false;
+        if (element.token === undefined) element.token = element.dataset.token;
+        let r = validateFn();
+        if (r) {
+            proccessFn();
+        }
+        return false;
+    };
+    addFile.form.onsubmit = submitFn;
+    addFile.onclick = submitFn;
+}
+
 /**
  * Auth_ResetPassword 函式用於重設用戶的密碼。
  *
@@ -547,6 +665,9 @@ function form_ct() {
                 break;
             case "ShareTable.add":
                 ShareTable_add(form);
+                break;
+            case "ShareTable.edit":
+                ShareTable_edit(form);
                 break;
             default:
                 break;

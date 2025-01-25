@@ -19,7 +19,7 @@
 <div id="{{$id}}" {{ $attributes->merge(['class' => 'dialog-frame']) }}>
     <div class="dialog-vt">
         <div class="dialog-title">
-            {{$popoverTitle}}
+            <span class="dialog-title-field">{{$popoverTitle}}</span>
             <div class="dialog-closebtn btn btn-circle btn-ripple"><i class="fa-solid fa-x"></i></div>
         </div>
         {{$slot}}

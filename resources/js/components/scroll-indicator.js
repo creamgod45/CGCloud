@@ -9,6 +9,10 @@ function handlerScrollIndicator(self, target) {
     console.log(self, target);
     window.addEventListener('scroll', function(event) {
         let maxScroll = target.scrollHeight - target.clientHeight; // 總的可滾動距離
+        if(self.querySelector('progress') === null) {
+            throw new Error("scroll-indicator element must have a progress element");
+            return;
+        }
         self.querySelector('progress').value = ((target.scrollTop) / maxScroll) * 100; // 將進度條值設置為百分比
     })
 }

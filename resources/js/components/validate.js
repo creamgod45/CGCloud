@@ -134,6 +134,12 @@ function validate() {
                 if (validate.validateStatus === undefined || validate.validateStatus === null) {
                     validate.validateStatus = false;
                 }
+                setTimeout(function () {
+                    checkRequired(validate);
+                    checkMaxLength(validate);
+                    checkMinLength(validate);
+                    checkEmail(validate);
+                }, 100);
                 validate.oninput = function () {
                     checkRequired(validate);
                     checkMaxLength(validate);
@@ -153,11 +159,15 @@ function validate() {
                     checkEmail(validate);
                 }
                 break;
-                break;
             case "required":
                 if (validate.validateStatus === undefined || validate.validateStatus === null) {
                     validate.validateStatus = false;
                 }
+                setTimeout(function () {
+                    checkRequired(validate);
+                    checkMaxLength(validate);
+                    checkMinLength(validate);
+                }, 100);
                 validate.oninput = function () {
                     checkRequired(validate);
                     checkMaxLength(validate);
@@ -216,7 +226,7 @@ function checkMinLength(self) {
 /**
  * 檢查輸入值是否超過最大長度。
  *
- * @param {Object} self - 包含輸入值和最大長度的對象。
+ * @param {Element} self - 包含輸入值和最大長度的對象。
  * @param {string} self.value - 需要檢查的輸入值。
  * @param {number} self.maxLength - 設定的最大長度。
  * @param {boolean} self.validateStatus - 驗證狀態。

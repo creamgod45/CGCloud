@@ -42,8 +42,7 @@
             $popoverid = "popover_".\Illuminate\Support\Str::random(5);
             $popoverOptions = new PopoverOptions()@endphp
         <div class="container1">
-            <x-popover-windows :id="$popoverid" :popover-options="$popoverOptions" popover-title="預覽分享資訊"
-                               class="shop-popover !hidden">
+            <x-popover-windows :id="$popoverid" :popover-options="$popoverOptions" popover-title="預覽分享資訊" class="shop-popover !hidden">
                 <div class="shop-popover-placeholder placeholder placeholder-full-wh">
                     <div class="shop-popover-loader" role="status">
                         <svg aria-hidden="true"
@@ -221,7 +220,8 @@
                                                  class="btn-md btn-border-0 btn btn-ripple btn-color7 shareable tippyer"
                                                  data-placement="bottom"
                                                  data-confirmboxcontent="下載"><i class="fa-solid fa-download"></i></div>
-                                            <div class="btn-md btn-border-0 btn btn-ripple btn-warning tippyer"
+                                            <div class="btn-md btn-border-0 btn btn-ripple btn-warning tippyer ct" data-fn="popover4" data-source="{{ $shareTable->id }}"
+                                                 data-target="#{{ $popoverid }}"
                                                  data-placement="bottom"
                                                  data-content="編輯"><i class="fa-solid fa-pen-to-square"></i></div>
                                             <div class="btn-md btn-border-0 btn btn-ripple btn-error tippyer last confirm-box"
