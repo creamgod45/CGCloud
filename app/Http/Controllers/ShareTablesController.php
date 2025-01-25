@@ -244,8 +244,8 @@ class ShareTablesController extends Controller
 
                     if ($disk->exists($path)) {
                         $stream = $disk->readStream($path);
-                        $chunkSize = 1024 * 16; // 每次传输的字节数
-                        $rateLimit = 1024 * 1024; // 每秒最大传输速率
+                        $chunkSize = 1024 * 2048; // 每次传输的字节数
+                        $rateLimit = 1024 * 1512; // 每秒最大传输速率
                         return new StreamedResponse(function () use ($stream, $chunkSize, $rateLimit) {
                             $delay = $chunkSize / $rateLimit; // 每次传输后的延迟时间
                             while (!feof($stream)) {
