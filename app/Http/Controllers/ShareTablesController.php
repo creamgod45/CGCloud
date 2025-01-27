@@ -65,6 +65,7 @@ class ShareTablesController extends Controller
                 "virtualFiles" => $virtualFiles,
                 'sharePermissions' => $sharePermissions,
                 'popup' => $popup,
+                'type' => "public",
             ])->toArrayable());
         } else {
             abort(404);
