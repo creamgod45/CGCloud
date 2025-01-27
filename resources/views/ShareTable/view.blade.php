@@ -49,7 +49,7 @@
 @section('description', $shareTable->description)
 @section('head')
     @php
-        $image = asset("favicon.ico");
+        $image = asset("favicon.png");
         $imageH = 128;
         $imageW = 128;
         foreach ($virtualFiles as $item) {

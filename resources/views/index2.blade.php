@@ -29,11 +29,11 @@
     <meta name="twitter:title" content="{{ Config::get("app.name") }}">
     <meta name="twitter:site" content="{{ "@".Config::get("app.url") }}">
     <meta name="twitter:description" content="{{ Config::get("app.description") }}">
-    <meta name="twitter:image" content="{{ asset("favicon.ico") }}">
+    <meta name="twitter:image" content="{{ asset("favicon.png") }}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ Config::get("app.name") }}">
     <meta property="og:url" content="{{ Config::get("app.url") }}">
-    <meta property="og:image" content="{{ asset("favicon.ico") }}">
+    <meta property="og:image" content="{{ asset("favicon.png") }}">
     <meta property="og:image:width" content="128">
     <meta property="og:image:height" content="128">
     <meta property="og:description" content="{{ Config::get("app.description") }}">
