@@ -9,3 +9,6 @@ Allow: /appraisal
 Allow: /login
 
 Allow: /register
+
+User-Agent: facebookexternalhit
+Allow: /
