@@ -25,4 +25,5 @@ enum EValidatorType
     case SYSTEMSETTINGUPLOAD;
     case SHARETABLECREATE;
     case SHARETABLEEDIT;
+    case PublicShareablePreviewItem;
 }

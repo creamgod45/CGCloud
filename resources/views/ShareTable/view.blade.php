@@ -21,6 +21,7 @@
     $virtualFiles=[];
     $sharePermissions=[];
     $popup = false;
+    $type = "private";
     if(!empty($moreParams)){
         if(isset($moreParams[0]['shareTable'])){
             $shareTable = $moreParams[0]['shareTable'];
@@ -30,6 +31,9 @@
         }
         if(isset($moreParams[0]['sharePermissions'])){
             $sharePermissions = $moreParams[0]['sharePermissions'];
+        }
+        if(isset($moreParams[0]['type'])){
+            $type = $moreParams[0]['type'];
         }
         if(isset($moreParams[0]['popup'])){
             $popup = $moreParams[0]['popup'];
@@ -47,7 +51,7 @@
     @php
         $image = asset("favicon.ico");
         foreach ($virtualFiles as $item) {
-            if(Utilsv2::isSupportImageFile($item->minetypes)){
+            if(Utilsv2::isSupportImageFile($item->minetypes) && $type === "public"){
                 $image = route(RouteNameField::PagePublicShareTablePreviewItem->value, [ "shortcode" => $shareTable->short_code, "fileId" => $item->uuid ]);
                 break;
             }

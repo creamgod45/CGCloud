@@ -45,7 +45,8 @@ class ShareTablesController extends Controller
     {
         $popup = $request->get('popup', false) === '1';
         $id = $request->route('shortcode', 0);
-        $shareTable = ShareTable::where('short_code', '=', $id)->where('type', '=', EShareTableType::public->value)->get()->first();
+        $shareTable = ShareTable::where('short_code', '=', $id)->where('type', '=',
+            EShareTableType::public->value)->get()->first();
         if ($shareTable !== null) {
             $shareTableId = $shareTable->short_code;
             $virtualFiles = $shareTable->getAllVirtualFiles();
@@ -54,7 +55,7 @@ class ShareTablesController extends Controller
                 $downloadUrl = route(RouteNameField::PagePublicShareTableDownloadItem->value,
                     ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
                 $previewUrl = route(RouteNameField::PagePublicShareTablePreviewItem->value,
-                    ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
+                    ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]).".".$virtualFile->extension;
                 $virtualFile['action'] = '<div class="flex gap-3"><a target="_blank" rel="noreferrer noopener" href="' . $previewUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><div class="flex gap-3"><a href="' . $downloadUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a></div>';
                 $virtualFile['size'] = Utils::convertByte($virtualFile['size']);
             }
@@ -72,17 +73,69 @@ class ShareTablesController extends Controller
 
     public function publicShareableShareTablePreviewItem(Request $request)
     {
-        $fileUUID = $request->route('fileId',0);
-        $shareTableId = $request->route('shortcode',0);
-        if ($shareTableId !== null) {
-            $shareTable = ShareTable::where('short_code' , '=', $shareTableId)->where('type', '=', EShareTableType::public->value)->get()->first();
-            if ($shareTable !== null) {
-                $collection = $shareTable->virtualFiles()->allRelatedIds();
-                if ($collection->contains($fileUUID)) {
-                    $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->get()->first();
-                    return $this->filePreview($virtualFile);
+        $CGLCI = self::baseControllerInit($request);
+        $i18N = $CGLCI->getI18N();
+        $rawfileUUID = $request->route('fileId', 0);
+        $shareTableId = $request->route('shortcode', 0);
+        $vb = new ValidatorBuilder($i18N, EValidatorType::PublicShareablePreviewItem);
+        $v = $vb->validate(['fileId' => $rawfileUUID, 'shortcode' => $shareTableId]);
+        if ($v instanceof MessageBag) {
+            abort(400);
+        } else {
+            $cgstring = new CGString($v['fileId']);
+            $array = $cgstring->Split('.');
+            if (count($array->toArray()) === 2) {
+                $fileUUID = $array->Get("0");
+                $extension = $array->Get("1");
+            } else {
+                $fileUUID = $v['fileId'];
+            }
+            if ($shareTableId !== null) {
+                $shareTable = ShareTable::where('short_code', '=', $shareTableId)->where('type', '=',
+                    EShareTableType::public->value)->get()->first();
+                if ($shareTable !== null) {
+                    $collection = $shareTable->virtualFiles()->allRelatedIds();
+                    if ($collection->contains($fileUUID)) {
+                        $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->get()->first();
+                        return $this->filePreview($virtualFile);
+                    }
                 }
             }
+        }
+        abort(404);
+    }
+
+    /**
+     * Streams the contents of a virtual file to the response.
+     *
+     * If the virtual file is not null, it attempts to read the file from the specified disk
+     * and streams its contents directly to the output. The streamed response includes headers
+     * indicating the content type, content length, and content disposition to facilitate inline
+     * display of the file in a browser.
+     *
+     * In case the virtual file is null, the function will abort the request with a 404 error.
+     *
+     * @param mixed $virtualFile An object containing the disk and path of the file to be streamed.
+     *
+     * @return StreamedResponse The HTTP streamed response with the file content.
+     *
+     * @throws HttpException If the file is not found or cannot be read, a 404 error is returned.
+     */
+    private function filePreview(VirtualFile $virtualFile): StreamedResponse
+    {
+        if ($virtualFile !== null) {
+            $disk = Storage::disk($virtualFile->disk);
+            $filename = $virtualFile->path;
+
+            $stream = $disk->readStream($filename);
+            return new StreamedResponse(function () use ($stream) {
+                stream_copy_to_stream($stream, fopen('php://output', 'wb'));
+                fclose($stream);
+            }, 200, [
+                'Content-Type' => $disk->mimeType($filename),
+                'Content-Length' => $disk->size($filename),
+                'Content-Disposition' => 'inline; filename="' . $virtualFile->filename . '"',
+            ]);
         }
         abort(404);
     }
@@ -94,7 +147,8 @@ class ShareTablesController extends Controller
         $shareTableId = $request->route('shortcode', 1);
         $fileId = $request->route('fileId', 1);
 
-        $shareTable = ShareTable::where('short_code', '=', $shareTableId)->where('type', '=', EShareTableType::public->value)->get()->first();
+        $shareTable = ShareTable::where('short_code', '=', $shareTableId)->where('type', '=',
+            EShareTableType::public->value)->get()->first();
         if ($shareTable !== null) {
             $allRelatedIds = $shareTable->virtualFiles()->allRelatedIds()->toArray();
             if (in_array($fileId, $allRelatedIds)) {
@@ -441,41 +495,6 @@ class ShareTablesController extends Controller
         } else {
             abort(404);
         }
-    }
-
-    /**
-     * Streams the contents of a virtual file to the response.
-     *
-     * If the virtual file is not null, it attempts to read the file from the specified disk
-     * and streams its contents directly to the output. The streamed response includes headers
-     * indicating the content type, content length, and content disposition to facilitate inline
-     * display of the file in a browser.
-     *
-     * In case the virtual file is null, the function will abort the request with a 404 error.
-     *
-     * @param mixed $virtualFile An object containing the disk and path of the file to be streamed.
-     *
-     * @return StreamedResponse The HTTP streamed response with the file content.
-     *
-     * @throws HttpException If the file is not found or cannot be read, a 404 error is returned.
-     */
-    private function filePreview(VirtualFile $virtualFile): StreamedResponse
-    {
-        if ($virtualFile !== null) {
-            $disk = Storage::disk($virtualFile->disk);
-            $filename = $virtualFile->path;
-
-            $stream = $disk->readStream($filename);
-            return new StreamedResponse(function () use ($stream) {
-                stream_copy_to_stream($stream, fopen('php://output', 'wb'));
-                fclose($stream);
-            }, 200, [
-                'Content-Type' => $disk->mimeType($filename),
-                'Content-Length' => $disk->size($filename),
-                'Content-Disposition' => 'inline; filename="' . $virtualFile->filename . '"',
-            ]);
-        }
-        abort(404);
     }
 
     /**

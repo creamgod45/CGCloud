@@ -89,6 +89,9 @@ class ValidatorBuilder
             case EValidatorType::SHARETABLEEDIT:
                 $this->shareTableEdit();
                 break;
+            case EValidatorType::PublicShareablePreviewItem:
+                $this->publicShareablePreviewItem();
+                break;
             case EValidatorType::NULL:
                 break;
         }
@@ -539,6 +542,17 @@ class ValidatorBuilder
             'files' => ['required', 'array', 'exists:virtual_files,uuid']
         ];
         $this->lastkey = 20;
+    }
+
+    private function publicShareablePreviewItem()
+    {
+        $this->customMessages = $this->initMessage();
+        $this->atters = $this->initAtters();
+        $this->rules = [
+            'fileId' => ['required', 'string', 'max:255'],
+            'shortcode' => ['required', 'string', 'max:255'],
+        ];
+        $this->lastkey = 21;
     }
 
     /**
