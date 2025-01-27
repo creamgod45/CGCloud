@@ -48,7 +48,7 @@
         $image = asset("favicon.ico");
         foreach ($virtualFiles as $item) {
             if(Utilsv2::isSupportImageFile($item->minetypes)){
-                $image = $item->getTemporaryUrl(now()->addMinutes(10), $shareTable->id);
+                $image = route(RouteNameField::PagePublicShareTablePreviewItem->value, [ "shortcode" => $shareTable->short_code, "fileId" => $item->uuid ]);
                 break;
             }
         }
