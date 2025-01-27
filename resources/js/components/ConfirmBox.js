@@ -28,6 +28,10 @@ function ConfirmBox(){
                         let href1 = dataset.href;
                         window.location.href = href1;
                         break;
+                    case "popover_shareable_delete_file":
+                        let href2 = dataset.href;
+                        window.location.href = href2;
+                        break;
                     case "shareable_delete":
                         let href = dataset.href;
                         window.location.href = href;

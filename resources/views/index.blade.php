@@ -39,7 +39,7 @@
     <x-scroll-indicator indicator-target="body"></x-scroll-indicator>
     <main>
         @php
-            $popoverid = "popover_".\Illuminate\Support\Str::random(5);
+            $popoverid = "popover_index";
             $popoverOptions = new PopoverOptions()@endphp
         <div class="container1">
             <x-popover-windows :id="$popoverid" :popover-options="$popoverOptions" popover-title="預覽分享資訊" class="shop-popover !hidden">

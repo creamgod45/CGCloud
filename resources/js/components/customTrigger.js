@@ -775,13 +775,21 @@ function popover3(ct, target) {
             }
             let dialog_closebtn = dialog_vt.querySelector(".dialog-closebtn");
             if (dialog_closebtn !== null && shop_iframe !== null && shop_popover_loader !== null) {
-                dialog_closebtn.onclick = () => {
+                let closefn = () => {
                     document.body.style.overflow = "";
                     targetEl.classList.add("!hidden");
                     shop_popover_loader.classList.remove("hidden");
                     shop_iframe.contentWindow.document.write("");
                     shop_iframe.contentWindow.document.close();
                 };
+                dialog_closebtn.onclick = closefn;
+                window.addEventListener('message', function(event) {
+                    if (event.data === 'close') {
+                        closefn();
+                    } else if (event.data === 'open') {
+                        document.dispatchEvent(new CustomEvent('CGPOPOVER::init'));
+                    }
+                });
             }
         }
     });

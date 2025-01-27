@@ -60,10 +60,9 @@ class ShareTable extends Model
 
     public function shareURL(): string
     {
-        return URL::temporarySignedRoute(
+        return route(
             RouteNameField::PageShareableShareTableItem->value,
-            now()->addDays(),
-            ['id' => $this->id],
+            ['shortcode' => $this->short_code],
         );
     }
 }

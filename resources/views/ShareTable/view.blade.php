@@ -119,7 +119,6 @@
                 @php
                     $columns = [
                         [ "data" => 'id', "name" => "id", "title" => "ID", "footer" => "ID" ],
-                        [ "data" => 'goto', "title" => "前往", "footer" => "前往", "className" => 'clickable', "orderable"=> false,"searchable"=> false, ],
                         [ "data" => 'filename', "name" => "filename", "title" => "名稱", "footer" => "名稱" ],
                         [ "data" => 'created_at', "name" => "created_at", "title" => "建立時間" , "footer" => "建立時間" ],
                         [ "data" => 'size', "name" => "size", "title" => "大小", "footer" => "大小" ],
