@@ -219,7 +219,7 @@
                                                  popovertarget="{{ "download_".$random1 }}"
                                                  class="btn-md btn-border-0 btn btn-ripple btn-color7 shareable tippyer"
                                                  data-placement="bottom"
-                                                 data-confirmboxcontent="下載"><i class="fa-solid fa-download"></i></div>
+                                                 data-content="下載"><i class="fa-solid fa-download"></i></div>
                                             <div class="btn-md btn-border-0 btn btn-ripple btn-warning tippyer ct" data-fn="popover4" data-source="{{ $shareTable->id }}"
                                                  data-target="#{{ $popoverid }}"
                                                  data-placement="bottom"
