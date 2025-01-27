@@ -45,7 +45,7 @@ class ShareTablesController extends Controller
     {
         $popup = $request->get('popup', false) === '1';
         $id = $request->route('shortcode', 0);
-        $shareTable = ShareTable::where('short_code', '=', $id)->orWhere('type', '=', EShareTableType::public->value)->first();
+        $shareTable = ShareTable::where('short_code', '=', $id)->where('type', '=', EShareTableType::public->value)->get()->first();
         if ($shareTable !== null) {
             $shareTableId = $shareTable->short_code;
             $virtualFiles = $shareTable->getAllVirtualFiles();
@@ -75,7 +75,7 @@ class ShareTablesController extends Controller
         $fileUUID = $request->route('fileId',0);
         $shareTableId = $request->route('shortcode',0);
         if ($shareTableId !== null) {
-            $shareTable = ShareTable::where('short_code' , '=', $shareTableId)->orWhere('type', '=', EShareTableType::public->value)->get()->first();
+            $shareTable = ShareTable::where('short_code' , '=', $shareTableId)->where('type', '=', EShareTableType::public->value)->get()->first();
             if ($shareTable !== null) {
                 $collection = $shareTable->virtualFiles()->allRelatedIds();
                 if ($collection->contains($fileUUID)) {
@@ -94,7 +94,7 @@ class ShareTablesController extends Controller
         $shareTableId = $request->route('shortcode', 1);
         $fileId = $request->route('fileId', 1);
 
-        $shareTable = ShareTable::where('short_code', '=', $shareTableId)->orWhere('type', '=', EShareTableType::public->value)->get()->first();
+        $shareTable = ShareTable::where('short_code', '=', $shareTableId)->where('type', '=', EShareTableType::public->value)->get()->first();
         if ($shareTable !== null) {
             $allRelatedIds = $shareTable->virtualFiles()->allRelatedIds()->toArray();
             if (in_array($fileId, $allRelatedIds)) {
