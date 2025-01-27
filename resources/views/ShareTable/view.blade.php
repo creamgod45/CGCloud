@@ -50,9 +50,14 @@
 @section('head')
     @php
         $image = asset("favicon.ico");
+        $imageH = 128;
+        $imageW = 128;
         foreach ($virtualFiles as $item) {
             if(Utilsv2::isSupportImageFile($item->minetypes) && $type === "public"){
                 $image = route(RouteNameField::PagePublicShareTablePreviewItem->value, [ "shortcode" => $shareTable->short_code, "fileId" => $item->uuid ]);
+                $image1 = $item->getImage($shareTable->id);
+                $imageW = $image1->getWidth();
+                $imageH = $image1->getHeight();
                 break;
             }
         }
@@ -66,8 +71,8 @@
     <meta property="og:title" content="{{ "檢視 ".$shareTable->name." | ".Config::get('app.name') }}">
     <meta property="og:url" content="{{ Config::get("app.url") }}">
     <meta property="og:image" content="{{ $image }}">
-    <meta property="og:image:width" content="128">
-    <meta property="og:image:height" content="128">
+    <meta property="og:image:width" content="{{ $imageW }}">
+    <meta property="og:image:height" content="{{ $imageH }}">
     <meta property="og:description" content="{{ $shareTable->description }}">
 @endsection
 @section('content')
