@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Lib\EShareTableType;
 use App\Lib\I18N\ELanguageText;
 use App\Lib\Server\CSRF;
 use App\Lib\Type\Array\CGArray;
@@ -40,22 +41,21 @@ class ShareTablesController extends Controller
 
     }
 
-    public function shareableShareTableItem(Request $request)
+    public function publicShareableShareTableItem(Request $request)
     {
         $popup = $request->get('popup', false) === '1';
         $id = $request->route('shortcode', 0);
-        $shareTable = ShareTable::where('short_code', '=', $id)->first();
+        $shareTable = ShareTable::where('short_code', '=', $id)->orWhere('type', '=', EShareTableType::public->value)->first();
         if ($shareTable !== null) {
-            $shareTableId = $shareTable->id;
+            $shareTableId = $shareTable->short_code;
             $virtualFiles = $shareTable->getAllVirtualFiles();
             foreach ($virtualFiles as $virtualFile) {
                 $virtualFile['#'] = '';
-                $downloadUrl = route(RouteNameField::PageShareTableItemDownload->value,
-                    ['fileId' => $virtualFile->uuid, 'id' => $shareTableId]);
-                $deleteUrl = route(RouteNameField::PageShareTableItemDelete->value,
-                    ['fileId' => $virtualFile->uuid, 'id' => $shareTableId]);
-                $virtualFile['action'] = '<div class="flex gap-3"><a target="_blank" rel="noreferrer noopener" href="' . $virtualFile->getTemporaryUrl(now()->addMinutes(30),
-                        $shareTableId) . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><div class="flex gap-3"><a href="' . $downloadUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a></div>';
+                $downloadUrl = route(RouteNameField::PagePublicShareTableDownloadItem->value,
+                    ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
+                $previewUrl = route(RouteNameField::PagePublicShareTablePreviewItem->value,
+                    ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
+                $virtualFile['action'] = '<div class="flex gap-3"><a target="_blank" rel="noreferrer noopener" href="' . $previewUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><div class="flex gap-3"><a href="' . $downloadUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a></div>';
                 $virtualFile['size'] = Utils::convertByte($virtualFile['size']);
             }
             $sharePermissions = SharePermissions::where('share_tables_id', '=', $shareTableId)->get();
@@ -68,6 +68,70 @@ class ShareTablesController extends Controller
         } else {
             abort(404);
         }
+    }
+
+    public function publicShareableShareTablePreviewItem(Request $request)
+    {
+        $fileUUID = $request->route('fileId',0);
+        $shareTableId = $request->route('shortcode',0);
+        if ($shareTableId !== null) {
+            $shareTable = ShareTable::where('short_code' , '=', $shareTableId)->orWhere('type', '=', EShareTableType::public->value);
+            if ($shareTable !== null) {
+                $collection = $shareTable->virtualFiles()->allRelatedIds();
+                if ($collection->contains($fileUUID)) {
+                    $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->get()->first();
+                    return $this->filePreview($virtualFile);
+                }
+            }
+        }
+        abort(404);
+    }
+
+    public function publicShareableShareTableDownloadItem(Request $request)
+    {
+        set_time_limit(60 * 60 * 24);
+        // TODO XSS RCE TYPE CHECKER
+        $shareTableId = $request->route('shortcode', 1);
+        $fileId = $request->route('fileId', 1);
+
+        $shareTable = ShareTable::where('short_code', '=', $shareTableId)->orWhere('type', '=', EShareTableType::public->value)->get()->first();
+        if ($shareTable !== null) {
+            $allRelatedIds = $shareTable->virtualFiles()->allRelatedIds()->toArray();
+            if (in_array($fileId, $allRelatedIds)) {
+                $virtualFile = VirtualFile::where('uuid', '=', $fileId)->get()->first();
+
+                if ($virtualFile !== null) {
+                    $disk = Storage::disk($virtualFile->disk);
+                    $path = $virtualFile->path;
+
+                    if ($disk->exists($path)) {
+                        $stream = $disk->readStream($path);
+                        $chunkSize = 1024 * 2048; // 每次传输的字节数
+                        $rateLimit = 1024 * 1512; // 每秒最大传输速率
+                        return new StreamedResponse(function () use ($stream, $chunkSize, $rateLimit) {
+                            $delay = $chunkSize / $rateLimit; // 每次传输后的延迟时间
+                            while (!feof($stream)) {
+                                echo fread($stream, $chunkSize);
+                                flush(); // 確保輸出的數據立即傳輸到客戶端
+                                // 限制传输速率，通过延迟来实现
+                                usleep($delay * 1e6); // 将秒数转换为微秒
+                            }
+                            fclose($stream);
+                        }, 200, [
+                            'Content-Type' => $disk->mimeType($path),
+                            'Content-Length' => $disk->size($path),
+                            'Content-Disposition' => 'attachment; filename="' . $virtualFile->filename . '"',
+                        ]);
+                    } else {
+                        abort(404, 'File not in physics storage.');
+                    }
+                } else {
+                    abort(404, 'Virtual file not found.');
+                }
+            }
+            abort(404, 'File not found.');
+        }
+        abort(404, 'Sharetable not found.');
     }
 
     public function shareableShareTableItemPost(Request $request)
