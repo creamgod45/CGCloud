@@ -4,6 +4,8 @@ Allow: /hello
 
 Allow: /publics
 
+Allow: /publics/*
+
 Allow: /login
 
 Allow: /register
