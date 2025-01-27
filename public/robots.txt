@@ -2,9 +2,7 @@ User-agent: *
 Disallow: /
 Allow: /hello
 
-Allow: /shop
-
-Allow: /appraisal
+Allow: /publics
 
 Allow: /login
 

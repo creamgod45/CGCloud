@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-Route::prefix("public")->group(function () {
+Route::prefix("publics")->group(function () {
     Route::get('share/{shortcode}', [ShareTablesController::class, 'publicShareableShareTableItem'])->name(RouteNameField::PageShareableShareTableItem->value);
     Route::get('download/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTableDownloadItem'])->name(RouteNameField::PagePublicShareTableDownloadItem->value);
     Route::get('preview/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTablePreviewItem'])->name(RouteNameField::PagePublicShareTablePreviewItem->value);
