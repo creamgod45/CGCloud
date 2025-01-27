@@ -54,7 +54,7 @@
         $imageW = 128;
         foreach ($virtualFiles as $item) {
             if(Utilsv2::isSupportImageFile($item->minetypes) && $type === "public"){
-                $image = route(RouteNameField::PagePublicShareTablePreviewItem->value, [ "shortcode" => $shareTable->short_code, "fileId" => $item->uuid ]);
+                $image = route(RouteNameField::PagePublicShareTablePreviewItem->value, [ "shortcode" => $shareTable->short_code, "fileId" => $item->uuid ]).".".$virtualFile->extension;
                 $image1 = $item->getImage($shareTable->id);
                 $imageW = $image1->getWidth();
                 $imageH = $image1->getHeight();

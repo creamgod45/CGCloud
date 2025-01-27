@@ -55,7 +55,7 @@ class ShareTablesController extends Controller
                 $downloadUrl = route(RouteNameField::PagePublicShareTableDownloadItem->value,
                     ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
                 $previewUrl = route(RouteNameField::PagePublicShareTablePreviewItem->value,
-                    ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]).".".$virtualFile->extension;
+                    ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
                 $virtualFile['action'] = '<div class="flex gap-3"><a target="_blank" rel="noreferrer noopener" href="' . $previewUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><div class="flex gap-3"><a href="' . $downloadUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a></div>';
                 $virtualFile['size'] = Utils::convertByte($virtualFile['size']);
             }
