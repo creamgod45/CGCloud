@@ -235,7 +235,7 @@ class ShareTablesController extends Controller
 
         $i18N = $CGLCI->getI18N();
         $shareTable = ShareTable::find($shareTableId);
-        if ($shareTable !== null) {
+        if ($shareTable !== null && $shareTable->member_id === Auth::user()->id) {
             $vb = new ValidatorBuilder($i18N, EValidatorType::SHARETABLEEDIT);
             $v = $vb->validate($request->all(), ['current_password', 'password', 'password_confirmation'], true);
             if ($v instanceof MessageBag) {
@@ -292,7 +292,7 @@ class ShareTablesController extends Controller
         $shareTableId = $request->route('id', 0);
         $popup = $request->get('popup', 0);
         $shareTable = ShareTable::find($shareTableId);
-        if ($shareTable !== null) {
+        if ($shareTable !== null && $shareTable->member_id === Auth::user()->id) {
             $virtualFiles = $shareTable->getAllVirtualFiles();
             return view('ShareTable.add', Controller::baseControllerInit($request, [
                 "files" => $virtualFiles,
