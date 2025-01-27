@@ -64,6 +64,8 @@
     <meta property="og:image:width" content="128">
     <meta property="og:image:height" content="128">
     <meta property="og:description" content="{{ $shareTable->description }}">
+    <meta name="description" content="{{ $shareTable->description }}">
+    <meta name="copyright" content="{{ "檢視 ".$shareTable->name." | ".Config::get('app.name') }}">
 @endsection
 @section('content')
     <x-scroll-indicator indicator-target="body"></x-scroll-indicator>
