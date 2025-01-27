@@ -75,7 +75,7 @@ class ShareTablesController extends Controller
         $fileUUID = $request->route('fileId',0);
         $shareTableId = $request->route('shortcode',0);
         if ($shareTableId !== null) {
-            $shareTable = ShareTable::where('short_code' , '=', $shareTableId)->orWhere('type', '=', EShareTableType::public->value);
+            $shareTable = ShareTable::where('short_code' , '=', $shareTableId)->orWhere('type', '=', EShareTableType::public->value)->get()->first();
             if ($shareTable !== null) {
                 $collection = $shareTable->virtualFiles()->allRelatedIds();
                 if ($collection->contains($fileUUID)) {
