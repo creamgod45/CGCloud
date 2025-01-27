@@ -43,18 +43,27 @@
 @extends('layouts.default')
 @section('title', "檢視 ".$shareTable->name." | ".Config::get('app.name'))
 @section('head')
+    @php
+        $image = asset("favicon.ico");
+        foreach ($virtualFiles as $item) {
+            if(Utilsv2::isSupportImageFile($item->minetypes)){
+                $image = $item->getTemporaryUrl(now()->addMinutes(10), $shareTable->id);
+                break;
+            }
+        }
+    @endphp
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="{{ Config::get("app.name") }}">
+    <meta name="twitter:title" content="{{ "檢視 ".$shareTable->name." | ".Config::get('app.name') }}">
     <meta name="twitter:site" content="{{ "@".Config::get("app.url") }}">
-    <meta name="twitter:description" content="{{ Config::get("app.description") }}">
-    <meta name="twitter:image" content="{{ asset("favicon.ico") }}">
+    <meta name="twitter:description" content="{{ $shareTable->description }}">
+    <meta name="twitter:image" content="{{ $image }}">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ Config::get("app.name") }}">
+    <meta property="og:title" content="{{ "檢視 ".$shareTable->name." | ".Config::get('app.name') }}">
     <meta property="og:url" content="{{ Config::get("app.url") }}">
-    <meta property="og:image" content="{{ asset("favicon.ico") }}">
+    <meta property="og:image" content="{{ $image }}">
     <meta property="og:image:width" content="128">
     <meta property="og:image:height" content="128">
-    <meta property="og:description" content="{{ Config::get("app.description") }}">
+    <meta property="og:description" content="{{ $shareTable->description }}">
 @endsection
 @section('content')
     <x-scroll-indicator indicator-target="body"></x-scroll-indicator>
@@ -125,7 +134,8 @@
                         [ "data" => 'action', "name" => "action", "title" => "操作", "footer" => "操作" ],
                     ];
                 @endphp
-                <table class="datatable" data-cgdatatype="JSON" data-cgdata="{{ Json::encode($virtualFiles) }}" data-cgcolumns="{{ Json::encode($columns) }}" data-cgfixedtable="true">
+                <table class="datatable" data-cgdatatype="JSON" data-cgdata="{{ Json::encode($virtualFiles) }}"
+                       data-cgcolumns="{{ Json::encode($columns) }}" data-cgfixedtable="true">
                 </table>
             </div>
         </div>
