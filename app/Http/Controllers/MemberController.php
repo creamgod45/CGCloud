@@ -508,7 +508,7 @@ class MemberController extends Controller
                             'type' => false,
                             'token' => $CSRF->get(),
                             "message" => $alertView->render(),
-                            "error_keys" => $v->keys(),
+                            "error_keys" => array_keys($v),
                         ], ResponseHTTP::HTTP_OK);
                     }
                     event((new UserNotification([

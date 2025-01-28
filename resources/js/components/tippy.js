@@ -7,8 +7,9 @@ import tippy from "tippy.js";
  * @return {boolean} 若某些必需參數（content、placement、trigger）缺失，則返回 `false`。
  */
 function tippyLoader() {
-    let tippyer = document.querySelectorAll(".tippyer");
+    let tippyer = document.querySelectorAll(".tippyer:not(.tippy-loaded)");
     for (let tippyerEl of tippyer) {
+        tippyerEl.classList.add("tippy-loaded");
         // settings [source, default value]
         let settings = {
             htmlable: [tippyerEl.dataset.htmlable, false],
@@ -109,4 +110,5 @@ function tippyLoader() {
     }
 }
 
+document.addEventListener('CGTIPPYER::init', tippyLoader);
 document.addEventListener('DOMContentLoaded', tippyLoader);

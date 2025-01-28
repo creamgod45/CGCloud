@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\Str;
@@ -52,11 +53,15 @@ class ShareTablesController extends Controller
             $virtualFiles = $shareTable->getAllVirtualFiles();
             foreach ($virtualFiles as $virtualFile) {
                 $virtualFile['#'] = '';
-                $downloadUrl = route(RouteNameField::PagePublicShareTableDownloadItem->value,
-                    ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
-                $previewUrl = route(RouteNameField::PagePublicShareTablePreviewItem->value,
-                    ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
-                $virtualFile['action'] = '<div class="flex gap-3"><a target="_blank" rel="noreferrer noopener" href="' . $previewUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><div class="flex gap-3"><a href="' . $downloadUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a></div>';
+                $downloadUrl = route(RouteNameField::PagePublicShareTableDownloadItem->value, ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
+                $preview = "";
+                if($virtualFile->size <= 1024 * 1024 * 400) {
+                    $previewUrl = URL::temporarySignedRoute(RouteNameField::PagePublicShareTablePreviewItem->value, now()->addMinutes(5), ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
+                    $preview = '<a target="_blank" rel="noreferrer noopener" href="' . $previewUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a>';
+                } else {
+                    $preview = '<a class="btn-md btn-border-0 btn btn-dead tippyer" data-placement="auto" data-content="檔案過大無法預覽文件"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a>';
+                }
+                $virtualFile['action'] = '<div class="flex gap-3">'.$preview.'<a href="' . $downloadUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a></div>';
                 $virtualFile['size'] = Utils::convertByte($virtualFile['size']);
             }
             $sharePermissions = SharePermissions::where('share_tables_id', '=', $shareTableId)->get();
@@ -98,7 +103,11 @@ class ShareTablesController extends Controller
                     $collection = $shareTable->virtualFiles()->allRelatedIds();
                     if ($collection->contains($fileUUID)) {
                         $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->get()->first();
-                        return $this->filePreview($virtualFile);
+                        if($virtualFile !== null && $virtualFile->size <= 1024 * 1024 * 400) {
+                            return $this->filePreview($virtualFile);
+                        } else {
+                            abort(400, "File size is too large. Can not preview server side.");
+                        }
                     }
                 }
             }
@@ -209,8 +218,14 @@ class ShareTablesController extends Controller
                     ['fileId' => $virtualFile->uuid, 'id' => $shareTableId]);
                 $deleteUrl = route(RouteNameField::PageShareTableItemDelete->value,
                     ['fileId' => $virtualFile->uuid, 'id' => $shareTableId]);
-                $virtualFile['action'] = '<div class="flex gap-3"><a target="_blank" rel="noreferrer noopener" href="' . $virtualFile->getTemporaryUrl(now()->addMinutes(30),
-                        $shareTableId) . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><div class="flex gap-3"><a href="' . $downloadUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="popover_shareable_delete_file" data-type="error" data-parent="#popover_index" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="' . $deleteUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
+
+                $preview = '';
+                if($virtualFile->size <= 1024 * 1024 * 400) {
+                    $preview = '<a target="_blank" rel="noreferrer noopener" href="' . $virtualFile->getTemporaryUrl(now()->addMinutes(30), $shareTableId) . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a>';
+                } else {
+                    $preview = '<a class="btn-md btn-border-0 btn btn-dead tippyer" data-placement="auto" data-content="檔案過大無法預覽文件"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a>';
+                }
+                $virtualFile['action'] = '<div class="flex gap-3">'.$preview.'<a href="' . $downloadUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="popover_shareable_delete_file" data-type="error" data-parent="#popover_index" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="' . $deleteUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
                 $virtualFile['size'] = Utils::convertByte($virtualFile['size']);
             }
             $sharePermissions = SharePermissions::where('share_tables_id', '=', $shareTableId)->get();
@@ -492,7 +507,11 @@ class ShareTablesController extends Controller
         $key = 'sharTableItemPost' . $fingerprint;
         if (Cache::has($key)) {
             $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->first();
-            return $this->filePreview($virtualFile);
+            if($virtualFile !== null && $virtualFile->size <= 1024 * 1024 * 400) {
+                return $this->filePreview($virtualFile);
+            } else {
+                abort(400, "File size is too large. Can not preview server side.");
+            }
         } else {
             abort(404);
         }
@@ -525,15 +544,17 @@ class ShareTablesController extends Controller
 
     public function apiPreviewFileTemporary2(Request $request)
     {
-        $fileUUID = $request->route('fileId');
-        $shareTableId = $request->route('shareTableId');
-        if ($shareTableId !== null) {
-            $shareTable = ShareTable::find($shareTableId);
-            if ($shareTable !== null) {
-                $collection = $shareTable->virtualFiles()->allRelatedIds();
-                if ($collection->contains($fileUUID)) {
-                    $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->get()->first();
+        $fileUUID = $request->route('fileId',0);
+        $shareTableId = $request->route('shareTableId',0);
+        $shareTable = ShareTable::find($shareTableId);
+        if ($shareTable !== null) {
+            $collection = $shareTable->virtualFiles()->allRelatedIds();
+            if ($collection->contains($fileUUID)) {
+                $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->get()->first();
+                if($virtualFile !== null && $virtualFile->size <= 1024 * 1024 * 400) {
                     return $this->filePreview($virtualFile);
+                } else {
+                    abort(400, "File size is too large. Can not preview server side.");
                 }
             }
         }
@@ -823,7 +844,7 @@ class ShareTablesController extends Controller
     {
         $fileInfo = $request->route('fileinfo');
         $virtualFile = VirtualFile::where('uuid', '=', $fileInfo)->first();
-        if ($virtualFile !== null) {
+        if ($virtualFile !== null && $virtualFile->type === 'temporary') {
             Storage::disk($virtualFile->disk)->delete($virtualFile->path);
             //Storage::disk($virtualFile->disk)->deleteDirectory(str_replace($virtualFile->filename, '', $virtualFile->path));
             return response()->json(['status' => 'success']);
@@ -879,6 +900,12 @@ class ShareTablesController extends Controller
         // 写入当前块的数据
         while (!feof($fileStream)) {
             fwrite($handle, fread($fileStream, 8192)); // 逐步读取和写入 8KB 数据
+        }
+
+        $stat = stat($storagePath);
+        // 設定最大檔案大小為 50MB
+        if (($stat['size'] + $offset) > 1024 * 1024 * 1024) {
+
         }
 
         // 关闭文件句柄

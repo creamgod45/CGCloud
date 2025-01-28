@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix("publics")->group(function () {
     Route::get('share/{shortcode}', [ShareTablesController::class, 'publicShareableShareTableItem'])->name(RouteNameField::PageShareableShareTableItem->value);
     Route::get('download/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTableDownloadItem'])->name(RouteNameField::PagePublicShareTableDownloadItem->value);
-    Route::get('preview/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTablePreviewItem'])->name(RouteNameField::PagePublicShareTablePreviewItem->value);
+    Route::get('preview/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTablePreviewItem'])->name(RouteNameField::PagePublicShareTablePreviewItem->value)->middleware('signed');
 });
 Route::get('hello', [InternalController::class, 'getClientID'])->name(RouteNameField::PageGetClientID->value);
 Route::post('hello', [InternalController::class, 'getClientIDPost'])->name(RouteNameField::PageGetClientIDPost->value);

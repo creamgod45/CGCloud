@@ -190,6 +190,7 @@
                                                 $random = $shareTable->id;
                                                 $url = $shareTable->shareURL();
                                             @endphp
+                                            @if($shareTable->member_id === \Illuminate\Support\Facades\Auth::user()->id)
                                             <a data-href="{{ $url }}"
                                                data-id="{{ $random }}"
                                                data-type="share"
@@ -198,6 +199,7 @@
                                                class="btn-md btn-border-0 btn btn-ripple btn-color2 shareable tippyer"
                                                data-placement="bottom"
                                                data-content="分享給"><i class="fa-solid fa-share"></i></a>
+                                            @endif
                                             <div class="btn-md btn-border-0 btn btn-ripple btn-ok tippyer copyer"
                                                  data-url="{{ $url }}"
                                                  data-placement="bottom"
@@ -208,7 +210,7 @@
                                                 $v = $virtualFiles->setVisible(['id','uuid', 'filename', 'size', 'created_at'])->toArray();
                                                 foreach ($v as $key => $item) {
                                                     $v[$key]['size'] = Utils::convertByte($item['size']);
-                                                    $v[$key]['action'] = '<div class="flex gap-3"><a target="_blank" rel="noreferrer noopener" href="%url-0%" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><div class="flex gap-3"><a href="%url-1%" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="shareable_delete_file" data-type="error" data-parent="#download_'.$random1.'" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="%url-2%" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
+                                                    $v[$key]['action'] = '<div class="flex gap-3"><a target="_blank" rel="noreferrer noopener" href="%url-0%" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><a href="%url-1%" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="shareable_delete_file" data-type="error" data-parent="#download_'.$random1.'" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="%url-2%" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
                                                 }
                                             @endphp
                                             <div data-id="{{ $random1 }}"
@@ -220,19 +222,21 @@
                                                  class="btn-md btn-border-0 btn btn-ripple btn-color7 shareable tippyer"
                                                  data-placement="bottom"
                                                  data-content="下載"><i class="fa-solid fa-download"></i></div>
-                                            <div class="btn-md btn-border-0 btn btn-ripple btn-warning tippyer ct" data-fn="popover4" data-source="{{ $shareTable->id }}"
-                                                 data-target="#{{ $popoverid }}"
-                                                 data-placement="bottom"
-                                                 data-content="編輯"><i class="fa-solid fa-pen-to-square"></i></div>
-                                            <div class="btn-md btn-border-0 btn btn-ripple btn-error tippyer last confirm-box"
-                                                 data-fn="shareable_delete"
-                                                 data-title="你確定要刪除此分享資源?"
-                                                 data-confirmboxcontent="此操作將會永遠的刪除!!"
-                                                 data-type="error"
-                                                 data-href="{{ route(RouteNameField::PageShareTableDelete->value, ['id'=> $shareTable->id ]) }}"
-                                                 data-placement="bottom"
-                                                 data-content="刪除"><i class="fa-solid fa-trash"></i>
-                                            </div>
+                                            @if($shareTable->member_id === \Illuminate\Support\Facades\Auth::user()->id)
+                                                <div class="btn-md btn-border-0 btn btn-ripple btn-warning tippyer ct" data-fn="popover4" data-source="{{ $shareTable->id }}"
+                                                     data-target="#{{ $popoverid }}"
+                                                     data-placement="bottom"
+                                                     data-content="編輯"><i class="fa-solid fa-pen-to-square"></i></div>
+                                                <div class="btn-md btn-border-0 btn btn-ripple btn-error tippyer last confirm-box"
+                                                     data-fn="shareable_delete"
+                                                     data-title="你確定要刪除此分享資源?"
+                                                     data-confirmboxcontent="此操作將會永遠的刪除!!"
+                                                     data-type="error"
+                                                     data-href="{{ route(RouteNameField::PageShareTableDelete->value, ['id'=> $shareTable->id ]) }}"
+                                                     data-placement="bottom"
+                                                     data-content="刪除"><i class="fa-solid fa-trash"></i>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

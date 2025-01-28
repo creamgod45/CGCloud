@@ -312,6 +312,7 @@ function handleSelectedRows(e, setting) {
 function attachDatatableEvents(datatableEl, options, popover) {
     datatableEl.datatableObj.on('draw.dt', () => {
         document.dispatchEvent(new CustomEvent('BtnLoad'));
+        document.dispatchEvent(new CustomEvent('CGTIPPYER::init'));
         if (datatableEl.faildAlert1El) datatableEl.faildAlert1El.hide();
         clearInterval(datatableEl.timer);
     });
