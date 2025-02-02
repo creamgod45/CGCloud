@@ -19,14 +19,6 @@ return new class extends Migration {
             $table->timestamps();
             $table->engine('InnoDB');
         });
-
-        Schema::create('share_table_virtual_file', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('share_table_id')->constrained()->onDelete('cascade');
-            $table->uuid('virtual_file_id');
-            $table->foreign('virtual_file_id')->references('uuid')->on('virtual_files')->onDelete('cascade');
-            $table->timestamps();
-        });
     }
 
     public function down(): void

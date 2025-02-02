@@ -98,7 +98,7 @@
                     @else
                         <div class="fd-item">
                             <input type="hidden" name="files[]" value="{{ $file->uuid }}">
-                            <div class="fdi-preview">
+                            <div class="fdi-preview overflow-hidden">
                                 @if(Utilsv2::isSupportImageFile($file->minetypes))
                                     <img class="fdi-imginfo" src="{{ $file->getTemporaryUrl() }}" alt="{{ $file->filename }}">
                                 @elseif(Utilsv2::isSupportVideoFile($file->minetypes))

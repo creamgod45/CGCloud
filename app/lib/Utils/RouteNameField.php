@@ -70,4 +70,5 @@ enum RouteNameField: string
     case APIPreviewFileTemporary2 = 'root.api.PreviewFileTemporary2';
     case APIGetUsers =  'root.api.get.users';
     case APIShareableShareTableItem = 'root.api.shareable.sharetable.item';
+    case APIShareTableItemConversion = 'root.api.sharetable.item.conversion';
 }

@@ -13,10 +13,12 @@ use App\Lib\Utils\RouteNameField;
 use App\Lib\Utils\Utils;
 use App\Lib\Utils\Utilsv2;
 use App\Lib\Utils\ValidatorBuilder;
+use App\Models\DashVideos;
 use App\Models\Member;
 use App\Models\SharePermissions;
 use App\Models\ShareTable;
 use App\Models\VirtualFile;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +30,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\MessageBag;
 use Illuminate\Support\Str;
+use LaravelIdea\Helper\App\Models\_IH_SharePermissions_C;
 use Nette\Utils\Json;
 use Nette\Utils\JsonException;
 use RuntimeException;
@@ -100,9 +103,9 @@ class ShareTablesController extends Controller
                 $shareTable = ShareTable::where('short_code', '=', $shareTableId)->where('type', '=',
                     EShareTableType::public->value)->get()->first();
                 if ($shareTable !== null) {
-                    $collection = $shareTable->virtualFiles()->allRelatedIds();
-                    if ($collection->contains($fileUUID)) {
-                        $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->get()->first();
+                    $collection = $shareTable->getAllVirtualFiles();
+                    if ($collection->contains('uuid', '=', $fileUUID)) {
+                        $virtualFile = $collection->except([$fileUUID])->first();
                         if($virtualFile !== null && $virtualFile->size <= 1024 * 1024 * 400) {
                             return $this->filePreview($virtualFile);
                         } else {
@@ -154,15 +157,15 @@ class ShareTablesController extends Controller
     {
         set_time_limit(60 * 60 * 24);
         // TODO XSS RCE TYPE CHECKER
-        $shareTableId = $request->route('shortcode', 1);
-        $fileId = $request->route('fileId', 1);
+        $shareTableId = $request->route('shortcode', 0);
+        $fileId = $request->route('fileId', 0);
 
         $shareTable = ShareTable::where('short_code', '=', $shareTableId)->where('type', '=',
             EShareTableType::public->value)->get()->first();
         if ($shareTable !== null) {
-            $allRelatedIds = $shareTable->virtualFiles()->allRelatedIds()->toArray();
-            if (in_array($fileId, $allRelatedIds)) {
-                $virtualFile = VirtualFile::where('uuid', '=', $fileId)->get()->first();
+            $allRelatedIds = $shareTable->getAllVirtualFiles();
+            if ($allRelatedIds->contains('uuid', '=', $fileId)) {
+                $virtualFile = $allRelatedIds->except([$fileId])->first();
 
                 if ($virtualFile !== null) {
                     $disk = Storage::disk($virtualFile->disk);
@@ -208,7 +211,7 @@ class ShareTablesController extends Controller
     {
         // TODO XSS RCE TYPE CHECKER
         $popup = $request->get('popup', false) === '1';
-        $shareTableId = $request->route('id', 1);
+        $shareTableId = $request->route('id', 0);
         $shareTable = ShareTable::find($shareTableId);
         if ($shareTable !== null) {
             $virtualFiles = $shareTable->getAllVirtualFiles();
@@ -242,7 +245,7 @@ class ShareTablesController extends Controller
 
     public function deleteShareTable(Request $request)
     {
-        $shareTableId = $request->route('id', 1);
+        $shareTableId = $request->route('id', 0);
         $shareTable = ShareTable::find($shareTableId);
         $member = Auth::user();
         if ($member !== null) {
@@ -320,22 +323,15 @@ class ShareTablesController extends Controller
             } else {
                 $CSRF->release();
                 // 關聯資料庫 files UUID
-                $files = $shareTable->virtualFiles()->allRelatedIds();
+                $files = $shareTable->getAllVirtualFiles();
 
                 // 傳入的檔案 UUID array
-                $deattchFiles = [];
+                $deattchFiles = $files->diff($v['files'])->all();
                 $newFiles = [];
-                $originalFiles = [];
+                $originalFiles = $files->except($v['files'])->all();
 
-                foreach ($v['files'] as $file) {
-                    if (!$files->contains($file)) {
-                        // 檢查資料庫是否還有資料
-                        $deattchFiles[] = $file;
-                    } elseif ($files->contains($file)) {
-                        $originalFiles[] = $file;
-                    } else {
-                        $newFiles[] = $file;
-                    }
+                dump([$deattchFiles, $newFiles, $originalFiles]);
+                foreach ($files as $file) {
                 }
 
 
@@ -364,6 +360,15 @@ class ShareTablesController extends Controller
         $shareTable = ShareTable::find($shareTableId);
         if ($shareTable !== null && $shareTable->member_id === Auth::user()->id) {
             $virtualFiles = $shareTable->getAllVirtualFiles();
+            $relatedPermissionIds = $shareTable->shareTablePermission()->getResults();
+            $members = [];
+            /**
+             * @var SharePermissions[] | Collection<SharePermissions> $relatedPermissionIds
+             */
+            foreach ($relatedPermissionIds as $item) {
+                $results = $item->member()->getResults();
+                $members[] = $results;
+            }
             return view('ShareTable.add', Controller::baseControllerInit($request, [
                 "files" => $virtualFiles,
                 "popup" => $popup,
@@ -372,12 +377,7 @@ class ShareTablesController extends Controller
                     "shareTableType" => $shareTable->type,
                     "shareTableName" => $shareTable->name,
                     "shareTableDescription" => $shareTable->description,
-                    "shareMembers" => $shareTable->shareTablePermission()->setVisible(['member_id'])->map(function (
-                            $value,
-                        ) {
-                            $member = Member::find($value->member_id);
-                            return $member;
-                        }) ?? [],
+                    "shareMembers" => $members
                 ],
             ])->toArrayable());
         } else {
@@ -388,16 +388,16 @@ class ShareTablesController extends Controller
     public function deleteShareTableItem(Request $request)
     {
         // TODO XSS RCE TYPE CHECKER
-        $shareTableId = $request->route('id', 1);
-        $fileId = $request->route('fileId', 1);
+        $shareTableId = $request->route('id', 0);
+        $fileId = $request->route('fileId', 0);
         $shareTable = ShareTable::find($shareTableId);
         $member = Auth::user();
         if ($member !== null) {
             if ($shareTable !== null) {
                 if ($member->id === $shareTable->member_id) {
-                    $allRelatedIds = $shareTable->virtualFiles()->allRelatedIds()->toArray();
-                    if (in_array($fileId, $allRelatedIds)) {
-                        $virtualFile = VirtualFile::where('uuid', '=', $fileId)->get()->first();
+                    $allRelatedIds = $shareTable->getAllVirtualFiles();
+                    if ($allRelatedIds->contains('uuid', '=', $fileId)) {
+                        $virtualFile = $allRelatedIds->except([$fileId])->first();
 
                         if ($virtualFile !== null) {
                             $disk = Storage::disk($virtualFile->disk);
@@ -405,7 +405,9 @@ class ShareTablesController extends Controller
 
                             if ($disk->exists($path)) {
                                 $disk->delete($path);
-                                $shareTable->virtualFiles()->detach($fileId);
+                                $shareTableVirtualFiles = $shareTable->shareTableVirtualFile()->getResults();
+                                dump($shareTableVirtualFiles);
+
                                 $filename = $virtualFile->filename;
                                 $virtualFile->delete();
                                 return view('ShareTable.delete', Controller::baseControllerInit($request, [
@@ -426,18 +428,51 @@ class ShareTablesController extends Controller
         abort(404, 'Sharetable not found.');
     }
 
+    public function conversionShareTableItem(Request $request)
+    {
+        $shareTableId = $request->route('id', 0);
+        $fileId = $request->route('fileId', 0);
+        $shareTable = ShareTable::find($shareTableId);
+        if($shareTable !== null) {
+            /** @var VirtualFile[] | Collection<VirtualFile> $results */
+            $results = $shareTable->getAllVirtualFiles();
+            if($results->contains('uuid', '=', $fileId)) {
+                $except = $results->except([$fileId]);
+                /** @var VirtualFile $virtualFile */
+                $virtualFile = $except->first();
+                $shareTableVirtualFiles = $virtualFile->shareTables()->getResults();
+                if($shareTableVirtualFiles !== null) {
+                    $dashVideos = DashVideos::createOrFirst([
+                        'type' => 'wait',
+                        'member_id' => Auth::user()->id,
+                        'virtual_file_uuid' => $virtualFile->uuid,
+                        'share_table_virtual_file_id' => $shareTableVirtualFiles->id,
+                    ]);
+                    $shareTableVirtualFiles->update([
+                        'dash_videos_id' => $dashVideos->id
+                    ]);
+                    return response()->json([
+                        'message' => "建立完成"
+                    ]);
+                }
+            }
+            abort(404, 'File not found.');
+        }
+        abort(404, 'Sharetable not found.');
+    }
+
     public function downloadShareTableItem(Request $request)
     {
         set_time_limit(60 * 60 * 24);
         // TODO XSS RCE TYPE CHECKER
-        $shareTableId = $request->route('id', 1);
-        $fileId = $request->route('fileId', 1);
+        $shareTableId = $request->route('id', 0);
+        $fileId = $request->route('fileId', 0);
 
         $shareTable = ShareTable::find($shareTableId);
         if ($shareTable !== null) {
-            $allRelatedIds = $shareTable->virtualFiles()->allRelatedIds()->toArray();
-            if (in_array($fileId, $allRelatedIds)) {
-                $virtualFile = VirtualFile::where('uuid', '=', $fileId)->get()->first();
+            $allRelatedIds = $shareTable->getAllVirtualFiles();
+            if ($allRelatedIds->contains('uuid', '=', $fileId)) {
+                $virtualFile = $allRelatedIds->except([$fileId])->first();
 
                 if ($virtualFile !== null) {
                     $disk = Storage::disk($virtualFile->disk);
@@ -501,7 +536,7 @@ class ShareTablesController extends Controller
 
     public function apiPreviewFileTemporary(Request $request)
     {
-        $fileUUID = $request->route('fileId');
+        $fileUUID = $request->route('fileId', 0);
         $CGLCI = self::baseControllerInit($request);
         $fingerprint = $CGLCI->getFingerprint();
         $key = 'sharTableItemPost' . $fingerprint;
@@ -522,12 +557,12 @@ class ShareTablesController extends Controller
      */
     public function apiPreviewFileTemporary3(Request $request)
     {
-        $fileUUID = $request->get('fileId');
-        $shareTableId = $request->get('shareTableId');
+        $fileUUID = $request->get('fileId',0);
+        $shareTableId = $request->get('shareTableId',0);
         if ($shareTableId !== null) {
             $shareTable = ShareTable::find($shareTableId);
             if ($shareTable !== null && is_array($fileUUID)) {
-                $collection = $shareTable->virtualFiles()->allRelatedIds();
+                $collection = $shareTable->getAllVirtualFiles();
                 $toArray = $collection->toArray();
                 if (sort($fileUUID) === sort($toArray)) {
                     $virtualFile = VirtualFile::whereIn('uuid', $fileUUID)->get();
@@ -548,9 +583,9 @@ class ShareTablesController extends Controller
         $shareTableId = $request->route('shareTableId',0);
         $shareTable = ShareTable::find($shareTableId);
         if ($shareTable !== null) {
-            $collection = $shareTable->virtualFiles()->allRelatedIds();
-            if ($collection->contains($fileUUID)) {
-                $virtualFile = VirtualFile::where('uuid', '=', $fileUUID)->get()->first();
+            $collection = $shareTable->getAllVirtualFiles();
+            if ($collection->contains('uuid', '=', $fileUUID)) {
+                $virtualFile = $collection->except([$fileUUID])->first();
                 if($virtualFile !== null && $virtualFile->size <= 1024 * 1024 * 400) {
                     return $this->filePreview($virtualFile);
                 } else {
@@ -638,7 +673,12 @@ class ShareTablesController extends Controller
                     ]);
                 }
 
-                $shareTable->virtualFiles()->attach($files);
+                foreach ($files as $file) {
+                    $shareTable->shareTableVirtualFile()->insert([
+                        'share_table_id' => $shareTable->id,
+                        'virtual_file_uuid' => $file,
+                    ]);
+                }
 
                 $virtualFiles = VirtualFile::whereIn('uuid', $files)->get();
                 foreach ($virtualFiles as $virtualFile) {
@@ -695,7 +735,7 @@ class ShareTablesController extends Controller
 
     public function shareTableItemUploadImageFetch(Request $request)
     {
-        $fileId = $request->route("fileId");
+        $fileId = $request->route("fileId",0);
         $virtualFile = VirtualFile::where('uuid', '=', $fileId)->first();
         if (Storage::disk('local')->exists($virtualFile->path)) {
             $resource = Storage::disk('local')->readStream($virtualFile->path);
@@ -817,7 +857,7 @@ class ShareTablesController extends Controller
                     if ($item instanceof UploadedFile) {
                         $filePath = $item->storePublicly('ShareTable/TEMP/Block/' . $random, 'local');
                         $uuid = Str::uuid();
-                        VirtualFile::create([
+                        $v = VirtualFile::create([
                             'uuid' => $uuid->toString(),
                             'members_id' => Auth::user()->id ?? null,
                             'type' => 'temporary',
@@ -842,7 +882,7 @@ class ShareTablesController extends Controller
 
     public function shareTableItemUploadImageHead(Request $request)
     {
-        $fileInfo = $request->route('fileinfo');
+        $fileInfo = $request->route('fileinfo',0);
         $virtualFile = VirtualFile::where('uuid', '=', $fileInfo)->first();
         if ($virtualFile !== null && $virtualFile->type === 'temporary') {
             Storage::disk($virtualFile->disk)->delete($virtualFile->path);
@@ -863,7 +903,7 @@ class ShareTablesController extends Controller
         $offset = $request->header('Upload-Offset');
         $fileId = $request->header('Upload-Id');
         $fileStream = $request->getContent(true); // 获取文件流
-        $fileInfo = $request->route('fileinfo');
+        $fileInfo = $request->route('fileinfo', 0);
 
 
         $virtualFile = VirtualFile::where('uuid', '=', $fileInfo)->first();

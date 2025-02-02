@@ -43,7 +43,9 @@ use Laravel\Sanctum\HasApiTokens;
  */
 class Member extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens;
+    use HasFactory;
+    use Notifiable;
 
     public $incrementing = true; // 指定模型对应的表
     protected $table = 'members'; // 主键，Laravel 默认也是 id，此行可省略

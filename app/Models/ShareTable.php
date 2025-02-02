@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
@@ -34,28 +36,31 @@ class ShareTable extends Model
 
     public function getAllVirtualFiles()
     {
-        $allRelatedIds = $this->virtualFiles()->allRelatedIds();
-        return VirtualFile::whereIn('uuid', $allRelatedIds)->get();
+        $hasMany = $this->shareTableVirtualFile();
+        /** @var ShareTableVirtualFile $shareTableVirtualFile */
+        $shareTableVirtualFiles = $hasMany->get();
+        /** @var VirtualFile[] $virtualFiles */
+        $virtualFiles = [];
+        foreach ($shareTableVirtualFiles as $shareTableVirtualFile) {
+            $results = $shareTableVirtualFile->virtualFile()->getResults();
+            $virtualFiles [] = $results;
+        }
+        return \Illuminate\Database\Eloquent\Collection::make($virtualFiles);
     }
 
-    public function virtualFiles(): BelongsToMany
+    public function shareTableVirtualFile(): HasMany
     {
-        return $this->belongsToMany(VirtualFile::class, 'share_table_virtual_file');
+        return $this->hasMany(ShareTableVirtualFile::class, 'share_table_id', 'id');
     }
 
-    public function member(): BelongsTo
+    public function member(): HasOne
     {
-        return $this->belongsTo(Member::class);
+        return $this->hasOne(Member::class, 'id', 'member_id');
     }
 
-
-    /**
-     * @return SharePermissions[]|_IH_SharePermissions_C
-     */
-    public function shareTablePermission()
+    public function shareTablePermission(): HasMany
     {
-        $permissions = SharePermissions::where('share_tables_id', '=', $this->id)->get();
-        return $permissions;
+        return $this->hasMany(SharePermissions::class, 'share_tables_id', 'id');
     }
 
     public function shareURL(): string

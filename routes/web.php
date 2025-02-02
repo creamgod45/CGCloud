@@ -18,11 +18,12 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-Route::prefix("publics")->group(function () {
+Route::prefix("p")->group(function () {
     Route::get('share/{shortcode}', [ShareTablesController::class, 'publicShareableShareTableItem'])->name(RouteNameField::PageShareableShareTableItem->value);
     Route::get('download/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTableDownloadItem'])->name(RouteNameField::PagePublicShareTableDownloadItem->value);
     Route::get('preview/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTablePreviewItem'])->name(RouteNameField::PagePublicShareTablePreviewItem->value)->middleware('signed');
 });
+
 Route::get('hello', [InternalController::class, 'getClientID'])->name(RouteNameField::PageGetClientID->value);
 Route::post('hello', [InternalController::class, 'getClientIDPost'])->name(RouteNameField::PageGetClientIDPost->value);
 Route::middleware("checkClientID")->group(function () {
@@ -36,6 +37,7 @@ Route::middleware("checkClientID")->group(function () {
     Route::middleware(['auth', 'verified'])->prefix("sharetable")->group(function () {
         Route::post('share/{id}', [ShareTablesController::class, 'shareableShareTableItemPost'])->name(RouteNameField::APIShareableShareTableItem->value);
         Route::get('item/success', [ShareTablesController::class, 'successShareTable'])->name(RouteNameField::PageShareTableItemSuccess->value);
+        Route::post('item/conversion/{id}/{fileId}', [ShareTablesController::class, 'conversionShareTableItem'])->name(RouteNameField::APIShareTableItemConversion->value);
         Route::get('item/download/{id}/{fileId}', [ShareTablesController::class, 'downloadShareTableItem'])->name(RouteNameField::PageShareTableItemDownload->value);
         Route::get('item/delete/{id}/{fileId}', [ShareTablesController::class, 'deleteShareTableItem'])->name(RouteNameField::PageShareTableItemDelete->value);
         Route::get('item/edit/{id}', [ShareTablesController::class, 'editShareTable'])->name(RouteNameField::PageShopItemEditor->value);

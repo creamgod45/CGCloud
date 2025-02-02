@@ -8,7 +8,9 @@ use App\Lib\Utils\RouteNameField;
 use DateTimeInterface;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -17,6 +19,7 @@ use Intervention\Image\ImageManager;
 class VirtualFile extends Model
 {
     use HasFactory;
+    use MassPrunable;
 
     protected $fillable = [
         'uuid',
@@ -30,6 +33,14 @@ class VirtualFile extends Model
         'size',
         'type',
     ];
+
+    /**
+     * 获取可修剪模型查询构造器。
+     */
+    public function prunable(): VirtualFile
+    {
+        return static::where('expired_at', '<=', now())->where('type', '=', 'temporary');
+    }
 
     public function members()
     {
@@ -47,9 +58,8 @@ class VirtualFile extends Model
 
     public function shareTables()
     {
-        return $this->belongsToMany(ShareTable::class, 'share_table_virtual_file');
+        return $this->belongsTo(ShareTableVirtualFile::class, 'uuid', 'virtual_file_uuid');
     }
-
 
     public function getPublicUrl()
     {

@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->foreignId('members_id')->nullable()->constrained()->onDelete('cascade');
             $table->enum('type', ['temporary', 'persistent']);
             $table->string('filename')->index('filename');
-            $table->string('path');
+            $table->text('path');
             $table->string('extension');
             $table->string('minetypes');
             $table->string('disk');

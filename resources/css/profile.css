@@ -2501,13 +2501,13 @@ a.btn {
 }
 
 .file-driver {
-  @apply gap-5 p-5 w-full flex flex-nowrap;
+  @apply gap-5 p-5 flex flex-nowrap overflow-x-auto w-11/12 m-auto;
 }
 .file-driver .fd-item {
   @apply min-w-[256px] size-[256px] rounded-4xl relative ring-1 ring-slate-300 bg-slate-200 flex justify-center items-center;
 }
 .file-driver .fd-item .fdi-preview {
-  @apply size-[256px] flex justify-center items-center px-2;
+  @apply size-[256px] flex justify-center items-center px-2 overflow-hidden;
 }
 .file-driver .fd-item .fdi-preview .fdi-imginfo {
   @apply w-[256px];

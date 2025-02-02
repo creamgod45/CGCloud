@@ -18,6 +18,8 @@ return [
 
     'name' => env('APP_NAME', 'CGLaravel'),
 
+    'platform' => env('PLATFORM', 'Linux'),
+
     'description' => env('APP_DESCRIPTION'),
 
     /*

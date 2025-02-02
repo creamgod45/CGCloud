@@ -2,6 +2,8 @@
 
 namespace App\Console;
 
+use App\Jobs\CleanTemporaryFileJob;
+use App\Jobs\VideoFileToDashJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -30,6 +32,8 @@ class Kernel extends ConsoleKernel
         //    Storage::drive('local')->put($key, 1);
         //}
         //$schedule->job(new CreateHomeCacheJob($cahce))->everyFiveSeconds();
+        $schedule->job(new VideoFileToDashJob())->everyMinute();
+        $schedule->job(new CleanTemporaryFileJob())->everyMinute();
         $schedule->command('db:backup --disk=backups')->dailyAt('02:00');
     }
 

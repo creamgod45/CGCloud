@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 // use Illuminate\Support\Facades\Gate;
+use App\Models\DashVideos;
 use App\Models\SharePermissions;
 use App\Models\VirtualFile;
+use App\Policies\DashVideosPolicy;
 use App\Policies\SharePermissionsPolicy;
 use App\Policies\VirtualFilePolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -20,6 +22,7 @@ class AuthServiceProvider extends ServiceProvider
         //
         SharePermissions::class => SharePermissionsPolicy::class,
         VirtualFile::class => VirtualFilePolicy::class,
+        DashVideos::class => DashVideosPolicy::class,
     ];
 
     /**

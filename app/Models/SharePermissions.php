@@ -25,11 +25,11 @@ class  SharePermissions extends Model
 
     public function shareTable(): BelongsTo
     {
-        return $this->belongsTo(ShareTable::class);
+        return $this->belongsTo(ShareTable::class, 'share_tables_id', 'id');
     }
 
     public function member(): BelongsTo
     {
-        return $this->belongsTo(Member::class);
+        return $this->belongsTo(Member::class, 'member_id', 'id');
     }
 }
