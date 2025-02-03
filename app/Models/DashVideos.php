@@ -58,4 +58,9 @@ class DashVideos extends Model
     {
         return $this->hasOne(Member::class);
     }
+
+    public function isCreateDashVideo(): bool
+    {
+        return $this->path !== null;
+    }
 }

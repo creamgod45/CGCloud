@@ -71,4 +71,6 @@ enum RouteNameField: string
     case APIGetUsers =  'root.api.get.users';
     case APIShareableShareTableItem = 'root.api.shareable.sharetable.item';
     case APIShareTableItemConversion = 'root.api.sharetable.item.conversion';
+    case APIPreviewFileDash = 'root.api.PreviewFileDash';
+    case APIDashProgress = 'root.api.DashProgress';
 }

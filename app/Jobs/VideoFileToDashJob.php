@@ -3,6 +3,8 @@
 namespace App\Jobs;
 
 use App\Models\DashVideos;
+use App\Models\ShareTable;
+use App\Models\ShareTableVirtualFile;
 use App\Models\VirtualFile;
 use Exception;
 use FFMpeg\Coordinate\TimeCode;
@@ -61,6 +63,8 @@ class VideoFileToDashJob implements ShouldQueue
         ]);
 
         try {
+            Log::info("[JOBS]start processing ".$dashVideos->id);
+            dump("start processing ".$dashVideos->id);
             $filename = pathinfo($virtualFile->path, PATHINFO_FILENAME);
 
             $tfilename = str_replace($filename, '', $virtualFile->path) . '/ffmpeg-streaming.log';
@@ -94,8 +98,34 @@ class VideoFileToDashJob implements ShouldQueue
             $disk = 'local';
             $fullpath2 = Storage::disk($virtualFile->disk)->path($virtualFile->path."_output.".$virtualFile->extension);
             $fullpath2 = str_replace('\\', '/', $fullpath2);
+            $format = new \FFMpeg\Format\Video\X264();
+            $start_time = 0;
+
+            $percentage_to_time_left = function ($percentage) use (&$start_time) {
+                if($start_time === 0){
+                    $start_time = time();
+                    return "Calculating...";
+                }
+
+                $diff_time = time() - $start_time;
+                if($percentage==0){
+                    $percentage = (float)0.01;
+                }
+                $seconds_left = 100 * $diff_time / $percentage - $diff_time;
+                //var_dump($seconds_left);
+
+                return gmdate("H:i:s", $seconds_left);
+            };
+            $format->on('progress', function ($video, $format, $percentage) use($percentage_to_time_left, $dashVideos) {
+                // You can update a field in your database or can log it to a file
+                // You can also create a socket connection and show a progress bar to users
+                $a = sprintf("\rTranscoding watermark...(%s%%) %s [%s%s]", $percentage, $percentage_to_time_left($percentage), str_repeat('#', $percentage), str_repeat('-', (100 - $percentage)));
+                Log::info($a);
+                Cache::put('ffmpeg_watermark_progress_'.$dashVideos->id, $percentage, now()->addMinutes());
+                dump($a);
+            });
             $saveWaterMarkVideo = $pipLineStream->save(
-                new \FFMpeg\Format\Video\X264(),
+                $format,
                 $fullpath2,
             )->getPathfile();
             Log::info("[JOBS]saveWaterMarkVideo: ".$saveWaterMarkVideo);
@@ -108,11 +138,11 @@ class VideoFileToDashJob implements ShouldQueue
             $size = filesize($path);
             $dashVideos->update([
                 'type' => 'success',
-                'path' => $path, // @todo 修改過長的 path
+                'path' => str_replace(storage_path('app/public').'\\', '', $path), // @todo 修改過長的 path
                 'filename' => $newFileName,
                 'extension' => $newExtension,
                 "size" => $size,
-                'disk' => $disk,
+                'disk' => "public",
             ]);
 
             Storage::disk($virtualFile->disk)->delete($virtualFile->path.".".$virtualFile->extension);
@@ -157,17 +187,23 @@ class VideoFileToDashJob implements ShouldQueue
             return gmdate("H:i:s", $seconds_left);
         };
 
-        $format->on('progress', function ($video, $format, $percentage) use($percentage_to_time_left, $virtualFile) {
+        $format->on('progress', function ($video, $format, $percentage) use($percentage_to_time_left, $dashVideos) {
             // You can update a field in your database or can log it to a file
             // You can also create a socket connection and show a progress bar to users
-            $a = sprintf("\rTranscoding...(%s%%) %s [%s%s]                                                    ", $percentage, $percentage_to_time_left($percentage), str_repeat('#', $percentage), str_repeat('-', (100 - $percentage)));
+            $a = sprintf("Transcoding Streaming...(%s%%) %s [%s%s]", $percentage, $percentage_to_time_left($percentage), str_repeat('#', $percentage), str_repeat('-', (100 - $percentage)));
             Log::info($a);
-            Cache::put('ffmpeg_streaming_progress_'.$virtualFile->id, $percentage, now()->addSeconds(10));
+            Cache::put('ffmpeg_streaming_progress_'.$dashVideos->id, $percentage, now()->addMinutes());
+            dump($a);
         });
 
         $video = $ffmpeg->open($fullpath);
         $filename = pathinfo($virtualFile->path, PATHINFO_FILENAME);
-        $saveDashPath = Storage::disk('public')->path("DashVideos/" . $dashVideos->id . '/' . $filename . ".mpd");
+        /** @var ShareTableVirtualFile $shareTableVirtualFile */
+        $shareTableVirtualFile = $dashVideos->shareTableVirtualFile()->getResults();
+        /** @var ShareTable $shareTable */
+        $shareTable = $shareTableVirtualFile->shareTable()->getResults();
+
+        $saveDashPath = Storage::disk('public')->path("DashVideos/" . $shareTable->id . '/' . $filename . ".mpd");
         $video->dash()
             ->setFormat($format)
             ->setSegDuration(15) // Default value is 10

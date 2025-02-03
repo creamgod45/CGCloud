@@ -32,4 +32,21 @@ class ShareTableVirtualFile extends Model
     {
         return $this->belongsTo(DashVideos::class, 'dash_videos_id', 'id');
     }
+
+    public function isCreateDashVideo(): bool
+    {
+        return $this->dashVideos()->exists();
+    }
+
+    public function isAvailableDashVideo(): bool
+    {
+        if ($this->isCreateDashVideo()) {
+            /** @var DashVideos $dashVideos */
+            $dashVideos = $this->dashVideos()->getResults();
+            if($dashVideos !== null){
+                return $dashVideos->path !== null;
+            }
+        }
+        return false;
+    }
 }

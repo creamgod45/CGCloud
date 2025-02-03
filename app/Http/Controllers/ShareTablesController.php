@@ -17,6 +17,7 @@ use App\Models\DashVideos;
 use App\Models\Member;
 use App\Models\SharePermissions;
 use App\Models\ShareTable;
+use App\Models\ShareTableVirtualFile;
 use App\Models\VirtualFile;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -428,6 +429,32 @@ class ShareTablesController extends Controller
         abort(404, 'Sharetable not found.');
     }
 
+    public function getDashProgress(Request $request)
+    {
+        $id = $request->route('id', 0);
+        $dashVideos = DashVideos::where('virtual_file_uuid', '=', $id)->get()->first();
+        if($dashVideos !== null && $dashVideos->isCreateDashVideo()) {
+            $waterMarkProgress = Cache::get('ffmpeg_watermark_progress_' . $dashVideos->id);
+            $streamProgress = Cache::get('ffmpeg_streaming_progress_' . $dashVideos->id);
+            Log::info(json_encode([$waterMarkProgress, $streamProgress]));
+            if($waterMarkProgress !== null) {
+                return response()->json([
+                    'message' => 'success',
+                    'value' => $waterMarkProgress
+                ]);
+            } elseif ($streamProgress !== null) {
+                return response()->json([
+                    'message' => 'success2',
+                    'value' => $streamProgress
+                ]);
+            }
+        }
+        return response()->json([
+            'message' => 'not work',
+            'value' => "沒有執行"
+        ]);
+    }
+
     public function conversionShareTableItem(Request $request)
     {
         $shareTableId = $request->route('id', 0);
@@ -440,8 +467,9 @@ class ShareTablesController extends Controller
                 $except = $results->except([$fileId]);
                 /** @var VirtualFile $virtualFile */
                 $virtualFile = $except->first();
+                /** @var ShareTableVirtualFile $shareTableVirtualFiles */
                 $shareTableVirtualFiles = $virtualFile->shareTables()->getResults();
-                if($shareTableVirtualFiles !== null) {
+                if($shareTableVirtualFiles !== null && !$shareTableVirtualFiles->isCreateDashVideo()) {
                     $dashVideos = DashVideos::createOrFirst([
                         'type' => 'wait',
                         'member_id' => Auth::user()->id,
@@ -459,6 +487,43 @@ class ShareTablesController extends Controller
             abort(404, 'File not found.');
         }
         abort(404, 'Sharetable not found.');
+    }
+
+    public function dashPreviewFile(Request $request)
+    {
+        $shareTableId = $request->route('shareTableId', 0);
+        $fileId = $request->route('fileId', 0);
+        $fileName = $request->route('fileName', "");
+
+        $shareTable = ShareTable::find($shareTableId);
+        $virtualFiles = $shareTable->getAllVirtualFiles();
+        if($shareTable !== null && $virtualFiles->contains('uuid', '=', $fileId)){
+            /** @var ShareTableVirtualFile[] $shareTableVirtualFile */
+            $shareTableVirtualFile = $shareTable->shareTableVirtualFile()->getResults();
+            if($shareTableVirtualFile !== null) {
+                foreach ($shareTableVirtualFile as $item) {
+                    /** @var DashVideos $dashVideos */
+                    $dashVideos = $item->dashVideos()->getResults();
+                    $disk = Storage::disk($dashVideos->disk);
+                    $path = str_replace($dashVideos->filename.".".$dashVideos->extension, '', $dashVideos->path);
+                    $files = $disk->allFiles($path);
+                    foreach ($files as $file) {
+                        if(str_contains($file, $fileName)) {
+                            $stream = $disk->readStream($file);
+                            return new StreamedResponse(function () use ($fileName, $disk, $file, $stream) {
+                                stream_copy_to_stream($stream, fopen('php://output', 'wb'));
+                                fclose($stream);
+                            }, 200, [
+                                'Content-Type' => $disk->mimeType($file),
+                                'Content-Length' => $disk->size($file),
+                                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                            ]);
+                        }
+                    }
+                    abort(404, 'File not found.');
+                }
+            }
+        }
     }
 
     public function downloadShareTableItem(Request $request)
