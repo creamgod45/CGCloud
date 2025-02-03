@@ -431,23 +431,30 @@ class ShareTablesController extends Controller
 
     public function getDashProgress(Request $request)
     {
-        $id = $request->route('id', 0);
+        $id = $request->get('id', 0);
         $dashVideos = DashVideos::where('virtual_file_uuid', '=', $id)->get()->first();
-        if($dashVideos !== null && $dashVideos->isCreateDashVideo()) {
-            $waterMarkProgress = Cache::get('ffmpeg_watermark_progress_' . $dashVideos->id);
-            $streamProgress = Cache::get('ffmpeg_streaming_progress_' . $dashVideos->id);
-            Log::info(json_encode([$waterMarkProgress, $streamProgress]));
-            if($waterMarkProgress !== null) {
+        if($dashVideos !== null && !$dashVideos->isCreateDashVideo()) {
+            $waterMarkProgress = Storage::disk('local')->get('ffmpeg_watermark_progress_'.$dashVideos->id);
+            $streamProgress = Storage::disk('local')->get('ffmpeg_streaming_progress_'.$dashVideos->id);
+            if($waterMarkProgress !== null && (int)$waterMarkProgress <= 100) {
+                Storage::disk('local')->delete('ffmpeg_watermark_progress_'.$dashVideos->id);
                 return response()->json([
                     'message' => 'success',
                     'value' => $waterMarkProgress
                 ]);
-            } elseif ($streamProgress !== null) {
+            } elseif ($streamProgress !== null && (int)$streamProgress <= 100) {
+                Storage::disk('local')->delete('ffmpeg_streaming_progress_'.$dashVideos->id);
                 return response()->json([
                     'message' => 'success2',
                     'value' => $streamProgress
                 ]);
             }
+        }
+        if($dashVideos !== null && $dashVideos->isCreateDashVideo()) {
+            return response()->json([
+                'message' => 'stop',
+                'value' => "已處理完成"
+            ]);
         }
         return response()->json([
             'message' => 'not work',
@@ -480,7 +487,7 @@ class ShareTablesController extends Controller
                         'dash_videos_id' => $dashVideos->id
                     ]);
                     return response()->json([
-                        'message' => "建立完成"
+                        'message' => "請求處理中..."
                     ]);
                 }
             }

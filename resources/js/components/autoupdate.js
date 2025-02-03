@@ -15,10 +15,18 @@ function autoupdate(){
                         let data = await response.data;
                         console.log(data);
                         if(data.message === "success"){
-                            _autoupdate.innerText = "浮水印影片 製作製作中... " + data.value + "%";
+                            _autoupdate.innerText = "浮水印影片 生成中... " + data.value + "%";
                         }
                         if(data.message === "success2"){
-                            _autoupdate.innerText = "轉換 Dash 製作製作中... " + data.value + "%";
+                            _autoupdate.innerText = "轉換 Dash 生成中... " + data.value + "%";
+                        }
+                        if(data.message === "success3"){
+                            _autoupdate.innerText = "轉換完成... 100%";
+                            _autoupdate.destroy();
+                        }
+                        if(data.message === "stop"){
+                            _autoupdate.innerText = "已轉換";
+                            _autoupdate.destroy();
                         }
                     });
                     break;

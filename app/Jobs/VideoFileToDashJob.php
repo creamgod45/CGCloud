@@ -99,6 +99,8 @@ class VideoFileToDashJob implements ShouldQueue
             $fullpath2 = Storage::disk($virtualFile->disk)->path($virtualFile->path."_output.".$virtualFile->extension);
             $fullpath2 = str_replace('\\', '/', $fullpath2);
             $format = new \FFMpeg\Format\Video\X264();
+            $kiloBitrate = $pipLineStream->getFormat()->get('bit_rate') / 1000 * 0.8; // 轉換為 Kbps
+            $format->setKiloBitrate($kiloBitrate);
             $start_time = 0;
 
             $percentage_to_time_left = function ($percentage) use (&$start_time) {
@@ -121,7 +123,12 @@ class VideoFileToDashJob implements ShouldQueue
                 // You can also create a socket connection and show a progress bar to users
                 $a = sprintf("\rTranscoding watermark...(%s%%) %s [%s%s]", $percentage, $percentage_to_time_left($percentage), str_repeat('#', $percentage), str_repeat('-', (100 - $percentage)));
                 Log::info($a);
-                Cache::put('ffmpeg_watermark_progress_'.$dashVideos->id, $percentage, now()->addMinutes());
+                try {
+                    Storage::disk('local')->put('ffmpeg_watermark_progress_'.$dashVideos->id, $percentage);
+                    Log::info('Cache stored successfully.');
+                } catch (Exception $exception) {
+                    Log::error('Cache writing failed: ' . $exception->getMessage());
+                }
                 dump($a);
             });
             $saveWaterMarkVideo = $pipLineStream->save(
@@ -192,7 +199,7 @@ class VideoFileToDashJob implements ShouldQueue
             // You can also create a socket connection and show a progress bar to users
             $a = sprintf("Transcoding Streaming...(%s%%) %s [%s%s]", $percentage, $percentage_to_time_left($percentage), str_repeat('#', $percentage), str_repeat('-', (100 - $percentage)));
             Log::info($a);
-            Cache::put('ffmpeg_streaming_progress_'.$dashVideos->id, $percentage, now()->addMinutes());
+            Storage::disk('local')->put('ffmpeg_streaming_progress_'.$dashVideos->id, $percentage);
             dump($a);
         });
 
@@ -206,7 +213,7 @@ class VideoFileToDashJob implements ShouldQueue
         $saveDashPath = Storage::disk('public')->path("DashVideos/" . $shareTable->id . '/' . $filename . ".mpd");
         $video->dash()
             ->setFormat($format)
-            ->setSegDuration(15) // Default value is 10
+            ->setSegDuration(3) // Default value is 10
             //->setAdaption('id=0,streams=v id=1,streams=a')
             //->x264()
             ->addRepresentations([
