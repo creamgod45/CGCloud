@@ -1065,7 +1065,7 @@ class ShareTablesController extends Controller
         ]));
 
         // 确保上传目录存在
-        if ($offset === "0" and !str_contains($virtualFile->path, $fileName)) {
+        if ($offset === "0" and !str_contains($virtualFile->path, base64_encode($fileName).".temp")) {
             $filePath = $virtualFile->path . '/' . base64_encode($fileName).".temp";
         } else {
             $filePath = $virtualFile->path;
