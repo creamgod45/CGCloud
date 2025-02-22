@@ -585,6 +585,7 @@ class ShareTablesController extends Controller
                     $disk = Storage::disk($dashVideos->disk);
                     $path = str_replace($dashVideos->filename.".".$dashVideos->extension, '', $dashVideos->path);
                     $files = $disk->allFiles($path);
+                    Log::info(json_encode($files, JSON_UNESCAPED_UNICODE));
                     foreach ($files as $file) {
                         Log::info('3');
                         if(str_contains($file, $fileName)) {
