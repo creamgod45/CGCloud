@@ -90,7 +90,7 @@ function filepondLoader() {
             },
             allowMultiple: allowMultiple,
             chunkUploads: true,
-            chunkSize: 10000000,
+            chunkSize: 1000000,
             chunkRetryDelays: [500, 1000, 3000],
             files: files,
             instantUpload: false,
