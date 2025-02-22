@@ -572,17 +572,22 @@ class ShareTablesController extends Controller
         $shareTable = ShareTable::find($shareTableId);
         $virtualFiles = $shareTable->getAllVirtualFiles();
         if($shareTable !== null && $virtualFiles->contains('uuid', '=', $fileId)){
+            Log::info('0');
             /** @var ShareTableVirtualFile[] $shareTableVirtualFile */
             $shareTableVirtualFile = $shareTable->shareTableVirtualFile()->getResults();
             if($shareTableVirtualFile !== null) {
+                Log::info('1');
                 foreach ($shareTableVirtualFile as $item) {
+                    Log::info('2');
                     /** @var DashVideos $dashVideos */
                     $dashVideos = $item->dashVideos()->getResults();
                     $disk = Storage::disk($dashVideos->disk);
                     $path = str_replace($dashVideos->filename.".".$dashVideos->extension, '', $dashVideos->path);
                     $files = $disk->allFiles($path);
                     foreach ($files as $file) {
+                        Log::info('3');
                         if(str_contains($file, $fileName)) {
+                            Log::info('4');
                             $stream = $disk->readStream($file);
                             return new StreamedResponse(function () use ($fileName, $disk, $file, $stream) {
                                 stream_copy_to_stream($stream, fopen('php://output', 'wb'));
