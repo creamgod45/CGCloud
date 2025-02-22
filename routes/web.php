@@ -42,6 +42,7 @@ Route::middleware("checkClientID")->group(function () {
         Route::get('item/delete/{id}/{fileId}', [ShareTablesController::class, 'deleteShareTableItem'])->name(RouteNameField::PageShareTableItemDelete->value);
         Route::get('item/edit/{id}', [ShareTablesController::class, 'editShareTable'])->name(RouteNameField::PageShopItemEditor->value);
         Route::post('item/edit/{id}', [ShareTablesController::class, 'editShareTablePost'])->name(RouteNameField::APIShareTableItemEditPost->value);
+        Route::post('item/edit2/{id}', [ShareTablesController::class, 'editShareTablePost2'])->name(RouteNameField::APIShareTableItemEditPost2->value);
         Route::get('delete/{id}', [ShareTablesController::class, 'deleteShareTable'])->name(RouteNameField::PageShareTableDelete->value);
         Route::get('item/{id}', [ShareTablesController::class, 'viewShareTableItem'])->name(RouteNameField::PageShareTableItemView->value);
         Route::post('add', [ShareTablesController::class, 'shareTableItemPost'])->name(RouteNameField::PageShareTableItemPost->value);
@@ -55,6 +56,7 @@ Route::middleware("checkClientID")->group(function () {
         Route::get('preview/{shareTableId}/{fileId}', [ShareTablesController::class, 'apiPreviewFileTemporary2'])->name(RouteNameField::APIPreviewFileTemporary2->value)->middleware('signed'); // getTemporaryUrl used
         Route::post('get_dash_progress', [ShareTablesController::class, 'getDashProgress'])->name(RouteNameField::APIDashProgress->value);
         Route::get('dash/{shareTableId}/{fileId}/{fileName}', [ShareTablesController::class, 'dashPreviewFile'])->name(RouteNameField::APIPreviewFileDash->value);
+        Route::get('player/{shareTableId}/{fileId}/{fileName}', [ShareTablesController::class, 'playerPreviewFile'])->name(RouteNameField::PagePreviewFilePlayerDash->value);
     });
     Route::get('passwordreset', [MemberController::class, 'passwordReset'])->name(RouteNameField::PagePasswordReset->value);
     Route::post('passwordreset', [MemberController::class, 'passwordResetPost'])->name(RouteNameField::PagePasswordResetPost->value);

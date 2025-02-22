@@ -297,9 +297,10 @@ async function initConversionPopupElement(id, href, json) {
         "{\"data\":\"id\",\"name\":\"ID\",\"title\":\"ID\",\"footer\":\"ID\"}," +
         "{\"data\":\"filename\",\"name\":\"filename\",\"title\":\"名稱\",\"footer\":\"名稱\"}," +
         "{\"data\":\"created_at\",\"name\":\"created_at\",\"title\":\"建立時間\",\"footer\":\"建立時間\"}," +
-        "{\"data\":\"size\",\"name\":\"size\",\"title\":\"大小\",\"footer\":\"大小\"}," +
-        "{\"data\":\"action\",\"name\":\"action\",\"title\":\"操作\",\"footer\":\"操作\"}" +
+        "{\"data\":\"action\",\"name\":\"action\",\"title\":\"操作\",\"footer\":\"操作\"}," +
+        "{\"data\":\"size\",\"name\":\"size\",\"title\":\"大小\",\"footer\":\"大小\"}" +
         "]";
+    table.dataset.cgresponsive = "false";
 
 
     content.appendChild(table);

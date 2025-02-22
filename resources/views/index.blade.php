@@ -244,9 +244,22 @@
                                                 $url = $shareTable->shareURL();
                                                 $v = $virtualFiles->setVisible(['id','uuid', 'filename', 'size', 'created_at'])->toArray();
                                                 foreach ($v as $key => $item) {
+                                                    /** @var \App\Models\VirtualFile $item */
                                                     $v[$key]['size'] = Utils::convertByte($item['size']);
                                                     $aUrl = route(RouteNameField::APIShareTableItemConversion->value, ['id' => $random, 'fileId' => $item['uuid']]);
-                                                    $v[$key]['action'] = '<div class="flex gap-3"><a data-fn="shareable_conversion_file" data-type="error" data-parent="#conversion_'.$random.'" data-title="是否確認轉換此檔案?" data-id="#conversion_item_'.$key.'" data-confirmboxcontent="此操作將會轉換成檔案" data-href="'.$aUrl.'" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-industry"></i>&nbsp;轉換檔案</a><div id="conversion_item_'.$key.'" class="autoupdate" data-fn="get_dash_progress" data-id="'.$item['uuid'].'" ></div>';
+                                                    /** @var \App\Models\DashVideos $dashVideo */
+                                                    $dashVideo = \App\Models\DashVideos::where('virtual_file_uuid', '=', $item['uuid'])->get()->first();
+                                                    if($dashVideo !== null){
+                                                        $btn = "";
+                                                        switch ($dashVideo->type){
+                                                            case "failed":
+                                                                $btn = '<a data-fn="shareable_conversion_file" data-type="error" data-parent="#conversion_'.$random.'" data-title="是否確認轉換此檔案?" data-id="#conversion_item_'.$key.'" data-confirmboxcontent="此操作將會轉換成檔案" data-href="'.$aUrl.'" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-industry"></i>&nbsp;轉換檔案</a>';
+                                                                break;
+                                                        }
+                                                    } else {
+                                                        $btn = '<a data-fn="shareable_conversion_file" data-type="error" data-parent="#conversion_'.$random.'" data-title="是否確認轉換此檔案?" data-id="#conversion_item_'.$key.'" data-confirmboxcontent="此操作將會轉換成檔案" data-href="'.$aUrl.'" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-industry"></i>&nbsp;轉換檔案</a>';
+                                                    }
+                                                    $v[$key]['action'] = '<div class="flex gap-3"><div id="conversion_item_'.$key.'" class="autoupdate" data-fn="get_dash_progress" data-id="'.$item['uuid'].'" ></div>'.$btn.'</div>';
                                                 }
                                             @endphp
                                             @if($shareTable->member_id === \Illuminate\Support\Facades\Auth::user()->id)
@@ -277,7 +290,17 @@
                                                 $v = $virtualFiles->setVisible(['id','uuid', 'filename', 'size', 'created_at'])->toArray();
                                                 foreach ($v as $key => $item) {
                                                     $v[$key]['size'] = Utils::convertByte($item['size']);
-                                                    $v[$key]['action'] = '<div class="flex gap-3"><a target="_blank" rel="noreferrer noopener" href="%url-0%" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><a href="%url-1%" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="shareable_delete_file" data-type="error" data-parent="#download_'.$random1.'" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="%url-2%" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
+                                                    $dashVideo = \App\Models\DashVideos::where('virtual_file_uuid', '=', $item['uuid'])->get()->first();
+                                                    $dashVideoBtn = "";
+                                                    if($dashVideo !== null){
+                                                        $url = route(RouteNameField::PagePreviewFilePlayerDash->value, [
+                                                            'shareTableId' => $shareTable->id,
+                                                            'fileId' => $item['uuid'],
+                                                            'fileName' => $dashVideo->filename.".".$dashVideo->extension,
+                                                        ]);
+                                                        $dashVideoBtn = '<a target="_blank" rel="noreferrer noopener" href="'.$url.'" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;線上串流預覽</a>';
+                                                    }
+                                                    $v[$key]['action'] = '<div class="flex gap-3">'.$dashVideoBtn.'<a target="_blank" rel="noreferrer noopener" href="%url-0%" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><a href="%url-1%" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="shareable_delete_file" data-type="error" data-parent="#download_'.$random1.'" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="%url-2%" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
                                                 }
                                             @endphp
                                             <div data-id="{{ $random1 }}"

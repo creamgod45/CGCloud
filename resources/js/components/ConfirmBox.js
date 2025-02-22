@@ -48,6 +48,7 @@ function ConfirmBox(){
                             let element2 = document.querySelector(parent1);
                             if(element2 === null) return;
                             element2.showPopover();
+                            confirmBox.remove();
                         });
                         break;
                     case "shareable_delete_file":

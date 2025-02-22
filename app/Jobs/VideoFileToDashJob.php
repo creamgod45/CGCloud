@@ -24,7 +24,7 @@ use Ramsey\Uuid\Uuid;
 use Streaming\FFMpeg;
 use Streaming\Format\X264;
 use Streaming\Representation;
-
+ini_set('max_execution_time', 0); // 禁用 PHP 執行時間限制
 class VideoFileToDashJob implements ShouldQueue
 {
     use Dispatchable;
@@ -38,6 +38,7 @@ class VideoFileToDashJob implements ShouldQueue
         $applicationStorage = Storage::disk('Applications');
 
         $this->config = [
+            'timeout'          => 60*60*24*365,
             'ffmpeg.threads'   => 2,   // The number of threads that FFmpeg should use
         ];
 
@@ -46,6 +47,23 @@ class VideoFileToDashJob implements ShouldQueue
             $this->config['ffprobe.binaries'] = $applicationStorage->path('ffprobe-2025-01-27-959b799c8b.exe');
         }
 
+    }
+
+    public function hasAudio($logPath, $filePath): bool
+    {
+        // 建立 Logger 並設置檔案路徑寫入日誌
+        $log = new Logger('FFmpeg_Streaming');
+        $log->pushHandler(new StreamHandler($logPath)); // 記錄到檔案路徑
+
+        $ffmpeg = \FFMpeg\FFMpeg::create($this->config, $log);
+        // 使用 ffprobe 分析檔案
+        $streams = $ffmpeg->open($filePath);
+
+        // 取出「所有音訊」串流
+        $audioStreams = $streams->getStreams()->audios();
+
+        // 檢查是否至少有一個音訊串流
+        return $audioStreams->count() > 0;
     }
 
     public function handle(): void
@@ -87,6 +105,8 @@ class VideoFileToDashJob implements ShouldQueue
             Log::info("[JOBS]fullpath: ".$fullpath);
 
             // 添加浮水印
+            $hasAudio = $this->hasAudio($filePath, $fullpath);
+            Log::info("[JOBS]hasAudio: ".$hasAudio);
             $pipLineStream = $ffmpeg1->open($fullpath);
             $watermarkImagePath = public_path('assets/images/watermark-cgcloud.png');
             FileSystem::copy($watermarkImagePath, './watermark.png');
@@ -99,8 +119,14 @@ class VideoFileToDashJob implements ShouldQueue
             $fullpath2 = Storage::disk($virtualFile->disk)->path($virtualFile->path."_output.".$virtualFile->extension);
             $fullpath2 = str_replace('\\', '/', $fullpath2);
             $format = new \FFMpeg\Format\Video\X264();
-            $kiloBitrate = $pipLineStream->getFormat()->get('bit_rate') / 1000 * 0.8; // 轉換為 Kbps
+            $kiloBitrate = $pipLineStream->getFormat()->get('bit_rate') / 1000 * 0.7; // 轉換為 Kbps
             $format->setKiloBitrate($kiloBitrate);
+
+            if ($hasAudio) {
+                $format->setAudioKiloBitrate(128); // 只有在有音軌時設定
+            } else {
+                $format->setAdditionalParameters(['-an']); // 無音軌時忽略音訊
+            }
             $start_time = 0;
 
             $percentage_to_time_left = function ($percentage) use (&$start_time) {
@@ -123,12 +149,7 @@ class VideoFileToDashJob implements ShouldQueue
                 // You can also create a socket connection and show a progress bar to users
                 $a = sprintf("\rTranscoding watermark...(%s%%) %s [%s%s]", $percentage, $percentage_to_time_left($percentage), str_repeat('#', $percentage), str_repeat('-', (100 - $percentage)));
                 Log::info($a);
-                try {
-                    Storage::disk('local')->put('ffmpeg_watermark_progress_'.$dashVideos->id, $percentage);
-                    Log::info('Cache stored successfully.');
-                } catch (Exception $exception) {
-                    Log::error('Cache writing failed: ' . $exception->getMessage());
-                }
+                Cache::put('ffmpeg_watermark_progress_'.$dashVideos->id, $percentage, now()->addMinutes(2));
                 dump($a);
             });
             $saveWaterMarkVideo = $pipLineStream->save(
@@ -145,7 +166,7 @@ class VideoFileToDashJob implements ShouldQueue
             $size = filesize($path);
             $dashVideos->update([
                 'type' => 'success',
-                'path' => str_replace(storage_path('app/public').'\\', '', $path), // @todo 修改過長的 path
+                'path' => str_replace(storage_path('app/public').'\\', '', $path),
                 'filename' => $newFileName,
                 'extension' => $newExtension,
                 "size" => $size,
@@ -199,7 +220,7 @@ class VideoFileToDashJob implements ShouldQueue
             // You can also create a socket connection and show a progress bar to users
             $a = sprintf("Transcoding Streaming...(%s%%) %s [%s%s]", $percentage, $percentage_to_time_left($percentage), str_repeat('#', $percentage), str_repeat('-', (100 - $percentage)));
             Log::info($a);
-            Storage::disk('local')->put('ffmpeg_streaming_progress_'.$dashVideos->id, $percentage);
+            Cache::put('ffmpeg_streaming_progress_'.$dashVideos->id, $percentage, now()->addMinutes(2));
             dump($a);
         });
 
@@ -253,7 +274,6 @@ class VideoFileToDashJob implements ShouldQueue
         $path = $saveThumbPath . 'thumb001.jpg';
         $size = filesize($path);
         $mimeType = mime_content_type($path);
-        $storage_path = str_replace("\\", '/', storage_path('app'));
 
         $path2 = storage_path('app').'/'.str_replace(pathinfo($virtualFile->path, PATHINFO_FILENAME), '',
                 $virtualFile->path) . pathinfo($virtualFile->path, PATHINFO_FILENAME) . "_thumb.jpg";
@@ -265,7 +285,7 @@ class VideoFileToDashJob implements ShouldQueue
         $attributes = [
             'uuid' => $uuid,
             'disk' => 'local',
-            'path' => str_replace($storage_path.'/', '', $path2),
+            'path' => str_replace(storage_path('app').'/', '', $path2), // @todo 修改過長的 path
             'type' => 'persistent',
             'filename' => $virtualFile->filename . "_thumb.jpg",
             "size" => $size,

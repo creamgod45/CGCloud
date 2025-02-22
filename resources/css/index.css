@@ -2529,7 +2529,7 @@ a.btn {
 }
 
 .shareable-popover {
-  @apply bg-white shadow-lg rounded-lg h-1/2 p-0
+  @apply bg-white shadow-lg rounded-lg h-4/6 p-0
     xxl:w-9/12
     xl:w-9/12
     menu:w-9/12

@@ -47,6 +47,7 @@ enum RouteNameField: string
     case PageShareTableItemSuccess = 'root.sharetable.item.success';
     case PagePublicShareTableDownloadItem = 'root.public.sharetable.item.download';
     case PagePublicShareTablePreviewItem = 'root.public.sharetable.item.preview';
+    case PagePreviewFilePlayerDash = 'root.sharetable.preview.file.player.dash';
 
     // API
     case APIEncodeJson = 'root.api.EncodeJson';
@@ -73,4 +74,5 @@ enum RouteNameField: string
     case APIShareTableItemConversion = 'root.api.sharetable.item.conversion';
     case APIPreviewFileDash = 'root.api.PreviewFileDash';
     case APIDashProgress = 'root.api.DashProgress';
+    case APIShareTableItemEditPost2 = 'root.api.sharetable.item.edit.post2';
 }

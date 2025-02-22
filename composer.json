@@ -70,11 +70,11 @@
         ],
         "queuework": [
             "Composer\\Config::disableProcessTimeout",
-            "@php artisan queue:work"
+            "@php artisan queue:work --timeout=300"
         ],
         "schedulework": [
             "Composer\\Config::disableProcessTimeout",
-            "@php artisan schedule:work"
+            "@php artisan schedule:work2"
         ],
         "runServer": [
             "Composer\\Config::disableProcessTimeout",

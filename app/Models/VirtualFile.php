@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Prunable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -50,6 +53,11 @@ class VirtualFile extends Model
     protected $casts = [
         'expired_at' => ExpiresAtCast::class,
     ];
+
+    public function dashVideos(): BelongsTo
+    {
+        return $this->belongsTo(DashVideos::class,  'uuid', 'virtual_file_uuid');
+    }
 
     public function deleteEntry(){
         Storage::disk($this->disk)->delete($this->path);

@@ -25,6 +25,17 @@ function vjs() {
     for (let vjs of vjss) {
         let src = vjs.dataset.src;
         let width = vjs.dataset.width;
+        if(width !== undefined){
+            if (width.indexOf('%') !== -1) {
+                width = window.innerWidth * parseInt(width.replace('%', '')) / 100;
+            }
+        }
+        let height = vjs.dataset.height;
+        if(height !== undefined){
+            if (height.indexOf('%') !== -1) {
+                height = window.innerHeight * parseInt(height.replace('%', '')) / 100;
+            }
+        }
         let controls = vjs.dataset.controls;
         if(controls === undefined)
             controls = true;
@@ -42,7 +53,7 @@ function vjs() {
         let type = vjs.dataset.type ?? 'normal';
         let minetype = vjs.dataset.minetype ?? 'video/mp4';
         if(src === undefined) continue;
-        let player = videojs(vjs, {
+        let options = {
             controls: controls,
             autoplay: autoplay,
             preload: preload,
@@ -50,7 +61,11 @@ function vjs() {
             playbackRates: [0.5, 1, 2, 5, 10],
             techOrder: [ 'chromecast', 'html5' ],
             width: width ?? '300px',
-        });
+        };
+        if(height !== undefined) {
+            options.height = height;
+        }
+        let player = videojs(vjs, options);
         player.ready(function() {
             if(type === "dash") {
                 player.src({

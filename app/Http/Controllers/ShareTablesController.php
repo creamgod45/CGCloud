@@ -325,16 +325,73 @@ class ShareTablesController extends Controller
                 $CSRF->release();
                 // 關聯資料庫 files UUID
                 $files = $shareTable->getAllVirtualFiles();
+                $tFiles = VirtualFile::whereIn('uuid', $v['files'])->get()->collect();
 
                 // 傳入的檔案 UUID array
-                $deattchFiles = $files->diff($v['files'])->all();
-                $newFiles = [];
-                $originalFiles = $files->except($v['files'])->all();
+                $newFiles = $tFiles->diff($files)->all(); // 新增的檔案 UUID
+                $deattchFiles = $files->diff($tFiles)->all(); // 需要移除的檔案 UUID
+                $originalFiles = $files->intersect($tFiles)->all(); // 原本的檔案 UUID // 原本的檔案 uuid
 
-                dump([$deattchFiles, $newFiles, $originalFiles]);
-                foreach ($files as $file) {
-                }
+                dd([
+                    "deattchFiles: " => $deattchFiles,
+                    "newFiles: " => $newFiles,
+                    "originalFiles: " => $originalFiles
+                ]);
 
+                $shareTable->update([
+                    'name' => $v['shareTableName'],
+                    'description' => $v['shareTableDescription'],
+                    'type' => $v['shareTableType'],
+                    'secret' => (!empty($v['password'])) ? Hash::make($v['password']) : null,
+                ]);
+
+                $this->clearShareTableIndexCaches();
+
+                return response()->json([
+                    "type" => true,
+                    "message" => "編輯分享資源成功",
+                    "redirect" => route(RouteNameField::PageShareTableItemSuccess->value, ['popup' => 1]),
+                ]);
+            }
+        }
+    }
+
+    public function editShareTablePost2(Request $request)
+    {
+        $CGLCI = self::baseControllerInit($request);
+        $shareTableId = $request->route('id', 0);
+        $CSRF = new CSRF(RouteNameField::APIShareTableItemCreatePost->value);
+
+        $i18N = $CGLCI->getI18N();
+        $shareTable = ShareTable::find($shareTableId);
+        if ($shareTable !== null && $shareTable->member_id === Auth::user()->id) {
+            $vb = new ValidatorBuilder($i18N, EValidatorType::SHARETABLEEDIT);
+            $v = $vb->validate($request->all(), ['current_password', 'password', 'password_confirmation'], true);
+            if ($v instanceof MessageBag) {
+                $alertView = View::make('components.alert', ["type" => "%type%", "messages" => $v->all()]);
+                $CSRF->reset();
+                return response()->json([
+                    'type' => false,
+                    'token' => $CSRF->get(),
+                    "message" => $alertView->render(),
+                    "error_keys" => $v->keys(),
+                ], ResponseHTTP::HTTP_OK);
+            } else {
+                $CSRF->release();
+                // 關聯資料庫 files UUID
+                $files = $shareTable->getAllVirtualFiles();
+                $tFiles = VirtualFile::whereIn('uuid', $v['files'])->get()->collect();
+
+                // 傳入的檔案 UUID array
+                $newFiles = $tFiles->diff($files)->all(); // 新增的檔案 UUID
+                $deattchFiles = $files->diff($tFiles)->all(); // 需要移除的檔案 UUID
+                $originalFiles = $files->intersect($tFiles)->all(); // 原本的檔案 UUID // 原本的檔案 uuid
+
+                dd([
+                    "deattchFiles: " => $deattchFiles,
+                    "newFiles: " => $newFiles,
+                    "originalFiles: " => $originalFiles
+                ]);
 
                 $shareTable->update([
                     'name' => $v['shareTableName'],
@@ -434,16 +491,16 @@ class ShareTablesController extends Controller
         $id = $request->get('id', 0);
         $dashVideos = DashVideos::where('virtual_file_uuid', '=', $id)->get()->first();
         if($dashVideos !== null && !$dashVideos->isCreateDashVideo()) {
-            $waterMarkProgress = Storage::disk('local')->get('ffmpeg_watermark_progress_'.$dashVideos->id);
-            $streamProgress = Storage::disk('local')->get('ffmpeg_streaming_progress_'.$dashVideos->id);
+            $waterMarkProgress = Cache::get('ffmpeg_watermark_progress_'.$dashVideos->id);
+            $streamProgress = Cache::get('ffmpeg_streaming_progress_'.$dashVideos->id);
             if($waterMarkProgress !== null && (int)$waterMarkProgress <= 100) {
-                Storage::disk('local')->delete('ffmpeg_watermark_progress_'.$dashVideos->id);
+                Cache::delete('ffmpeg_watermark_progress_'.$dashVideos->id);
                 return response()->json([
                     'message' => 'success',
                     'value' => $waterMarkProgress
                 ]);
             } elseif ($streamProgress !== null && (int)$streamProgress <= 100) {
-                Storage::disk('local')->delete('ffmpeg_streaming_progress_'.$dashVideos->id);
+                Cache::delete('ffmpeg_streaming_progress_'.$dashVideos->id);
                 return response()->json([
                     'message' => 'success2',
                     'value' => $streamProgress
@@ -489,6 +546,16 @@ class ShareTablesController extends Controller
                     return response()->json([
                         'message' => "請求處理中..."
                     ]);
+                } elseif($shareTableVirtualFiles !== null && $shareTableVirtualFiles->isCreateDashVideo()) {
+                    $dashVideos = $shareTableVirtualFiles->dashVideos()->getResults();
+                    if($dashVideos !== null && $dashVideos->type === 'failed') {
+                        $dashVideos->update([
+                            'type' => 'wait'
+                        ]);
+                        return response()->json([
+                            'message' => "請求處理中..."
+                        ]);
+                    }
                 }
             }
             abort(404, 'File not found.');
@@ -531,6 +598,16 @@ class ShareTablesController extends Controller
                 }
             }
         }
+    }
+
+    public function playerPreviewFile(Request $request)
+    {
+        $shareTableId = $request->route('shareTableId', 0);
+        $fileId = $request->route('fileId', 0);
+        $fileName = $request->route('fileName', "");
+        return view('ShareTable.player', Controller::baseControllerInit($request, [
+            'url' => route(RouteNameField::APIPreviewFileDash->value, ['shareTableId' => $shareTableId, 'fileId' => $fileId, 'fileName' => $fileName])
+        ])->toArrayable());
     }
 
     public function downloadShareTableItem(Request $request)
@@ -989,7 +1066,7 @@ class ShareTablesController extends Controller
 
         // 确保上传目录存在
         if ($offset === "0" and !str_contains($virtualFile->path, $fileName)) {
-            $filePath = $virtualFile->path . '/' . base64_encode($fileName);
+            $filePath = $virtualFile->path . '/' . base64_encode($fileName).".temp";
         } else {
             $filePath = $virtualFile->path;
         }
