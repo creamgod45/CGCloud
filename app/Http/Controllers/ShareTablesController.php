@@ -581,6 +581,7 @@ class ShareTablesController extends Controller
                     Log::info('2');
                     /** @var DashVideos $dashVideos */
                     $dashVideos = $item->dashVideos()->getResults();
+                    Log::info(json_encode($dashVideos->toArray(), JSON_UNESCAPED_UNICODE));
                     $disk = Storage::disk($dashVideos->disk);
                     $path = str_replace($dashVideos->filename.".".$dashVideos->extension, '', $dashVideos->path);
                     $files = $disk->allFiles($path);
