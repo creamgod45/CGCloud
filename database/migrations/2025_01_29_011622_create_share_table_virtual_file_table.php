@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('share_table_id')->constrained('share_tables')->onDelete('cascade');
             $table->foreignUuid('virtual_file_uuid')->constrained('virtual_files', 'uuid')->onDelete('cascade');
-            $table->foreignId('dash_videos_id')->nullable()->comment('關聯 DashVideos 表');
+            $table->foreignId('dash_videos_id')->default(null)->nullable(true)->comment('關聯 DashVideos 表');
             $table->timestamps();
             $table->engine('InnoDB');
         });
