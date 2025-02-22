@@ -47,6 +47,11 @@ class VideoFileToDashJob implements ShouldQueue
             $this->config['ffprobe.binaries'] = $applicationStorage->path('ffprobe-2025-01-27-959b799c8b.exe');
         }
 
+        if (Config::get('app.platform') === "Linux") {
+            $this->config['ffmpeg.binaries'] = $applicationStorage->path('ffmpeg');
+            $this->config['ffprobe.binaries'] = $applicationStorage->path('ffprobe');
+        }
+
     }
 
     public function hasAudio($logPath, $filePath): bool
