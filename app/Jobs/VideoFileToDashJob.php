@@ -54,6 +54,16 @@ class VideoFileToDashJob implements ShouldQueue
 
     }
 
+    public function isWindows(): bool
+    {
+        return Config::get('app.platform') === "Windows";
+    }
+
+    public function isLinux(): bool
+    {
+        return Config::get('app.platform') === "Linux";
+    }
+
     public function hasAudio($logPath, $filePath): bool
     {
         // 建立 Logger 並設置檔案路徑寫入日誌
@@ -170,9 +180,16 @@ class VideoFileToDashJob implements ShouldQueue
             $newFileName = pathinfo($path, PATHINFO_FILENAME);
             $newExtension = pathinfo($path, PATHINFO_EXTENSION);
             $size = filesize($path);
+
+            if($this->isWindows()){
+                $str = storage_path('app/public') . '\\';
+            } elseif ($this->isLinux()) {
+                $str = storage_path('app/public') . '/';
+            }
+
             $dashVideos->update([
                 'type' => 'success',
-                'path' => str_replace(storage_path('app/public').'\\', '', $path),
+                'path' => str_replace($str, '', $path),
                 'filename' => $newFileName,
                 'extension' => $newExtension,
                 "size" => $size,
