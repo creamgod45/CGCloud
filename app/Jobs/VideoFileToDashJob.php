@@ -115,11 +115,9 @@ class VideoFileToDashJob implements ShouldQueue
             $pipLineStream = $ffmpeg1->open($fullpath);
             $watermarkImagePath = public_path('assets/images/watermark-cgcloud.png');
             Log::info("[JOBS]watermarkImagePath: ".$watermarkImagePath);
-            FileSystem::copy($watermarkImagePath, './watermark.png', true);
-            chmod('./watermark.png', 777);
-            chown('./watermark.png', 'apache');
+            FileSystem::copy($watermarkImagePath, __DIR__.'/watermark.png');
             $pipLineStream->filters()
-                ->watermark('./watermark.png')
+                ->watermark(__DIR__.'/watermark.png')
                 ->synchronize();
 
             // 取得封面圖片
