@@ -114,6 +114,7 @@ class VideoFileToDashJob implements ShouldQueue
             Log::info("[JOBS]hasAudio: ".$hasAudio);
             $pipLineStream = $ffmpeg1->open($fullpath);
             $watermarkImagePath = public_path('assets/images/watermark-cgcloud.png');
+            Log::info("[JOBS]watermarkImagePath: ".$watermarkImagePath);
             FileSystem::copy($watermarkImagePath, './watermark.png');
             $pipLineStream->filters()
                 ->watermark('./watermark.png')
