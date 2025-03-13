@@ -97,7 +97,7 @@ class VideoFileToDashJob implements ShouldQueue
 
         try {
             Log::info("[JOBS]start processing ".$dashVideos->id);
-            dump("start processing ".$dashVideos->id);
+            //dump("start processing ".$dashVideos->id);
             $filename = pathinfo($virtualFile->path, PATHINFO_FILENAME);
 
             $tfilename = str_replace($filename, '', $virtualFile->path) . '/ffmpeg-streaming.log';
@@ -166,7 +166,7 @@ class VideoFileToDashJob implements ShouldQueue
                 $a = sprintf("\rTranscoding watermark...(%s%%) %s [%s%s]", $percentage, $percentage_to_time_left($percentage), str_repeat('#', $percentage), str_repeat('-', (100 - $percentage)));
                 Log::info($a);
                 Cache::put('ffmpeg_watermark_progress_'.$dashVideos->id, $percentage, now()->addMinutes(2));
-                dump($a);
+                //dump($a);
             });
             $saveWaterMarkVideo = $pipLineStream->save(
                 $format,

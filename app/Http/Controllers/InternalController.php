@@ -111,29 +111,29 @@ class InternalController extends Controller
         /** @var UploadedFile[] $files */
         // 從請求中獲取所有上傳檔案
         $files = $request->allFiles();
-        Log::info("POST /SystemSettingsUploadFile payloads:" . var_export($files, true));
+        //Log::info("POST /SystemSettingsUploadFile payloads:" . var_export($files, true));
 
         $vb = new ValidatorBuilder($CGLCI->getI18N(), EValidatorType::SYSTEMSETTINGUPLOAD);
         $messageBag = $vb->validate($request->all());
         if ($messageBag instanceof MessageBag) {
-            Log::info("ShopImage, ShopAdPopup, ShopAdItem files do not exist or are invalid");
+            //Log::info("ShopImage, ShopAdPopup, ShopAdItem files do not exist or are invalid");
             return response()->json([
                 "status" => false,
                 "message" => $messageBag->all(),
             ], ResponseHTTP::HTTP_BAD_REQUEST);
         } else {
-            Log::info("ShopImage, ShopAdPopup, ShopAdItem files exist and are valid");
+            //Log::info("ShopImage, ShopAdPopup, ShopAdItem files exist and are valid");
             foreach (['ShopImage', 'ShopAdPopup', 'ShopAdItem'] as $key) {
                 if (isset($files[$key])) {
-                    Log::info("$key files exist and are valid");
+                    //Log::info("$key files exist and are valid");
                     // 如果存在 'ShopImage', 'ShopAdPopup', 或 'ShopAdItem' 檔案，則執行此區塊內的代碼
                     if (empty($files)) {
-                        Log::info("Create folder for upload");
+                        //Log::info("Create folder for upload");
                         $path = 'SystemSettingUpload/' . $key . '/SSU_' . Str::random(10);
                         Storage::disk('local')->makeDirectory($path);
                         return response()->json(["folder" => urlencode(base64_encode($path))]);
                     } else {
-                        Log::info("Upload files");
+                        //Log::info("Upload files");
                         $file_path_array = [];
                         foreach ($files as $fileGroup) {
                             $random = Str::random(10);
@@ -244,7 +244,7 @@ class InternalController extends Controller
     public function user(Request $request)
     {
         $filter = $request['filter'];
-        Log::info("POST /user payloads:" . new CGStringable($filter));
+        //Log::info("POST /user payloads:" . new CGStringable($filter));
         $user = $request->user();
         $catcher = [];
         if (empty($user)) {
@@ -344,7 +344,7 @@ class InternalController extends Controller
                 $shareTable = ShareTable::where('type', '=', EShareTableType::public->value);
             }
             $shareTables = $shareTable->paginate(30);
-            Log::info(json_encode(DB::getQueryLog(), JSON_PRETTY_PRINT));
+            //Log::info(json_encode(DB::getQueryLog(), JSON_PRETTY_PRINT));
             return $shareTables;
         });
         return view('index', Controller::baseControllerInit($request, [ '$shareTables' => $shareTables])->toArrayable());

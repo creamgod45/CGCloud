@@ -185,12 +185,12 @@ class MemberController extends Controller
                     event(new PasswordReset($user));
                 },
             );
-            Log::info($status);
+            //Log::info($status);
             /**
              * @type ELanguageText $ELanguageText
              */
             $ELanguageText = ELanguageText::valueof(str_replace(".", "_", $status));
-            Log::info(var_export($ELanguageText, true));
+            //Log::info(var_export($ELanguageText, true));
             return $status === Password::PASSWORD_RESET
                 ? response()->json([
                     "type" => true,
@@ -249,7 +249,7 @@ class MemberController extends Controller
                 ], ResponseHTTP::HTTP_OK);
             } else {
                 ResetPassword::toMailUsing(function (Member $member, $token) use ($fingerprint, $cgLCI) {
-                    Log::info("run1");
+                    //Log::info("run1");
                     $i18N = $cgLCI->getI18N();
                     $m = (new MailMessage)
                         ->success()
@@ -349,7 +349,7 @@ class MemberController extends Controller
         ], true);
         $CSRF = new CSRF(RouteNameField::PageRegisterPost->value);
         if ($v instanceof MessageBag) {
-            Log::info($request->ip() . ": " . PHP_EOL . "    Request(Json)=" . Json::encode($request->all()));
+            //Log::info($request->ip() . ": " . PHP_EOL . "    Request(Json)=" . Json::encode($request->all()));
             event((new UserNotification([
                 implode('<br>', $v->all()),
                 $i18N->getLanguage(ELanguageText::ValidatorBuilderFailed),
@@ -378,7 +378,7 @@ class MemberController extends Controller
                 ], ResponseHTTP::HTTP_OK);
             }
             // 可以在这里实现登录逻辑，或者重定向到登录页面
-            Log::info($v['username'] . ": registering");
+            //Log::info($v['username'] . ": registering");
             $user = Member::create([
                 'username' => $v['username'],
                 'email' => $v['email'],
@@ -387,7 +387,7 @@ class MemberController extends Controller
                 'enable' => 'true',
                 'administrator' => 'false',
             ]);
-            Log::info($user->username . ": registered");
+            //Log::info($user->username . ": registered");
 
             // 发送验证邮件
             $cacheKey = $user->UUID . ":mail-sent";
@@ -405,11 +405,11 @@ class MemberController extends Controller
                     "redirect" => route(RouteNameField::PageHome->value),
                 ]);
             } else {
-                Log::info($user->username . ": mailing");
+                //Log::info($user->username . ": mailing");
                 $instance = new VerifyEmailNotification($i18N);
                 $instance->delay(now()->addSeconds(5));
                 $user->notifyNow($instance);
-                Log::info($user->username . ": mailed");
+                //Log::info($user->username . ": mailed");
                 Cache::put($cacheKey, true, now()->addHours());
                 Auth::login($user);
                 event((new UserNotification([
@@ -444,7 +444,7 @@ class MemberController extends Controller
         ], true);
         $CSRF = new CSRF(RouteNameField::PageLoginPost->value);
         if ($v instanceof MessageBag) {
-            Log::info($request->ip() . ": " . PHP_EOL . "    Request(Json)=" . Json::encode($request->all()));
+            //Log::info($request->ip() . ": " . PHP_EOL . "    Request(Json)=" . Json::encode($request->all()));
             event((new UserNotification([
                 $i18N->getLanguage(ELanguageText::notification_login_failed),
                 $i18N->getLanguage(ELanguageText::notification_login_title),
@@ -462,7 +462,7 @@ class MemberController extends Controller
                 "error_keys" => $v->keys(),
             ], ResponseHTTP::HTTP_OK);
         } else {
-            Log::info(var_export([$v['token'], ($CSRF)->get()], true));
+            //Log::info(var_export([$v['token'], ($CSRF)->get()], true));
             if ($v['token'] !== ($CSRF)->get()) {
                 event((new UserNotification([
                     $i18N->getLanguage(ELanguageText::CSRFVerificationFailed),
@@ -486,11 +486,11 @@ class MemberController extends Controller
             $CSRF->reset();
             $user = Member::where("username", $v["username"])->first();
             if ($user !== null) {
-                Log::info($v["password"]);
+                //Log::info($v["password"]);
                 if (Hash::check($v["password"], $user["password"])) {
-                    Log::info($user->username . ": Logging in");
+                    //Log::info($user->username . ": Logging in");
                     Auth::login($user);
-                    Log::info($user->username . ": logined");
+                    //Log::info($user->username . ": logined");
                     if (Auth::check() && Auth::user()->enable === "false") {
                         $errors = new MessageBag;
                         $errors->add('username', $i18N->getLanguage(ELanguageText::UserAccountBanMessage));
@@ -542,7 +542,7 @@ class MemberController extends Controller
                     ])));
                     $alertView = \Illuminate\Support\Facades\View::make('components.alert',
                         ["type" => "warning", "messages" => $errors->all()]);
-                    Log::info($request->ip() . ": " . PHP_EOL . "    ValidationException=asd," . PHP_EOL . "    Request(Json)=" . Json::encode($request->all()));
+                    //Log::info($request->ip() . ": " . PHP_EOL . "    ValidationException=asd," . PHP_EOL . "    Request(Json)=" . Json::encode($request->all()));
                     return response()->json([
                         'type' => false,
                         'token' => $CSRF->get(),
@@ -576,7 +576,7 @@ class MemberController extends Controller
         $i18N = $cgLCI->getI18N();
         $fingerprint = $cgLCI->getFingerprint();
 
-        Log::info($request->user()["username"] . ": logout");
+        //Log::info($request->user()["username"] . ": logout");
         event((new UserNotification([
             $i18N->getLanguage(ELanguageText::logout_context, true)->placeholderParser("s", 5)->toString(),
             $i18N->getLanguage(ELanguageText::logout_title),
