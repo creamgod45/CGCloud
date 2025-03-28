@@ -22,6 +22,8 @@ Route::prefix("p")->group(function () {
     Route::get('share/{shortcode}', [ShareTablesController::class, 'publicShareableShareTableItem'])->name(RouteNameField::PageShareableShareTableItem->value);
     Route::get('download/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTableDownloadItem'])->name(RouteNameField::PagePublicShareTableDownloadItem->value);
     Route::get('preview/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTablePreviewItem'])->name(RouteNameField::PagePublicShareTablePreviewItem->value)->middleware('signed');
+    Route::get('player/{shareTableId}/{fileId}/{fileName}', [ShareTablesController::class, 'publicShareableShareTablePlayerPreviewFile'])->name(RouteNameField::PagePublicShareTablePreviewFilePlayerDash->value);
+    Route::get('dash/{shareTableId}/{fileId}/{fileName}', [ShareTablesController::class, 'publicShareableShareTableDashPreviewFile'])->name(RouteNameField::APIPublicShareTablePreviewFileDash->value);
 });
 
 Route::get('hello', [InternalController::class, 'getClientID'])->name(RouteNameField::PageGetClientID->value);

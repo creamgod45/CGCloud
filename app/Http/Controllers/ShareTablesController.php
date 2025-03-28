@@ -50,22 +50,39 @@ class ShareTablesController extends Controller
     {
         $popup = $request->get('popup', false) === '1';
         $id = $request->route('shortcode', 0);
+        /** @var ShareTable $shareTable */
         $shareTable = ShareTable::where('short_code', '=', $id)->where('type', '=',
             EShareTableType::public->value)->get()->first();
         if ($shareTable !== null) {
             $shareTableId = $shareTable->short_code;
             $virtualFiles = $shareTable->getAllVirtualFiles();
+            /** @var ShareTableVirtualFile[] | Collection $shareTableVirtualFiles */
+            $shareTableVirtualFiles = $shareTable->shareTableVirtualFile()->getResults();
             foreach ($virtualFiles as $virtualFile) {
                 $virtualFile['#'] = '';
                 $downloadUrl = route(RouteNameField::PagePublicShareTableDownloadItem->value, ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
-                $preview = "";
+                $playerItem = "";
+                /** @var ShareTableVirtualFile $shareTableVirtualFile */
+                $shareTableVirtualFile = $shareTableVirtualFiles->firstWhere('virtual_file_uuid', '=', $virtualFile->uuid);
+                if($shareTableVirtualFile !== null) {
+                    if ($shareTableVirtualFile->isAvailableDashVideo() && $shareTableVirtualFile->isCreateDashVideo()) {
+                        /** @var DashVideos $results */
+                        $results = $shareTableVirtualFile->dashVideos()->getResults();
+                        $playerItemUrl = route(RouteNameField::PagePublicShareTablePreviewFilePlayerDash->value, [
+                            'shareTableId' => $shareTable->id,
+                            'fileId' => $virtualFile->uuid,
+                            'fileName' => $results->filename,
+                        ]);
+                        $playerItem = '<a target="_blank" rel="noreferrer noopener" href="' . $playerItemUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;Dash 線上預覽</a>';
+                    }
+                }
                 if($virtualFile->size <= 1024 * 1024 * 400) {
                     $previewUrl = URL::temporarySignedRoute(RouteNameField::PagePublicShareTablePreviewItem->value, now()->addMinutes(5), ['fileId' => $virtualFile->uuid, 'shortcode' => $shareTableId]);
                     $preview = '<a target="_blank" rel="noreferrer noopener" href="' . $previewUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a>';
                 } else {
                     $preview = '<a class="btn-md btn-border-0 btn btn-dead tippyer" data-placement="auto" data-content="檔案過大無法預覽文件"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a>';
                 }
-                $virtualFile['action'] = '<div class="flex gap-3">'.$preview.'<a href="' . $downloadUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a></div>';
+                $virtualFile['action'] = '<div class="flex gap-3">'.$playerItem.$preview.'<a href="' . $downloadUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a></div>';
                 $virtualFile['size'] = Utils::convertByte($virtualFile['size']);
             }
             $sharePermissions = SharePermissions::where('share_tables_id', '=', $shareTableId)->get();
@@ -608,6 +625,51 @@ class ShareTablesController extends Controller
         }
     }
 
+    public function publicShareableShareTableDashPreviewFile(Request $request)
+    {
+        $shareTableId = $request->route('shareTableId', 0);
+        $fileId = $request->route('fileId', 0);
+        $fileName = $request->route('fileName', "");
+
+        $shareTable = ShareTable::find($shareTableId);
+        $virtualFiles = $shareTable->getAllVirtualFiles();
+        if($shareTable !== null && $virtualFiles->contains('uuid', '=', $fileId)){
+            //Log::info('0');
+            /** @var ShareTableVirtualFile[] $shareTableVirtualFile */
+            $shareTableVirtualFile = $shareTable->shareTableVirtualFile()->getResults();
+            if($shareTableVirtualFile !== null) {
+                //Log::info('1');
+                foreach ($shareTableVirtualFile as $item) {
+                    //Log::info('2');
+                    /** @var DashVideos $dashVideos */
+                    $dashVideos = $item->dashVideos()->getResults();
+                    Log::info(json_encode($dashVideos->toArray(), JSON_UNESCAPED_UNICODE));
+                    $disk = Storage::disk($dashVideos->disk);
+                    $path = str_replace($dashVideos->filename.".".$dashVideos->extension, '', $dashVideos->path);
+                    $files = $disk->allFiles($path);
+                    Log::info("path: ".$path);
+                    Log::info(json_encode($files, JSON_UNESCAPED_UNICODE));
+                    foreach ($files as $file) {
+                        //Log::info('3');
+                        if(str_contains($file, $fileName)) {
+                            //Log::info('4');
+                            $stream = $disk->readStream($file);
+                            return new StreamedResponse(function () use ($fileName, $disk, $file, $stream) {
+                                stream_copy_to_stream($stream, fopen('php://output', 'wb'));
+                                fclose($stream);
+                            }, 200, [
+                                'Content-Type' => $disk->mimeType($file),
+                                'Content-Length' => $disk->size($file),
+                                'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                            ]);
+                        }
+                    }
+                    abort(404, 'File not found.');
+                }
+            }
+        }
+    }
+
     public function playerPreviewFile(Request $request)
     {
         $shareTableId = $request->route('shareTableId', 0);
@@ -615,6 +677,16 @@ class ShareTablesController extends Controller
         $fileName = $request->route('fileName', "");
         return view('ShareTable.player', Controller::baseControllerInit($request, [
             'url' => route(RouteNameField::APIPreviewFileDash->value, ['shareTableId' => $shareTableId, 'fileId' => $fileId, 'fileName' => $fileName])
+        ])->toArrayable());
+    }
+
+    public function publicShareableShareTablePlayerPreviewFile(Request $request)
+    {
+        $shareTableId = $request->route('shareTableId', 0);
+        $fileId = $request->route('fileId', 0);
+        $fileName = $request->route('fileName', "");
+        return view('ShareTable.player', Controller::baseControllerInit($request, [
+            'url' => route(RouteNameField::APIPublicShareTablePreviewFileDash->value, ['shareTableId' => $shareTableId, 'fileId' => $fileId, 'fileName' => $fileName])
         ])->toArrayable());
     }
 

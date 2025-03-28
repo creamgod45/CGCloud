@@ -34,6 +34,9 @@ class ShareTable extends Model
 
     use HasFactory;
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection | VirtualFile[]
+     */
     public function getAllVirtualFiles()
     {
         $hasMany = $this->shareTableVirtualFile();
