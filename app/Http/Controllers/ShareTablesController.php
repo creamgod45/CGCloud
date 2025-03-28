@@ -71,7 +71,7 @@ class ShareTablesController extends Controller
                         $playerItemUrl = route(RouteNameField::PagePublicShareTablePreviewFilePlayerDash->value, [
                             'shareTableId' => $shareTable->id,
                             'fileId' => $virtualFile->uuid,
-                            'fileName' => $results->filename,
+                            'fileName' => $results->filename.".".$results->extension,
                         ]);
                         $playerItem = '<a target="_blank" rel="noreferrer noopener" href="' . $playerItemUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;Dash 線上預覽</a>';
                     }
