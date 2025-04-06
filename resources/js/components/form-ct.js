@@ -26,6 +26,10 @@ function Auth_login(element) {
      * @var {HTMLButtonElement}
      */
     let password = options.tracksList.password;
+    /**
+     * @var {HTMLDivElement}
+     */
+    let spinner = options.tracksList['.spinner'];
 
     let alert = element.querySelector(options.rawOptions.target);
     let validateFn = () => {
@@ -63,12 +67,19 @@ function Auth_login(element) {
                         options.tracksList[key].tippy.show();
                     }
                 }
+                login.disabled = false;
             }
+            spinner.classList.add("hidden");
             common_proccess(data);
         });
     }
     let submitFn = () => {
-        if (element.dataset.token === undefined) return false;
+        login.disabled = true;
+        spinner.classList.remove("hidden");
+        if (element.dataset.token === undefined) {
+            login.disabled = false;
+            return false;
+        }
         if (element.token === undefined) element.token = element.dataset.token;
         let r = validateFn();
         if (r) {

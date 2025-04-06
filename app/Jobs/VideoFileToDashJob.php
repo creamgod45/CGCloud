@@ -2,6 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Lib\Utils\CGFileSystem\CGBaseFile;
+use App\Lib\Utils\CGFileSystem\CGBaseFileObject;
+use App\Lib\Utils\CGFileSystem\CGFileSystem;
+use App\Lib\Utils\CGFileSystem\CGPathUtils;
 use App\Models\DashVideos;
 use App\Models\ShareTable;
 use App\Models\ShareTableVirtualFile;
@@ -20,11 +24,13 @@ use Illuminate\Support\Facades\Storage;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Nette\Utils\FileSystem;
+use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Streaming\FFMpeg;
 use Streaming\Format\X264;
 use Streaming\Representation;
 ini_set('max_execution_time', 0); // 禁用 PHP 執行時間限制
+
 class VideoFileToDashJob implements ShouldQueue
 {
     use Dispatchable;
@@ -39,7 +45,7 @@ class VideoFileToDashJob implements ShouldQueue
 
         $this->config = [
             'timeout'          => 60*60*24*365,
-            'ffmpeg.threads'   => 2,   // The number of threads that FFmpeg should use
+            'ffmpeg.threads'   => 8,   // The number of threads that FFmpeg should use
         ];
 
         if (Config::get('app.platform') === "Windows") {
@@ -85,6 +91,7 @@ class VideoFileToDashJob implements ShouldQueue
     {
         set_time_limit(60*60*24*365);
         Log::info("[JOBS]VideoFileToDashJob");
+        Log::info("[JOBS]workDir: ".getcwd());
         $dashVideos = DashVideos::where('type', '=', 'wait')->get()->first();
         if($dashVideos === null){
             return;
@@ -97,43 +104,52 @@ class VideoFileToDashJob implements ShouldQueue
 
         try {
             Log::info("[JOBS]start processing ".$dashVideos->id);
-            //dump("start processing ".$dashVideos->id);
-            $filename = pathinfo($virtualFile->path, PATHINFO_FILENAME);
+            $object = CGFileSystem::getCGFileObject(Storage::disk($virtualFile->disk)->path($virtualFile->path));
+            if(!($object instanceof CGBaseFile)) return;
+            if(!$object->isSupportVideoFile()) return;
 
-            $tfilename = str_replace($filename, '', $virtualFile->path) . '/ffmpeg-streaming.log';
-            if(!Storage::disk($virtualFile->disk)->exists($tfilename)){
-                Storage::disk($virtualFile->disk)->put($tfilename, "");
+            chdir($object->getDirname());
+            Log::info("[JOBS]workDir: ".getcwd());
+            $cwdObject = CGFileSystem::getCGFileObject(getcwd());
+            Log::info("[JOBS]cwdObject: ".$cwdObject->getPath());
+            $processVideoObject = $object->renameToNewInstance($object->getFilename().".".$virtualFile->extension);
+
+            $FFMPEG_streaming_log = $object->renameToNewInstance('ffmpeg-streaming.log');
+            $tfilename = $object->getDirname() . '/ffmpeg-streaming.log';
+            if(file_exists($tfilename)){
+                FileSystem::write($tfilename, "");
             }
+
             // 獲取檔案實際路徑
-            $filePath = Storage::disk($virtualFile->disk)->path($tfilename);
-            $filePath = str_replace('\\', '/', $filePath);
+            $ffmpegLogPath = $FFMPEG_streaming_log->getPath();
 
             // 建立 Logger 並設置檔案路徑寫入日誌
-            $log = new Logger('FFmpeg_Streaming');
-            $log->pushHandler(new StreamHandler($filePath)); // 記錄到檔案路徑
+            $FFMPEGLogger = new Logger('FFmpeg_Streaming');
+            $FFMPEGLogger->pushHandler(new StreamHandler($ffmpegLogPath)); // 記錄到檔案路徑
 
-            $ffmpeg1 = FFMpeg::create($this->config, $log);
-            $copyed = Storage::disk($virtualFile->disk)->copy($virtualFile->path, $virtualFile->path.".".$virtualFile->extension);
+            $ffmpeg = FFMpeg::create($this->config, $FFMPEGLogger);
+            $copyed = $object->copyFile($processVideoObject);
+            $processVideoObject->rebuild();
             Log::info("[JOBS]copyed: ".$copyed);
-            $fullpath = Storage::disk($virtualFile->disk)->path($virtualFile->path.".".$virtualFile->extension);
-            $fullpath = str_replace('\\', '/', $fullpath);
-            Log::info("[JOBS]fullpath: ".$fullpath);
+            $preparedVideoFilePath = $processVideoObject->getPath();
+            Log::info("[JOBS]fullpath: ".$preparedVideoFilePath);
 
             // 添加浮水印
-            $hasAudio = $this->hasAudio($filePath, $fullpath);
+            // FFMPEG 多數錯誤問題跟 watermark 路徑有關
+            $hasAudio = $this->hasAudio($ffmpegLogPath, $preparedVideoFilePath);
             Log::info("[JOBS]hasAudio: ".$hasAudio);
-            $pipLineStream = $ffmpeg1->open($fullpath);
+            $pipLineStream = $ffmpeg->open($preparedVideoFilePath);
             $watermarkImagePath = public_path('assets/images/watermark-cgcloud.png');
             Log::info("[JOBS]watermarkImagePath: ".$watermarkImagePath);
-            FileSystem::copy($watermarkImagePath, __DIR__.'/watermark.png');
+            $tempWaterMarkFilePath = './watermark.png';
+            FileSystem::copy($watermarkImagePath, $tempWaterMarkFilePath);
             $pipLineStream->filters()
-                ->watermark(__DIR__.'/watermark.png')
+                ->watermark($tempWaterMarkFilePath)
                 ->synchronize();
 
             // 取得封面圖片
-            $disk = 'local';
-            $fullpath2 = Storage::disk($virtualFile->disk)->path($virtualFile->path."_output.".$virtualFile->extension);
-            $fullpath2 = str_replace('\\', '/', $fullpath2);
+            $watermarkedVideoObject = CGFileSystem::getCGFileObject(Storage::disk($virtualFile->disk)->path($virtualFile->path . "_output." . $virtualFile->extension));
+            $watermarkedVideoPath = $watermarkedVideoObject->getPath();
             $format = new \FFMpeg\Format\Video\X264();
             $kiloBitrate = $pipLineStream->getFormat()->get('bit_rate') / 1000 * 0.7; // 轉換為 Kbps
             $format->setKiloBitrate($kiloBitrate);
@@ -153,12 +169,12 @@ class VideoFileToDashJob implements ShouldQueue
 
                 $diff_time = time() - $start_time;
                 if($percentage==0){
-                    $percentage = (float)0.01;
+                    $percentage = 0.01;
                 }
-                $seconds_left = 100 * $diff_time / $percentage - $diff_time;
+                $seconds_left = (int)(100 * $diff_time / $percentage - $diff_time);
                 //var_dump($seconds_left);
 
-                return gmdate("H:i:s", $seconds_left);
+                return @gmdate("H:i:s", $seconds_left);
             };
             $format->on('progress', function ($video, $format, $percentage) use($percentage_to_time_left, $dashVideos) {
                 // You can update a field in your database or can log it to a file
@@ -170,35 +186,37 @@ class VideoFileToDashJob implements ShouldQueue
             });
             $saveWaterMarkVideo = $pipLineStream->save(
                 $format,
-                $fullpath2,
+                $watermarkedVideoPath,
             )->getPathfile();
             Log::info("[JOBS]saveWaterMarkVideo: ".$saveWaterMarkVideo);
 
-            $this->makeThumbFile( $virtualFile, $dashVideos, $log, $fullpath2);
+            $watermarkedVideoObject = CGFileSystem::getCGFileObject(Storage::disk($virtualFile->disk)->path($virtualFile->path . "_output." . $virtualFile->extension));
 
-            $path = $this->proccessed($virtualFile, $dashVideos, $log, $fullpath2);
+            $this->makeThumbFile($virtualFile, $dashVideos, $FFMPEGLogger, $watermarkedVideoObject);
+
+            $path = $this->proccessed($virtualFile, $dashVideos, $FFMPEGLogger, $watermarkedVideoPath);
             $newFileName = pathinfo($path, PATHINFO_FILENAME);
             $newExtension = pathinfo($path, PATHINFO_EXTENSION);
             $size = filesize($path);
+            Log::info("[JOBS]\$path: ".$path);
 
-            if($this->isWindows()){
-                $str = storage_path('app/public') . '\\';
-            } elseif ($this->isLinux()) {
-                $str = storage_path('app/public') . '/';
-            }
 
+            $str = CGPathUtils::converterPathSlash(storage_path('app'.DIRECTORY_SEPARATOR.'public').DIRECTORY_SEPARATOR) ;
+            $str1 = CGPathUtils::converterPathSlash($path) ;
+
+            $str_replace = CGPathUtils::converterPathSlash(str_replace($str, '', $str1));
             $dashVideos->update([
                 'type' => 'success',
-                'path' => str_replace($str, '', $path),
+                'path' => $str_replace,
                 'filename' => $newFileName,
                 'extension' => $newExtension,
                 "size" => $size,
                 'disk' => "public",
             ]);
 
-            Storage::disk($virtualFile->disk)->delete($virtualFile->path.".".$virtualFile->extension);
-            Storage::disk($virtualFile->disk)->delete(str_replace(pathinfo($virtualFile->path, PATHINFO_FILENAME), '', $virtualFile->path)."thumb001.jpg");
-            Storage::disk($virtualFile->disk)->delete(str_replace(pathinfo($virtualFile->path, PATHINFO_FILENAME), '', $virtualFile->path)."ffmpeg-streaming.log");
+            $FFMPEG_streaming_log->delete();
+            $watermarkedVideoObject->delete();
+            unlink($tempWaterMarkFilePath);
         } catch (Exception $e) {
             Log::error("[JOBS]".$e->getMessage().
                 $e->getTraceAsString());
@@ -212,12 +230,12 @@ class VideoFileToDashJob implements ShouldQueue
     {
         $ffmpeg = FFMpeg::create($this->config, $log);
 
-        $r_144p  = (new Representation())->setKiloBitrate(95)->setResize(256, 144);
+        $r_144p  = (new Representation())->setKiloBitrate(80)->setResize(256, 144);
         $r_240p  = (new Representation())->setKiloBitrate(150)->setResize(426, 240);
-        $r_360p  = (new Representation())->setKiloBitrate(276)->setResize(640, 360);
-        $r_480p  = (new Representation())->setKiloBitrate(750)->setResize(854, 480);
-        $r_720p  = (new Representation())->setKiloBitrate(2048)->setResize(1280, 720);
-        $r_1080p = (new Representation())->setKiloBitrate(4096)->setResize(1920, 1080);
+        $r_360p  = (new Representation())->setKiloBitrate(300)->setResize(640, 360);
+        $r_480p  = (new Representation())->setKiloBitrate(500)->setResize(854, 480);
+        $r_720p  = (new Representation())->setKiloBitrate(1500)->setResize(1280, 720);
+        $r_1080p = (new Representation())->setKiloBitrate(3000)->setResize(1920, 1080);
 
         $format = new X264();
         $start_time = 0;
@@ -232,7 +250,7 @@ class VideoFileToDashJob implements ShouldQueue
             if($percentage==0){
                 $percentage = (float)0.01;
             }
-            $seconds_left = 100 * $diff_time / $percentage - $diff_time;
+            $seconds_left = (int)(100 * $diff_time / $percentage - $diff_time);
             //var_dump($seconds_left);
 
             return gmdate("H:i:s", $seconds_left);
@@ -271,13 +289,15 @@ class VideoFileToDashJob implements ShouldQueue
             ->save(
                 $saveDashPath
             );
-        Log::info("[JOBS]path: ". $saveDashPath);
+        Log::info("[JOBS]saveDashFilePath: ". $saveDashPath);
         return $saveDashPath;
     }
 
-    private function makeThumbFile(VirtualFile $virtualFile, DashVideos $dashVideos, $log, $fullpath)
+    private function makeThumbFile(VirtualFile $virtualFile, DashVideos $dashVideos, LoggerInterface $log, CGBaseFile | CGBaseFileObject $object)
     {
         $ffmpeg = \FFMpeg\FFMpeg::create($this->config, $log);
+
+        $fullpath = $object->getPath();
 
         // 開啟影片檔案
         $video = $ffmpeg->open($fullpath);
@@ -286,31 +306,53 @@ class VideoFileToDashJob implements ShouldQueue
         $timeCode = TimeCode::fromSeconds(1);
         $frame = $video->frame($timeCode);
 
-        $saveThumbPath = Storage::disk('local')->path(str_replace(pathinfo($virtualFile->path, PATHINFO_FILENAME), '', $virtualFile->path));
-        $saveThumbPath = str_replace('\\', '/', $saveThumbPath);
+        try {
+            $saveThumbObject = $object->renameToNewInstance($object->getFilename() . '_thumb%03d.jpg');
+        } catch (Exception $e) {
+            Log::error("[JOBS]makeThumbFile::\$object->renameToNewInstance => ".$e->getMessage());
+        }
+        $saveThumbPath = $saveThumbObject->getPath();
+
+        Log::info("[JOBS]saveThumbPath(before): ". $saveThumbPath);
 
         // 儲存擷取的影格圖片
-        $frame->save($saveThumbPath.'thumb%03d.jpg');
+        $frame->save($saveThumbPath);
 
-        Log::info("[JOBS]saveThumbPath: ". $saveThumbPath);
+        try {
+            $saveThumbObject =  CGFileSystem::getCGFileObject($saveThumbObject->getDirname().DIRECTORY_SEPARATOR.$object->getFilename() . '_thumb001.jpg');
+        } catch (Exception $e) {
+            Log::error("[JOBS]makeThumbFile::CGFileSystem::getCGFileObject => ".$e->getMessage());
+        }
+        $saveThumbPath = $saveThumbObject->getPath();
 
-        $path = $saveThumbPath . 'thumb001.jpg';
+        Log::info("[JOBS]saveThumbPath(after): ". $saveThumbPath);
+
+        $path = $saveThumbObject->getPath();
         $size = filesize($path);
         $mimeType = mime_content_type($path);
 
-        $path2 = storage_path('app').'/'.str_replace(pathinfo($virtualFile->path, PATHINFO_FILENAME), '',
-                $virtualFile->path) . pathinfo($virtualFile->path, PATHINFO_FILENAME) . "_thumb.jpg";
-        FileSystem::copy($path, $path2);
+        try {
+            $saveThumbObject2 = $saveThumbObject->renameToNewInstance($saveThumbObject->getFilename() . '_thumb.jpg', true);
+        } catch (Exception $e) {
+            Log::error("[JOBS]makeThumbFile::\$saveThumbObject2->renameToNewInstance => ".$e->getMessage());
+        }
+        $saveThumbPath2 = $saveThumbObject2->getPath();
+
+        $path2 = $saveThumbPath2;
         Log::info("[JOBS]path: ". $path);
         Log::info("[JOBS]path2: ". $path2);
+
+        $path2 = CGPathUtils::converterPathSlash($path2);
+        $replaceString = CGPathUtils::converterPathSlash(storage_path('app'.DIRECTORY_SEPARATOR.'public').DIRECTORY_SEPARATOR);
+        $path2 = str_replace($replaceString, '', $path2);
 
         $uuid = Uuid::uuid4()->toString();
         $attributes = [
             'uuid' => $uuid,
             'disk' => 'local',
-            'path' => str_replace(storage_path('app').'/', '', $path2), // @todo 修改過長的 path
+            'path' => $path2,
             'type' => 'persistent',
-            'filename' => $virtualFile->filename . "_thumb.jpg",
+            'filename' => basename($path2),
             "size" => $size,
             'extension' => "jpg",
             'minetypes' => $mimeType,

@@ -603,7 +603,7 @@ class ShareTablesController extends Controller
                     $path = str_replace($dashVideos->filename.".".$dashVideos->extension, '', $dashVideos->path);
                     $files = $disk->allFiles($path);
                     Log::info("path: ".$path);
-                    Log::info(json_encode($files, JSON_UNESCAPED_UNICODE));
+                    //Log::info(json_encode($files, JSON_UNESCAPED_UNICODE));
                     foreach ($files as $file) {
                         //Log::info('3');
                         if(str_contains($file, $fileName)) {
@@ -1145,8 +1145,8 @@ class ShareTablesController extends Controller
         ]));
 
         // 确保上传目录存在
-        if ($offset === "0" and !str_contains($virtualFile->path, base64_encode($fileName))) {
-            $filePath = $virtualFile->path . '/' . base64_encode($fileName);
+        if ($offset === "0" and !str_contains($virtualFile->path, md5($fileName))) {
+            $filePath = $virtualFile->path . '/' . md5($fileName);
         } else {
             $filePath = $virtualFile->path;
         }

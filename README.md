@@ -14,4 +14,9 @@
 ### 分支測試部屬狀態
 
 ## 更新紀錄 Update Log
-# CGCloud
+
+* @todo 上傳兩個檔案預覽時會有問題 只有出現一種檔案預覽 (公開、會員快速檢視、詳細檢視)
+* @todo 禁止非影片檔案出現轉換
+* @todo 私人分享檔案
+* @todo 密碼解鎖功能
+* @todo 重構檔案路徑相關的系統 (windows,linux統一處理路徑斜線;path,dirname,filename,ext,filenameAndExt)

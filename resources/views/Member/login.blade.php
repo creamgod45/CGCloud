@@ -21,7 +21,7 @@
     <div class="register-frame">
         <form class="login form-ct"
               data-fn="Auth.login"
-              data-tracks="username,password,login"
+              data-tracks="username,password,login,.spinner"
               data-target="#alert"
               data-token="{{(new CSRF(RouteNameField::PageLoginPost->value))->get()}}"
               method="POST"
@@ -47,7 +47,10 @@
             <a class="link" href="{{route(RouteNameField::PageForgetPassword->value)}}">忘記密碼</a>
             <a class="link" href="{{route(RouteNameField::PageRegister->value)}}">註冊會員</a>
             <div class="button">
-                <button type="button" name="login" class="btn-ripple btn btn-md-strip btn-success">登入</button>
+                <button type="submit" name="login" class="btn-ripple btn btn-md-strip btn-success">登入</button>
+            </div>
+            <div class="spinner hidden">
+                <i class="fa-solid fa-spinner animate-spin"></i>&nbsp;處理中
             </div>
             <div id="alert">
                 @if ($errors->any())

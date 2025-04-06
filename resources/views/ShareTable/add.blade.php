@@ -106,10 +106,19 @@
                         <div class="fd-item">
                             <input type="hidden" name="files[]" value="{{ $file->uuid }}">
                             <div class="fdi-preview overflow-hidden">
-                                @if(Utilsv2::isSupportImageFile($file->minetypes))
-                                    <img class="fdi-imginfo" src="{{ $file->getTemporaryUrl() }}" alt="{{ $file->filename }}">
-                                @elseif(Utilsv2::isSupportVideoFile($file->minetypes))
-                                    <video controls src="{{ $file->getTemporaryUrl() }}"></video>
+                                @if($file->size <= 1024 * 1024 * 400)
+                                    @if(Utilsv2::isSupportImageFile($file->minetypes))
+                                        <img class="fdi-imginfo" src="{{ $file->getTemporaryUrl() }}" alt="{{ $file->filename }}">
+                                    @elseif(Utilsv2::isSupportVideoFile($file->minetypes))
+                                        <video controls src="{{ $file->getTemporaryUrl() }}"></video>
+                                    @endif
+                                @else
+                                    <img class="fdi-imginfo tippyer presize" loading="lazy"
+                                         data-prewidth="100%"
+                                         data-preheight="300px"
+                                         data-content="{{ $i18N->getLanguage(ELanguageText::FileSizeTooLarge) }}"
+                                         src="{{ asset('assets/images/warning_file_size_large.webp') }}"
+                                         alt="{{ $file->filename }}">
                                 @endif
                             </div>
                             <div class="fdi-delete btn btn-circle btn-color7 btn-border-0"><i class="fa-solid fa-xmark"></i></div>
