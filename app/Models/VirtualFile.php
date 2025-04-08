@@ -22,7 +22,6 @@ use Intervention\Image\ImageManager;
 class VirtualFile extends Model
 {
     use HasFactory;
-    use MassPrunable;
 
     protected $fillable = [
         'uuid',
@@ -36,14 +35,6 @@ class VirtualFile extends Model
         'size',
         'type',
     ];
-
-    /**
-     * 获取可修剪模型查询构造器。
-     */
-    public function prunable(): VirtualFile
-    {
-        return static::where('expired_at', '<=', now())->where('type', '=', 'temporary');
-    }
 
     public function members()
     {

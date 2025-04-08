@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\VirtualFile;
+use DB;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -27,8 +28,8 @@ class CleanTemporaryFileJob implements ShouldQueue
         Log::info('Jobs: CleanTemporaryFileJob');
         Log::info('Start Time: ' . $this->currentTime());
         $virtualFiles = VirtualFile::where('type', '=', 'temporary')
-            ->where('expired_at', '<=', now())
-            ->limit(100)
+            ->where('expired_at', '<=', time())
+            ->limit(50)
             ->get()
             ->all();
         foreach ($virtualFiles as $virtualFile) {
