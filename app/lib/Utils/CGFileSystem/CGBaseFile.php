@@ -16,7 +16,8 @@ class CGBaseFile extends CGBaseFileObject
     public function isSupportImageFile()
     {
         $mimetype = strtolower(parent::getMimeType());
-        $mimeTypes = explode('::', 'image/png::image/jpg::image/jpeg::image/svg+xml::image/gif::image/webp::image/apng::image/bmp::image/avif');
+        $mimeTypes = explode('::',
+            'image/png::image/jpg::image/jpeg::image/svg+xml::image/gif::image/webp::image/apng::image/bmp::image/avif');
         if (in_array($mimetype, $mimeTypes)) {
             return true;
         }
@@ -26,7 +27,8 @@ class CGBaseFile extends CGBaseFileObject
     public function isSupportVideoFile()
     {
         $mimetype = strtolower(parent::getMimeType());
-        $mimeTypes = explode('::', 'video/av1::video/H264::video/H264-SVC::video/H264-RCDO::video/H265::video/JPEG::video/JPEG::video/mpeg::video/mpeg4-generic::video/ogg::video/quicktime::video/JPEG::video/vnd.mpegurl::video/vnd.youtube.yt::video/VP8::video/VP9::video/mp4::video/mp4V-ES::video/MPV::video/vnd.directv.mpeg::video/vnd.dece.mp4::video/vnd.uvvu.mp4::video/H266::video/H263::video/H263-1998::video/H263-2000::video/H261');
+        $mimeTypes = explode('::',
+            'video/av1::video/H264::video/H264-SVC::video/H264-RCDO::video/H265::video/JPEG::video/JPEG::video/mpeg::video/mpeg4-generic::video/ogg::video/quicktime::video/JPEG::video/vnd.mpegurl::video/vnd.youtube.yt::video/VP8::video/VP9::video/mp4::video/mp4V-ES::video/MPV::video/vnd.directv.mpeg::video/vnd.dece.mp4::video/vnd.uvvu.mp4::video/H266::video/H263::video/H263-1998::video/H263-2000::video/H261');
         if (in_array($mimetype, $mimeTypes)) {
             return true;
         }
@@ -46,12 +48,16 @@ class CGBaseFile extends CGBaseFileObject
     /**
      * @param string $filename
      * @param bool   $moveFile
+     * @param bool   $defaultFileExists
      *
      * @return CGBaseFile
      * @throws Exception
      */
-    public function renameToNewInstance(string $filename, bool $moveFile = false, bool $defaultFileExists = false): CGBaseFile
-    {
+    public function renameToNewInstance(
+        string $filename,
+        bool $moveFile = false,
+        bool $defaultFileExists = false,
+    ): CGBaseFile {
         $filename = basename($filename);
         if (str_starts_with($filename, '/')) {
             $filename = str_replace('/', '', $filename);
@@ -111,14 +117,16 @@ class CGBaseFile extends CGBaseFileObject
         $fwrite = fwrite($stream, $content);
         if ($fwrite === false) {
             throw new Exception(
-                '錯誤編寫文件：' . parent::getPath() . ' - ' . json_encode(error_get_last(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
-                0x0008
+                '錯誤編寫文件：' . parent::getPath() . ' - ' . json_encode(error_get_last(),
+                    JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+                0x0008,
             );
         }
         return fclose($stream);
     }
 
-    private function fileOpenExtends($mode = 'r'){
+    private function fileOpenExtends($mode = 'r')
+    {
         return @fopen(parent::getPath(), $mode);
     }
 
@@ -169,8 +177,9 @@ class CGBaseFile extends CGBaseFileObject
         $fwrite = fwrite($stream, $content);
         if ($fwrite === false) {
             throw new Exception(
-                '錯誤編寫文件：' . parent::getPath() . ' - ' . json_encode(error_get_last(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
-                 0x0008
+                '錯誤編寫文件：' . parent::getPath() . ' - ' . json_encode(error_get_last(),
+                    JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT),
+                0x0008,
             );
         }
         return fclose($stream);
@@ -245,7 +254,7 @@ class CGBaseFile extends CGBaseFileObject
      *
      * @return bool
      */
-    public function copyFile(CGBaseFileObject | CGBaseFile | string $path): bool
+    public function copyFile(CGBaseFileObject|CGBaseFile|string $path): bool
     {
         if (is_string($path)) {
             try {

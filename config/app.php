@@ -22,6 +22,30 @@ return [
 
     'description' => env('APP_DESCRIPTION'),
 
+    'videoToDashKiloBitrate' => env('VIDEO_TO_DASH_KILO_BITRATE', 0.7),
+
+    'videoToDashCPUCoreUsed' => env('VIDEO_TO_DASH_CPU_CORE_USED', 1),
+
+     /*
+     |--------------------------------------------------------------------------
+     | FFMPEG Filename
+     |--------------------------------------------------------------------------
+     | 這個設定值指向固定路徑(storage/Applications)的檔案名稱。
+     | 此設定值使用 basename 處理
+     |--------------------------------------------------------------------------
+     */
+    'ffmpegBinariesFileName' => env('FFMPEG_BINARIES_FILENAME', 'ffmpeg'),
+
+     /*
+     |--------------------------------------------------------------------------
+     | FFProbe Filename
+     |--------------------------------------------------------------------------
+     | 這個設定值指向固定路徑(storage/Applications)的檔案名稱。
+     | 此設定值使用 basename 處理
+     |--------------------------------------------------------------------------
+     */
+    'ffprobeBinariesFileName' => env('FFPROBE_BINARIES_FILENAME', 'ffprobe'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Version

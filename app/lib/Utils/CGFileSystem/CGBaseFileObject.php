@@ -3,6 +3,7 @@
 namespace App\Lib\Utils\CGFileSystem;
 
 use Exception;
+use Illuminate\Support\Facades\Config;
 
 class CGBaseFileObject
 {
@@ -88,7 +89,7 @@ class CGBaseFileObject
             $this->filename = pathinfo($this->path, PATHINFO_FILENAME);
             $this->extension = pathinfo($this->path, PATHINFO_EXTENSION);
             $this->filenameAndExtension = pathinfo($this->path, PATHINFO_BASENAME);
-            $this->mimeType = mime_content_type($this->path);
+            $this->mimeType = $this->mimeLikely();
         } else {
             $this->filename = null;
             $this->extension = null;
@@ -116,6 +117,88 @@ class CGBaseFileObject
             $this->fileOwner = $windowsGetAclInfo['OWNER'];
             $this->fileGroup = $windowsGetAclInfo['GROUP'];
         }
+    }
+
+    public function isWindows(): bool
+    {
+        return Config::get('app.platform') === "Windows";
+    }
+
+    public function isLinux(): bool
+    {
+        return Config::get('app.platform') === "Linux";
+    }
+
+    /**
+     * 使用多種方法確定文件的可能的 MIME 類型。
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function mimeLikely(): string
+    {
+        $results = [];
+        $filePath = $this->path;
+
+        // 方法 1：finfo_file
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            if ($finfo) {
+                $results[] = finfo_file($finfo, $filePath);
+                finfo_close($finfo);
+            }
+        }
+
+        // 方法 2：mime_content_type
+        if (function_exists('mime_content_type')) {
+            $results[] = mime_content_type($filePath);
+        }
+
+        // 方法 3：shell_exec 判斷 OS
+        if (function_exists('shell_exec')) {
+            if ($this->isWindows()) {
+                // Windows 不支援 `file` 指令，可選擇略過或使用其他工具（如 PowerShell）
+                $powershellCmd = 'powershell -command "(Get-Item \'' . $filePath . '\').Extension"';
+                $ext = strtolower(trim(shell_exec($powershellCmd)));
+                $mimeMap = [
+                    '.jpg' => 'image/jpeg',
+                    '.jpeg' => 'image/jpeg',
+                    '.png' => 'image/png',
+                    '.gif' => 'image/gif',
+                    '.pdf' => 'application/pdf',
+                    '.txt' => 'text/plain',
+                ];
+                if (isset($mimeMap[$ext])) {
+                    $results[] = $mimeMap[$ext];
+                }
+            } else {
+                // Linux/macOS 用 file 指令
+                $shellOutput = trim(@shell_exec('file -b --mime-type ' . escapeshellarg($filePath)));
+                if (!empty($shellOutput)) {
+                    $results[] = $shellOutput;
+                }
+            }
+        }
+
+        // 方法 4：模擬 $_FILES['type']（不可靠，用副檔名模擬）
+        $mimeFromExtension = [
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'pdf' => 'application/pdf',
+            'txt' => 'text/plain',
+            // 可擴充更多副檔名
+        ];
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        if (isset($mimeFromExtension[$ext])) {
+            $results[] = $mimeFromExtension[$ext];
+        }
+
+
+        $counts = array_count_values($results);
+        arsort($counts);
+        return array_key_first($counts);
     }
 
     public function __toString(){
