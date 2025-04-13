@@ -23,4 +23,13 @@ class CGBaseFolder extends CGBaseFileObject
             })
             ->toArray();
     }
+
+    public function delete(): bool
+    {
+        $allFiles = $this->allFiles();
+        foreach ($allFiles as $file) {
+            unlink($file);
+        }
+        return rmdir(self::getPath());
+    }
 }

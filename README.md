@@ -19,4 +19,4 @@
 * @todo 禁止非影片檔案出現轉換
 * @todo 私人分享檔案
 * @todo 密碼解鎖功能
-* @todo 重構檔案路徑相關的系統 (windows,linux統一處理路徑斜線;path,dirname,filename,ext,filenameAndExt)
+* @todo 修正 Video 轉換系統無效建制檔案索引資訊

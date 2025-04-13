@@ -276,6 +276,20 @@ class ShareTablesController extends Controller
         if ($member !== null) {
             if ($shareTable !== null) {
                 if ($member->id === $shareTable->member_id) {
+                    /** @var ShareTableVirtualFile[] | Collection $results */
+                    $results = $shareTable->shareTableVirtualFile()->getResults();
+                    foreach ($results as $result) {
+                        /** @var DashVideos $dashVideos */
+                        $dashVideos = $result->dashVideos()->getResults();
+                        $dashVideoFilePath = Storage::disk($dashVideos->disk)->path($dashVideos->path);
+                        $object = CGFileSystem::getCGFileObject($dashVideoFilePath);
+                        if($object instanceof CGBaseFile){
+                            $folderObj = CGFileSystem::getCGFileObject($object->getDirname());
+                            if($folderObj instanceof CGBaseFolder){
+                                $folderObj->delete();
+                            }
+                        }
+                    }
                     $shareTable->getAllVirtualFiles()->each(function ($virtualFile) {
                         Storage::disk($virtualFile->disk)->delete($virtualFile->path);
                         $virtualFile->delete();
