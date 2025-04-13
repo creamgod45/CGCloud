@@ -612,7 +612,7 @@ class ShareTablesController extends Controller
                     if (file_exists($disk->path($path) . "/allFiles.json")) {
                         $CGBaseFolder = CGFileSystem::getCGFileObject($disk->path($path));
                         if ($CGBaseFolder instanceof CGBaseFolder) {
-                            $json = FileSystem::read($path . "/allFiles.json");
+                            $json = FileSystem::read($disk->path($path) . "/allFiles.json");
                             $files = json_decode($json, true);
                         }
                     } else {
@@ -664,7 +664,7 @@ class ShareTablesController extends Controller
                     if (file_exists($disk->path($path) . "/allFiles.json")) {
                         $CGBaseFolder = CGFileSystem::getCGFileObject($disk->path($path));
                         if ($CGBaseFolder instanceof CGBaseFolder) {
-                            $json = FileSystem::read($path . "/allFiles.json");
+                            $json = FileSystem::read($disk->path($path) . "/allFiles.json");
                             $files = json_decode($json, true);
                         }
                     } else {
