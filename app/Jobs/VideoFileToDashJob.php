@@ -137,18 +137,20 @@ class VideoFileToDashJob implements ShouldQueue
                 // FFMPEG 多數錯誤問題跟 watermark 路徑有關
                 $hasAudio = $this->hasAudio($ffmpegLogPath, $preparedVideoFilePath);
                 Log::info("[JOBS]hasAudio: " . $hasAudio);
-                $pipLineStream = $ffmpeg->open($preparedVideoFilePath);
                 $watermarkImagePath = public_path('assets/images/watermark-cgcloud.png');
+                $pipLineStream2 = $ffmpeg->open($preparedVideoFilePath);
+                $pipLineStream = $ffmpeg->openAdvanced([$preparedVideoFilePath, $watermarkImagePath]);
+                //$ffmpeg->customInput($watermarkImagePath);
                 Log::info("[JOBS]watermarkImagePath: " . $watermarkImagePath);
-                $tempWaterMarkFilePath = './watermark.png';
-                FileSystem::copy($watermarkImagePath, $tempWaterMarkFilePath);
-                $pipLineStream->filters()->watermark($tempWaterMarkFilePath)->synchronize();
+                //$tempWaterMarkFilePath = './watermark.png';
+                //FileSystem::copy($watermarkImagePath, $tempWaterMarkFilePath);
+                //$pipLineStream->filters()->watermark($tempWaterMarkFilePath)->synchronize();
 
                 // 取得封面圖片
                 $watermarkedVideoObject = CGFileSystem::getCGFileObject(Storage::disk($virtualFile->disk)->path($virtualFile->path . "_output." . $virtualFile->extension));
                 $watermarkedVideoPath = $watermarkedVideoObject->getPath();
                 $format = new \FFMpeg\Format\Video\X264();
-                $kiloBitrate = $pipLineStream->getFormat()->get('bit_rate') / 1000 * Config::get('app.videoToDashKiloBitrate'); // 轉換為 Kbps
+                $kiloBitrate = $pipLineStream2->getFormat()->get('bit_rate') / 1000 * Config::get('app.videoToDashKiloBitrate'); // 轉換為 Kbps
                 $format->setKiloBitrate($kiloBitrate);
 
                 if ($hasAudio) {
@@ -184,7 +186,10 @@ class VideoFileToDashJob implements ShouldQueue
                         Cache::put('ffmpeg_watermark_progress_' . $dashVideos->id, $percentage, now()->addMinutes(2));
                         //dump($a);
                     });
-                $saveWaterMarkVideo = $pipLineStream->save($format, $watermarkedVideoPath)->getPathfile();
+                $pipLineStream
+                    ->map(['0:v', '0:a'], $format, $watermarkedVideoPath, $hasAudio)
+                    ->save();
+                $saveWaterMarkVideo = $pipLineStream->getPathfile();
                 Log::info("[JOBS]saveWaterMarkVideo: " . $saveWaterMarkVideo);
 
                 $watermarkedVideoObject = CGFileSystem::getCGFileObject(Storage::disk($virtualFile->disk)->path($virtualFile->path . "_output." . $virtualFile->extension));

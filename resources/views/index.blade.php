@@ -107,6 +107,7 @@
                                          * @var \App\Models\VirtualFile[]|Illuminate\Database\Eloquent\Collection $virtualFiles
                                          **/
                                         $virtualFiles = $shareTable->getAllVirtualFiles();
+                                        if($virtualFiles->count() === 0) continue;
                                         $id = "PFC_".\Illuminate\Support\Str::random(5);
                                     @endphp
                                     <div class="pfc-icon ct" data-fn="popover3" data-source="{{ $shareTable->id }}"
@@ -125,12 +126,14 @@
                                                          <span class="pfcf-text-filename" title="{{ $virtualFile->filename }}">{{ $virtualFile->filename }}</span>
                                                     </div>
                                                     <div class="pfcf-text">
-                                                        檔案大小：{{ \App\Lib\Utils\Utils::convertByte($virtualFile->size) }}</div>
+                                                        檔案大小：{{ \App\Lib\Utils\Utils::convertByte(($virtualFile->size > 0) ? $virtualFile->size : 1) }}</div>
                                                     <div class="pfcf-text">檔案類型：{{ $virtualFile->minetypes }}</div>
                                                     <div class="pfcf-text">建立日期：{{ $virtualFile->created_at }}</div>
                                                     <div class="pfcf-text">過期日期：{{ $virtualFile->expired_at }}</div>
                                                     <div class="pfcf-text">
-                                                        擁有者：{{ $virtualFile->members()->first()->username }}</div>
+
+                                                        擁有者：{{ $virtualFile->members()?->first()?->username }}
+                                                    </div>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -242,10 +245,10 @@
                                             @php
                                                 $random = $shareTable->id;
                                                 $url = $shareTable->shareURL();
-                                                $v = $virtualFiles->setVisible(['id','uuid', 'filename', 'size', 'created_at'])->toArray();
+                                                $v = $virtualFiles->setVisible(['id','uuid', 'filename', 'size', 'created_at', 'minetypes'])->toArray();
                                                 foreach ($v as $key => $item) {
                                                     /** @var \App\Models\VirtualFile $item */
-                                                    $v[$key]['size'] = Utils::convertByte($item['size']);
+                                                    $v[$key]['size'] = Utils::convertByte($item['size'] ?? 0);
                                                     $aUrl = route(RouteNameField::APIShareTableItemConversion->value, ['id' => $random, 'fileId' => $item['uuid']]);
                                                     /** @var \App\Models\DashVideos $dashVideo */
                                                     $dashVideo = \App\Models\DashVideos::where('virtual_file_uuid', '=', $item['uuid'])->get()->first();
@@ -255,11 +258,19 @@
                                                             case "failed":
                                                                 $btn = '<a data-fn="shareable_conversion_file" data-type="error" data-parent="#conversion_'.$random.'" data-title="是否確認轉換此檔案?" data-id="#conversion_item_'.$key.'" data-confirmboxcontent="此操作將會轉換成檔案" data-href="'.$aUrl.'" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-industry"></i>&nbsp;轉換檔案</a>';
                                                                 break;
+                                                            case "wait":
+                                                                $btn = "列隊中";
+                                                                break;
+                                                            case "success":
+                                                                $btn = "已轉換";
+                                                                break;
                                                         }
-                                                    } else {
+                                                    } else if(Utilsv2::isSupportVideoFile($item["minetypes"])) {
                                                         $btn = '<a data-fn="shareable_conversion_file" data-type="error" data-parent="#conversion_'.$random.'" data-title="是否確認轉換此檔案?" data-id="#conversion_item_'.$key.'" data-confirmboxcontent="此操作將會轉換成檔案" data-href="'.$aUrl.'" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-industry"></i>&nbsp;轉換檔案</a>';
+                                                    } else {
+                                                        $btn = "不支援轉換檔案";
                                                     }
-                                                    $v[$key]['action'] = '<div class="flex gap-3"><div id="conversion_item_'.$key.'" class="autoupdate" data-fn="get_dash_progress" data-id="'.$item['uuid'].'" ></div>'.$btn.'</div>';
+                                                    $v[$key]['action'] = '<div class="flex gap-3"><div id="conversion_item_'.$key.'" class="autoupdate" '.(($btn !== "") ? 'data-stop="true"': "").' data-fn="get_dash_progress" data-id="'.$item['uuid'].'" ></div>'.$btn.'</div>';
                                                 }
                                             @endphp
                                             @if($shareTable->member_id === \Illuminate\Support\Facades\Auth::user()->id)
@@ -293,14 +304,22 @@
                                                     $dashVideo = \App\Models\DashVideos::where('virtual_file_uuid', '=', $item['uuid'])->get()->first();
                                                     $dashVideoBtn = "";
                                                     if($dashVideo !== null){
-                                                        $url = route(RouteNameField::PagePreviewFilePlayerDash->value, [
-                                                            'shareTableId' => $shareTable->id,
-                                                            'fileId' => $item['uuid'],
-                                                            'fileName' => $dashVideo->filename.".".$dashVideo->extension,
-                                                        ]);
-                                                        $dashVideoBtn = '<a target="_blank" rel="noreferrer noopener" href="'.$url.'" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;線上串流預覽</a>';
+                                                        if($dashVideo->type === "success"){
+                                                            $url = route(RouteNameField::PagePreviewFilePlayerDash->value, [
+                                                                'shareTableId' => $shareTable->id,
+                                                                'fileId' => $item['uuid'],
+                                                                'fileName' => $dashVideo->filename.".".$dashVideo->extension,
+                                                            ]);
+                                                            $dashVideoBtn = '<a target="_blank" rel="noreferrer noopener" json="'.$dashVideo->toJson().'" href="'.$url.'" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;線上串流預覽</a>';
+                                                        }
                                                     }
-                                                    $v[$key]['action'] = '<div class="flex gap-3">'.$dashVideoBtn.'<a target="_blank" rel="noreferrer noopener" href="%url-0%" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a><a href="%url-1%" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="shareable_delete_file" data-type="error" data-parent="#download_'.$random1.'" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="%url-2%" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
+                                                    $previewBtn = "";
+                                                    if($item['size'] <= 1024 * 1024 * 400){
+                                                        $previewBtn = '<a target="_blank" rel="noreferrer noopener" href="%url-0%" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;完整檔案預覽</a>';
+                                                    } else {
+                                                        $previewBtn = '<a target="_blank" rel="noreferrer noopener" class="btn-md btn-border-0 btn btn-ripple btn-dead"><i class="fa-solid fa-eye"></i>&nbsp;無法完整檔案預覽</a>';
+                                                    }
+                                                    $v[$key]['action'] = '<div class="flex gap-3">'.$dashVideoBtn.$previewBtn.'<a href="%url-1%" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="shareable_delete_file" data-type="error" data-parent="#download_'.$random1.'" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="%url-2%" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
                                                 }
                                             @endphp
                                             <div data-id="{{ $random1 }}"

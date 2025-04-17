@@ -65,7 +65,7 @@
                                                                                                  href="https://github.com/creamgod45">CreamGod45</a>
                 </div>
                 <div class="col">Power by&nbsp;<a class="laravel" href="https://laravel.com/" target="_blank">Laravel
-                        10</a>.
+                        12</a> 編譯版本: [{{ Config::get('app.buildVersion') }}]
                 </div>
             </div>
         </div>

@@ -3,6 +3,7 @@
 namespace App\Lib\Utils\CGFileSystem;
 
 use Exception;
+use finfo;
 use Illuminate\Support\Facades\Config;
 
 class CGBaseFileObject
@@ -129,6 +130,79 @@ class CGBaseFileObject
         return Config::get('app.platform') === "Linux";
     }
 
+
+    function isVideoFileByMagicBytes(string $filePath): bool {
+        $fh = fopen($filePath, 'rb');
+        if (!$fh) return false;
+
+        $header = fread($fh, 16);
+        fclose($fh);
+
+        $bytes = bin2hex($header);
+
+        $magicPatterns = [
+            'mp4'   => '000000..66747970',
+            'mov'   => '000000..6d6f6f76',
+            'avi'   => '52494646........41564920',
+            'mkv'   => '1a45dfa3',
+            'flv'   => '464c56',
+            'wmv'   => '3026b2758e66cf11',
+            'mpeg'  => '000001ba',
+            'ts'    => '47',
+        ];
+
+        foreach ($magicPatterns as $type => $pattern) {
+            if (preg_match('/^' . $pattern . '/i', $bytes)) {
+                return true; // Match known video header
+            }
+        }
+
+        return false;
+    }
+
+    function analyzeFileMagicByteMimeType(): ?string
+    {
+        $filePath = $this->path;
+        if (!file_exists($filePath)) {
+            return null;
+        }
+
+        // 使用 FileInfo 函式取得 MIME
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($filePath);
+
+        // 若取得不到，則回傳 fallback
+        if (!$mime || $mime === 'application/octet-stream') {
+            // Magic Bytes fallback 檢查
+            $fh = fopen($filePath, 'rb');
+            $header = fread($fh, 16);
+            fclose($fh);
+            $bytes = bin2hex($header);
+
+            // 比對常見影片格式
+            $magicPatterns = [
+                'video/mp4'       => '/^000000..66747970/i',
+                'video/quicktime' => '/^000000..6d6f6f76/i',
+                'video/x-msvideo' => '/^52494646.{8}41564920/i', // AVI
+                'video/x-matroska'=> '/^1a45dfa3/i',             // MKV
+                'video/x-flv'     => '/^464c56/i',
+                'video/x-ms-asf'  => '/^3026b2758e66cf11/i',     // WMV
+                'video/mpeg'      => '/^000001ba/i',             // MPEG
+                'video/mp2t'      => '/^47/i',                   // TS
+            ];
+
+            foreach ($magicPatterns as $mimeType => $regex) {
+                if (preg_match($regex, $bytes)) {
+                    return $mimeType;
+                }
+            }
+
+            return null;
+        }
+
+        return $mime;
+    }
+
     /**
      * 使用多種方法確定文件的可能的 MIME 類型。
      *
@@ -142,6 +216,7 @@ class CGBaseFileObject
 
         // 方法 1：finfo_file
         if (function_exists('finfo_open')) {
+            //dump("finfo_open");
             $finfo = finfo_open(FILEINFO_MIME_TYPE);
             if ($finfo) {
                 $results[] = finfo_file($finfo, $filePath);
@@ -151,12 +226,15 @@ class CGBaseFileObject
 
         // 方法 2：mime_content_type
         if (function_exists('mime_content_type')) {
+            //dump("mime_content_type");
             $results[] = mime_content_type($filePath);
         }
 
         // 方法 3：shell_exec 判斷 OS
         if (function_exists('shell_exec')) {
+            //dump("shell_exec");
             if ($this->isWindows()) {
+                //dump("windows");
                 // Windows 不支援 `file` 指令，可選擇略過或使用其他工具（如 PowerShell）
                 $powershellCmd = 'powershell -command "(Get-Item \'' . $filePath . '\').Extension"';
                 $ext = strtolower(trim(shell_exec($powershellCmd)));
@@ -169,12 +247,15 @@ class CGBaseFileObject
                     '.txt' => 'text/plain',
                 ];
                 if (isset($mimeMap[$ext])) {
+                    //dump("windows/mimeMap");
                     $results[] = $mimeMap[$ext];
                 }
             } else {
+                //dump("linux/macOS");
                 // Linux/macOS 用 file 指令
                 $shellOutput = trim(@shell_exec('file -b --mime-type ' . escapeshellarg($filePath)));
                 if (!empty($shellOutput)) {
+                    //dump("linux/macOS/file");
                     $results[] = $shellOutput;
                 }
             }
@@ -192,13 +273,23 @@ class CGBaseFileObject
         ];
         $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
         if (isset($mimeFromExtension[$ext])) {
+            //dump("mimeFromExtension");
             $results[] = $mimeFromExtension[$ext];
         }
 
-
         $counts = array_count_values($results);
         arsort($counts);
-        return array_key_first($counts);
+        $array_key_first = array_key_first($counts);
+
+        if($array_key_first === "application/octet-stream"){
+            $analyzeFileMagicByteMimeType = $this->analyzeFileMagicByteMimeType();
+            if ($analyzeFileMagicByteMimeType) {
+                //dump("analyzeFileMagicByteMimeType");
+                $array_key_first = $analyzeFileMagicByteMimeType;
+            }
+        }
+
+        return $array_key_first;
     }
 
     public function __toString(){

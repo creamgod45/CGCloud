@@ -94,10 +94,19 @@
                         <div class="fd-item">
                             <input type="hidden" name="files[]" value="{{ $file->uuid }}">
                             <div class="fdi-preview">
-                                @if(Utilsv2::isSupportImageFile($file->minetypes))
-                                    <div class="placeholder w-[100%] h-[100%] bg-center bg-cover bg-no-repeat lazyImg" data-src="{{ $file->getTemporaryUrl(null, $shareTableId) }}" alt="{{ $file->filename }}"></div>
-                                @elseif(Utilsv2::isSupportVideoFile($file->minetypes))
-                                    <video controls src="{{ $file->getTemporaryUrl(null, $shareTableId) }}"></video>
+                                @if($file->size <= 1024 * 1024 * 400)
+                                    @if(Utilsv2::isSupportImageFile($file->minetypes))
+                                        <div class="placeholder w-[100%] h-[100%] bg-center bg-cover bg-no-repeat lazyImg" data-src="{{ $file->getTemporaryUrl(null, $shareTableId) }}" alt="{{ $file->filename }}"></div>
+                                    @elseif(Utilsv2::isSupportVideoFile($file->minetypes))
+                                        <video controls src="{{ $file->getTemporaryUrl(null, $shareTableId) }}"></video>
+                                    @endif
+                                @else
+                                    <img class="fdi-imginfo tippyer presize" loading="lazy"
+                                         data-prewidth="100%"
+                                         data-preheight="300px"
+                                         data-content="{{ $i18N->getLanguage(ELanguageText::FileSizeTooLarge) }}"
+                                         src="{{ asset('assets/images/warning_file_size_large.webp') }}"
+                                         alt="{{ $file->filename }}">
                                 @endif
                             </div>
                             <div class="fdi-delete btn btn-circle btn-color7 btn-border-0"><i class="fa-solid fa-xmark"></i></div>

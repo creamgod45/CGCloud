@@ -9,7 +9,7 @@ class ExpiresAtCast implements CastsAttributes
 {
     public function get($model, string $key, $value, array $attributes)
     {
-        return $value == -1 ? -1 : Carbon::createFromTimestamp($value);
+        return $value == -1 ? -1 : Carbon::createFromTimestamp($value ?? 0);
     }
 
     public function set($model, string $key, $value, array $attributes)

@@ -49,6 +49,14 @@ function ConfirmBox(){
                             if(element2 === null) return;
                             element2.showPopover();
                             confirmBox.remove();
+
+                            let id2 = dataset.id;
+                            if(id2 === undefined) return;
+                            let statusEl = document.querySelector(id2);
+                            if(statusEl === null) return;
+                            statusEl.dataset.stop = "false";
+                        }).catch(error => {
+                            console.log(error);
                         });
                         break;
                     case "shareable_delete_file":

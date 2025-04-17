@@ -11,6 +11,7 @@ function autoupdate(){
                 case 'get_dash_progress':
                     let id = _autoupdate.dataset.id ?? 0;
                     if(id === 0) break;
+                    if(_autoupdate.dataset.stop === "true") break;
                     axios.post('/sharetable/get_dash_progress', { id: id }).then(async function(response){
                         let data = await response.data;
                         console.log(data);
@@ -19,6 +20,9 @@ function autoupdate(){
                         }
                         if(data.message === "success2"){
                             _autoupdate.innerText = "轉換 Dash 生成中... " + data.value + "%";
+                        }
+                        if(data.message === "wait" || data.message === "processing"){
+                            _autoupdate.innerText = data.value;
                         }
                         if(data.message === "success3"){
                             _autoupdate.innerText = "轉換完成... 100%";

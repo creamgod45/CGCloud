@@ -26,6 +26,6 @@
         </div>
     </div>
     <script>
-        setTimeout(() => location.assign("{{route(RouteNameField::PageLogin->value)}}"), 5000);
+        setTimeout(() => location.assign("{{route(RouteNameField::PageLogin->value)}}"), 3000);
     </script>
 @endsection

@@ -62,4 +62,19 @@ class DashVideos extends Model
     {
         return $this->path !== null;
     }
+
+    public function isProcessing(): bool
+    {
+        return $this->type === "processing";
+    }
+
+    public function isWait(): bool
+    {
+        return $this->type === "wait";
+    }
+
+    public function isFail(): bool
+    {
+        return $this->type === "failed";
+    }
 }

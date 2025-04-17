@@ -281,11 +281,14 @@ class ShareTablesController extends Controller
                     foreach ($results as $result) {
                         /** @var DashVideos $dashVideos */
                         $dashVideos = $result->dashVideos()->getResults();
+                        if ($dashVideos === null) {
+                            continue;
+                        }
                         $dashVideoFilePath = Storage::disk($dashVideos->disk)->path($dashVideos->path);
                         $object = CGFileSystem::getCGFileObject($dashVideoFilePath);
-                        if($object instanceof CGBaseFile){
+                        if ($object instanceof CGBaseFile) {
                             $folderObj = CGFileSystem::getCGFileObject($object->getDirname());
-                            if($folderObj instanceof CGBaseFolder){
+                            if ($folderObj instanceof CGBaseFolder) {
                                 $folderObj->delete();
                             }
                         }
@@ -551,6 +554,24 @@ class ShareTablesController extends Controller
                 'value' => "已處理完成",
             ]);
         }
+        if ($dashVideos !== null && $dashVideos->isProcessing()) {
+            return response()->json([
+                'message' => 'processing',
+                'value' => "處理中",
+            ]);
+        }
+        if ($dashVideos !== null && $dashVideos->isWait()) {
+            return response()->json([
+                'message' => 'wait',
+                'value' => "列隊中...",
+            ]);
+        }
+        if ($dashVideos !== null && $dashVideos->isFail()) {
+            return response()->json([
+                'message' => 'wait',
+                'value' => "列隊中...",
+            ]);
+        }
         return response()->json([
             'message' => 'not work',
             'value' => "沒有執行",
@@ -566,39 +587,39 @@ class ShareTablesController extends Controller
             /** @var VirtualFile[] | Collection<VirtualFile> $results */
             $results = $shareTable->getAllVirtualFiles();
             if ($results->contains('uuid', '=', $fileId)) {
-                $except = $results->except([$fileId]);
-                /** @var VirtualFile $virtualFile */
-                $virtualFile = $except->first();
-                /** @var ShareTableVirtualFile $shareTableVirtualFiles */
-                $shareTableVirtualFiles = $virtualFile->shareTables()->getResults();
-                if ($shareTableVirtualFiles !== null && !$shareTableVirtualFiles->isCreateDashVideo()) {
-                    $dashVideos = DashVideos::createOrFirst([
-                        'type' => 'wait',
-                        'member_id' => Auth::user()->id,
-                        'virtual_file_uuid' => $virtualFile->uuid,
-                        'share_table_virtual_file_id' => $shareTableVirtualFiles->id,
-                    ]);
-                    $shareTableVirtualFiles->update([
-                        'dash_videos_id' => $dashVideos->id,
-                    ]);
-                    return response()->json([
-                        'message' => "請求處理中...",
-                    ]);
-                } elseif ($shareTableVirtualFiles !== null && $shareTableVirtualFiles->isCreateDashVideo()) {
-                    $dashVideos = $shareTableVirtualFiles->dashVideos()->getResults();
-                    if ($dashVideos !== null && $dashVideos->type === 'failed') {
-                        $dashVideos->update([
+                foreach ($results as $result) {
+                    $virtualFile = $result;
+                    /** @var ShareTableVirtualFile $shareTableVirtualFiles */
+                    $shareTableVirtualFiles = $virtualFile->shareTables()->getResults();
+                    if ($shareTableVirtualFiles !== null && !$shareTableVirtualFiles->isCreateDashVideo()) {
+                        $dashVideos = DashVideos::createOrFirst([
                             'type' => 'wait',
+                            'member_id' => Auth::user()->id,
+                            'virtual_file_uuid' => $virtualFile->uuid,
+                            'share_table_virtual_file_id' => $shareTableVirtualFiles->id,
+                        ]);
+                        $shareTableVirtualFiles->update([
+                            'dash_videos_id' => $dashVideos->id,
                         ]);
                         return response()->json([
                             'message' => "請求處理中...",
                         ]);
+                    } elseif ($shareTableVirtualFiles !== null && $shareTableVirtualFiles->isCreateDashVideo()) {
+                        $dashVideos = $shareTableVirtualFiles->dashVideos()->getResults();
+                        if ($dashVideos !== null && $dashVideos->type === 'failed') {
+                            $dashVideos->update([
+                                'type' => 'wait',
+                            ]);
+                            return response()->json([
+                                'message' => "請求處理中...",
+                            ]);
+                        }
                     }
                 }
             }
             abort(404, 'File not found.');
         }
-        abort(404, 'Sharetable not found.');
+        abort(403, 'Sharetable not found.');
     }
 
     public function dashPreviewFile(Request $request)
@@ -983,12 +1004,22 @@ class ShareTablesController extends Controller
                     $uuids = Json::decode($gallery, true);
                     if (!empty($uuids)) {
                         $f = VirtualFile::whereIn('uuid', $uuids)->get();
+                        foreach ($f->all() as $i) {
+                            if ($i->size === 0) {
+                                $i->size = Storage::disk($i->disk)->size($i->path);
+                                $i->save();
+                            }
+                        }
                         $files = array_merge($files, $f->all());
                     }
                 } else {
                     // 處理非陣列情況
                     $virtualFile = VirtualFile::where('uuid', '=', $gallery)->first();
                     if ($virtualFile !== null) {
+                        if ($virtualFile->size === 0) {
+                            $virtualFile->size = Storage::disk($virtualFile->disk)->size($virtualFile->path);
+                            $virtualFile->save();
+                        }
                         $files[] = $virtualFile;
                     }
                 }
@@ -1221,7 +1252,7 @@ class ShareTablesController extends Controller
         if ($offset === "0") {
             $CGBaseFolder = CGFileSystem::getCGFileObject($storagePath);
             $mime_candidates = "";
-            if($CGBaseFolder instanceof CGBaseFile){
+            if ($CGBaseFolder instanceof CGBaseFile) {
                 try {
                     $mime_candidates = $CGBaseFolder->mimeLikely();
                     Log::info($mime_candidates);

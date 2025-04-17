@@ -549,11 +549,11 @@ class Utils
         return self::convertByte(memory_get_usage(true));
     }
 
-    public static function convertByte($size)
+    public static function convertByte(float|int $size)
     {
         if($size === 0) return "0B";
         $unit = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
-        return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2) . ' ' . $unit[$i];
+        return @round($size / pow(1024, ($i = floor(log((float)$size, 1024)))), 2) . ' ' . $unit[$i];
     }
 
     /**

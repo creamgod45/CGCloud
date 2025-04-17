@@ -59,6 +59,8 @@ return [
 
     'version' => env('APP_VERSION', '1.0.0'),
 
+    'buildVersion' => "beta_20250417_2.0.0",
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

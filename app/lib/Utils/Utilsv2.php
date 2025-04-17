@@ -399,7 +399,7 @@ class Utilsv2
         return false;
     }
 
-    public static function isSupportVideoFile($mimetype)
+    public static function isSupportVideoFile(string $mimetype)
     {
         $mimetype = strtolower($mimetype);
         $mimeTypes = explode('::', 'video/av1::video/H264::video/H264-SVC::video/H264-RCDO::video/H265::video/JPEG::video/JPEG::video/mpeg::video/mpeg4-generic::video/ogg::video/quicktime::video/JPEG::video/vnd.mpegurl::video/vnd.youtube.yt::video/VP8::video/VP9::video/mp4::video/mp4V-ES::video/MPV::video/vnd.directv.mpeg::video/vnd.dece.mp4::video/vnd.uvvu.mp4::video/H266::video/H263::video/H263-1998::video/H263-2000::video/H261');
