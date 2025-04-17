@@ -568,8 +568,8 @@ class ShareTablesController extends Controller
         }
         if ($dashVideos !== null && $dashVideos->isFail()) {
             return response()->json([
-                'message' => 'wait',
-                'value' => "列隊中...",
+                'message' => 'failed',
+                'value' => "轉檔失敗(請重新點選轉換按鈕，如果一直失敗可能考慮回報此問題)",
             ]);
         }
         return response()->json([

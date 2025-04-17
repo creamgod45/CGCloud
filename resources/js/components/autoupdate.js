@@ -21,8 +21,12 @@ function autoupdate(){
                         if(data.message === "success2"){
                             _autoupdate.innerText = "轉換 Dash 生成中... " + data.value + "%";
                         }
-                        if(data.message === "wait" || data.message === "processing"){
+                        if (data.message === "wait" || data.message === "processing") {
                             _autoupdate.innerText = data.value;
+                        }
+                        if (data.message === "failed") {
+                            _autoupdate.innerText = data.value;
+                            _autoupdate.destroy();
                         }
                         if(data.message === "success3"){
                             _autoupdate.innerText = "轉換完成... 100%";
