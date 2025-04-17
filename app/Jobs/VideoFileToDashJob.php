@@ -194,16 +194,16 @@ class VideoFileToDashJob implements ShouldQueue
 
                 $watermarkedVideoObject = CGFileSystem::getCGFileObject(Storage::disk($virtualFile->disk)->path($virtualFile->path . "_output." . $virtualFile->extension));
 
-                $this->makeThumbFile($virtualFile, $dashVideos, $FFMPEGLogger, $watermarkedVideoObject);
+                $this->makeThumbFile($dashVideos, $FFMPEGLogger, $watermarkedVideoObject);
             } else {
                 Log::info("[JOBS]skip processing " . $dashVideos->id);
                 $watermarkedVideoPath = $object->getDirname() . "/" . $object->getFilename() . "_output." . $object->getExtension();
                 $watermarkedVideoObject = null;
-                $tempWaterMarkFilePath = null;
+                //$tempWaterMarkFilePath = null;
             }
 
 
-            $path = $this->proccessed($virtualFile, $dashVideos, $FFMPEGLogger, $watermarkedVideoPath);
+            $path = $this->processed($virtualFile, $dashVideos, $FFMPEGLogger, $watermarkedVideoPath);
             $CGBaseFolder = CGFileSystem::getCGFileObject($object->getDirname());
             if ($CGBaseFolder instanceof CGBaseFolder) {
                 $allFiles = json_encode($CGBaseFolder->allFiles(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
@@ -234,9 +234,9 @@ class VideoFileToDashJob implements ShouldQueue
             if ($watermarkedVideoObject instanceof CGBaseFile) {
                 $watermarkedVideoObject->delete();
             }
-            if ($tempWaterMarkFilePath && file_exists($tempWaterMarkFilePath)) {
-                unlink($tempWaterMarkFilePath);
-            }
+            //if ($tempWaterMarkFilePath && file_exists($tempWaterMarkFilePath)) {
+            //    unlink($tempWaterMarkFilePath);
+            //}
         } catch (Exception $e) {
             Log::error("[JOBS]" . $e->getMessage() . $e->getTraceAsString());
             $dashVideos->update([
@@ -262,12 +262,14 @@ class VideoFileToDashJob implements ShouldQueue
         return $audioStreams->count() > 0;
     }
 
+    /**
+     * @throws Exception
+     */
     private function makeThumbFile(
-        VirtualFile $virtualFile,
         DashVideos $dashVideos,
         LoggerInterface $log,
         CGBaseFile|CGBaseFileObject $object,
-    ) {
+    ): void {
         $ffmpeg = FFMpeg::create($this->config, $log);
 
         $fullpath = $object->getPath();
@@ -279,11 +281,13 @@ class VideoFileToDashJob implements ShouldQueue
         $timeCode = TimeCode::fromSeconds(1);
         $frame = $video->frame($timeCode);
 
+        $saveThumbObject=null;
         try {
             $saveThumbObject = $object->renameToNewInstance($object->getFilename() . '_thumb%03d.jpg');
         } catch (Exception $e) {
             Log::error("[JOBS]makeThumbFile::\$object->renameToNewInstance => " . $e->getMessage());
         }
+        if($saveThumbObject === null) throw new Exception("saveThumbObject is null");
         $saveThumbPath = $saveThumbObject->getPath();
 
         Log::info("[JOBS]saveThumbPath(before): " . $saveThumbPath);
@@ -304,12 +308,14 @@ class VideoFileToDashJob implements ShouldQueue
         $size = filesize($path);
         $mimeType = mime_content_type($path);
 
+        $saveThumbObject2=null;
         try {
             $saveThumbObject2 = $saveThumbObject->renameToNewInstance($saveThumbObject->getFilename() . '_thumb.jpg',
                 true);
         } catch (Exception $e) {
             Log::error("[JOBS]makeThumbFile::\$saveThumbObject2->renameToNewInstance => " . $e->getMessage());
         }
+        if($saveThumbObject2 === null) throw new Exception("saveThumbObject2 is null");
         $saveThumbPath2 = $saveThumbObject2->getPath();
 
         $path2 = $saveThumbPath2;
@@ -341,7 +347,7 @@ class VideoFileToDashJob implements ShouldQueue
         ]);
     }
 
-    public function proccessed(VirtualFile $virtualFile, DashVideos $dashVideos, $log, $fullpath)
+    public function processed(VirtualFile $virtualFile, DashVideos $dashVideos, $log, $fullpath)
     {
         $ffmpeg = StreamingFFMpeg::create($this->config, $log);
 
@@ -452,7 +458,7 @@ class VideoFileToDashJob implements ShouldQueue
             $sampleRate = $audioStream->get('sample_rate');
 
             // 輸出所有資訊
-            $info = [
+            return [
                 'format' => $formatName,
                 'audioCodec' => $audioCodec,
                 'videoCodec' => $videoCodec,
@@ -468,7 +474,6 @@ class VideoFileToDashJob implements ShouldQueue
                 'videoStream' => json_encode($videoStream->all()),
                 'audioStream' => json_encode($audioStream->all()),
             ];
-            return $info;
         } else {
             return [];
         }
