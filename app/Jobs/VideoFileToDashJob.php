@@ -187,7 +187,7 @@ class VideoFileToDashJob implements ShouldQueue
                         //dump($a);
                     });
                 $pipLineStream
-                    ->map(['0:v', '0:a'], $format, $watermarkedVideoPath, $hasAudio)
+                    ->map(['0:v'], $format, $watermarkedVideoPath, $hasAudio)
                     ->save();
                 $saveWaterMarkVideo = $pipLineStream->getPathfile();
                 Log::info("[JOBS]saveWaterMarkVideo: " . $saveWaterMarkVideo);
