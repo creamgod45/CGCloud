@@ -182,6 +182,7 @@
                                                         $shareTableVirtualFiles = $shareTable->shareTableVirtualFile()->getResults();
                                                         $ftype = 'data-minetype='.$virtualFiles->first()->minetypes;
                                                         $f = $virtualFiles->first()->getTemporaryUrl(now()->addMinutes(10), $shareTable->id);
+                                                        $poster = "";
                                                         if($shareTableVirtualFiles !== null){
                                                             foreach ($shareTableVirtualFiles as $item) {
                                                                 if($item->virtual_file_uuid === $virtualFiles->first()->uuid && $item->isAvailableDashVideo()){
@@ -194,13 +195,16 @@
                                                                             'fileId' => $virtualFiles->first()->uuid,
                                                                             'fileName' => $dashVideos->filename.".".$dashVideos->extension,
                                                                         ]);
+                                                                        /* @var \App\Models\VirtualFile $result */
+                                                                        $result = $dashVideos->thumbVirtualFile()->getResults();
+                                                                        $poster = 'data-poster="'.$result->getThumbTemporaryUrl(now()->addMinutes(10)).'"';
                                                                     }
                                                                     break;
                                                                 }
                                                             }
                                                         }
                                                     @endphp
-                                                    <video class="vjs video-js vjs-theme-forest presize" {{ $ftype }} controls data-src="{{ $f }}"></video>
+                                                    <video class="vjs video-js vjs-theme-forest presize" {{ $ftype }} {{ $poster }} controls data-src="{{ $f }}"></video>
                                                 @elseif(Utilsv2::isSupportVideoFile($virtualFiles->first()->minetypes))
                                                     @php
                                                         /** @var \App\Models\ShareTableVirtualFile[]|\Illuminate\Database\Eloquent\Collection<\App\Models\ShareTableVirtualFile> $shareTableVirtualFiles */
