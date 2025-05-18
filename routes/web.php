@@ -56,6 +56,7 @@ Route::middleware("checkClientID")->group(function () {
         Route::get('fetch/{fileId}', [ShareTablesController::class, 'shareTableItemUploadImageFetch'])->name(RouteNameField::APIShareTableItemUploadImageFetch->value);
         Route::get('preview/{fileId}', [ShareTablesController::class, 'apiPreviewFileTemporary'])->name(RouteNameField::APIPreviewFileTemporary->value)->middleware('signed'); // getTemporaryUrl used
         Route::get('preview/{shareTableId}/{fileId}', [ShareTablesController::class, 'apiPreviewFileTemporary2'])->name(RouteNameField::APIPreviewFileTemporary2->value)->middleware('signed'); // getTemporaryUrl used
+        Route::get('previewThumbFile/{fileId}', [ShareTablesController::class, 'apiPreviewFileTemporary4'])->name(RouteNameField::APIPreviewFileTemporary4->value)->middleware('signed'); // getTemporaryUrl used
         Route::post('get_dash_progress', [ShareTablesController::class, 'getDashProgress'])->name(RouteNameField::APIDashProgress->value);
         Route::get('dash/{shareTableId}/{fileId}/{fileName}', [ShareTablesController::class, 'dashPreviewFile'])->name(RouteNameField::APIPreviewFileDash->value);
         Route::get('player/{shareTableId}/{fileId}/{fileName}', [ShareTablesController::class, 'playerPreviewFile'])->name(RouteNameField::PagePreviewFilePlayerDash->value);

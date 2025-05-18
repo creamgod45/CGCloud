@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Jobs\CleanTemporaryFileJob;
+use App\Jobs\ScanProcessingDashVideoDeadWatchDogJob;
 use App\Jobs\VideoFileToDashJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
@@ -33,6 +34,7 @@ class Kernel extends ConsoleKernel
         //}
         //$schedule->job(new CreateHomeCacheJob($cahce))->everyFiveSeconds();
         $schedule->job(new VideoFileToDashJob())->everyMinute();
+        $schedule->job(new ScanProcessingDashVideoDeadWatchDogJob())->everyMinute();
         $schedule->job(new CleanTemporaryFileJob())->everyMinute();
         $schedule->command('db:backup --disk=backups')->dailyAt('02:00');
     }

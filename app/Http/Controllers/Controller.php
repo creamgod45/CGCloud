@@ -16,11 +16,12 @@ use Illuminate\Support\Facades\Session;
 
 class Controller extends BaseController
 {
-    use AuthorizesRequests, ValidatesRequests;
+    use AuthorizesRequests;
+    use ValidatesRequests;
 
     public static function baseControllerInit(Request $request, array ...$params): CGLaravelControllerInit
     {
-        return (new Controller)->extracted($request, $params);
+        return (new Controller())->extracted($request, $params);
     }
 
     /**

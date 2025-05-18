@@ -598,6 +598,7 @@ class ShareTablesController extends Controller
                             'virtual_file_uuid' => $virtualFile->uuid,
                             'share_table_virtual_file_id' => $shareTableVirtualFiles->id,
                         ]);
+                        Cache::put('pending_process_' . $dashVideos->id, true, now()->addDay());
                         $shareTableVirtualFiles->update([
                             'dash_videos_id' => $dashVideos->id,
                         ]);
@@ -883,6 +884,16 @@ class ShareTablesController extends Controller
         abort(404);
     }
 
+    public function apiPreviewFileTemporary4(Request $request)
+    {
+        $fileUUID = $request->route('fileId', 0);
+        $vf = VirtualFile::whereUuid($fileUUID)->first();
+        if ($vf !== null && $vf->size <= 1024 * 1024 * 400 && str_contains($vf->filename, "_output_thumb001_thumb.jpg")) {
+            return $this->filePreview($vf);
+        }
+        abort(404);
+    }
+
     public function addShopItemPost(Request $request)
     {
         $gallery = $request->get('ItemImages');
@@ -923,7 +934,7 @@ class ShareTablesController extends Controller
             $vb = new ValidatorBuilder($i18N, EValidatorType::SHARETABLECREATE);
             $v = $vb->validate($request->all(), ['password', 'password_confirmation'], true);
             if ($v instanceof MessageBag) {
-                $alertView = View::make('components.alert', ["type" => "%type%", "messages" => $v->all()]);
+                $alertView = View::make('components.alert', ["type" => "error", "messages" => $v->all(), "customClass" => "mb-3"]);
                 $CSRF->reset();
                 return response()->json([
                     'type' => false,

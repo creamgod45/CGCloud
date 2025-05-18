@@ -23,6 +23,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use JetBrains\PhpStorm\ArrayShape;
 use Monolog\Handler\StreamHandler;
@@ -43,6 +44,13 @@ class VideoFileToDashJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
+    #[ArrayShape([
+        'timeout' => 'int',
+        'ffmpeg.threads' => 'int',
+        'temporary_directory' => 'string',
+        'ffmpeg.binaries' => 'string',
+        'ffprobe.binaries' => 'string',
+    ])]
     private array $config;
 
     public function __construct()
@@ -51,7 +59,8 @@ class VideoFileToDashJob implements ShouldQueue
 
         $this->config = [
             'timeout' => 60 * 60 * 24 * 365,
-            'ffmpeg.threads' => Config::get('app.videoToDashCPUCoreUsed'),
+            'ffmpeg.threads' => Config::get('app.videoToDashCPUCoreUsed', 1),
+            'temporary_directory' => storage_path('framework/cache'),
             // The number of threads that FFmpeg should use
         ];
 
@@ -81,6 +90,151 @@ class VideoFileToDashJob implements ShouldQueue
         return Config::get('app.platform') === "Linux";
     }
 
+
+    /**
+     * Parses FFmpeg output and extracts key information such as frame count, FPS, quality factor (q),
+     * file size, processing time, bitrate, speed, progress, estimated total frames, and completion percentage.
+     *
+     * The function processes the given FFmpeg output string, splits it into lines, and searches for the most
+     * recent line containing progress information. It extracts relevant data using regular expressions and
+     * calculates additional values such as total processing time in seconds, estimated total frames, and
+     * completion percentage if sufficient information is available.
+     *
+     * @param string $output The raw FFmpeg output as a string.
+     *
+     * @return array An associative array containing the parsed FFmpeg output details:
+     *               - 'frame': (int|null) Processed frame count.
+     *               - 'fps': (int|null) Frames per second.
+     *               - 'q': (float|null) Quality factor.
+     *               - 'size': (string|null) File size in KiB.
+     *               - 'time': (string|null) Processed time in HH:MM:SS.ms format.
+     *               - 'time_in_seconds': (float|null) Total processed time in seconds.
+     *               - 'bitrate': (string|null) Bitrate in kbits/s.
+     *               - 'speed': (string|null) Processing speed as a multiplier (e.g., "2.5x").
+     *               - 'progress': (int) Progress percentage (default 0 if not calculated).
+     *               - 'estimated_total_frames': (int|null) Estimated total frame count if calculable.
+     *               - 'completion_percentage': (float|null) Estimated percentage of completion.
+     *               - 'raw_lines': (array) All lines of the parsed FFmpeg output.
+     */
+    #[ArrayShape([
+        'frame' => 'int|null',
+        'fps' => 'int|null',
+        'q' => 'float|null',
+        'size' => 'string|null',
+        'time' => 'string|null',
+        'time_in_seconds' => 'float|null',
+        'bitrate' => 'string|null',
+        'speed' => 'string|null',
+        'progress' => 'int',
+        'estimated_total_frames' => 'int|null',
+        'completion_percentage' => 'float|null',
+        'raw_lines' => 'array',
+    ])]
+    public function parseFFmpegOutput(
+        string $output,
+    ): array {
+        $result = [
+            'frame' => null,
+            'fps' => null,
+            'q' => null,
+            'size' => null,
+            'time' => null,
+            'bitrate' => null,
+            'speed' => null,
+            'progress' => 0,
+            'estimated_total_frames' => null,
+            'completion_percentage' => null,
+            'raw_lines' => [],
+        ];
+
+        // 分割輸出為多行
+        $lines = explode("\n", $output);
+        $result['raw_lines'] = $lines;
+
+        // 尋找最後一個包含進度資訊的行
+        $progressLine = '';
+        foreach (array_reverse($lines) as $line) {
+            if (str_contains($line, "frame=")) {
+                $explode = explode("frame=", $line);
+                $progressLine = "frame=".array_reverse($explode)[0];
+                Log::debug("[JOBS]selected \$progressLine: " . $progressLine);
+                break;
+            }
+        }
+
+        // 如果找到進度行，解析其中的值
+        if ($progressLine) {
+            // 提取幀數
+            if (preg_match('/frame=\s*(\d+)/', $progressLine, $matches)) {
+                $result['frame'] = (int)$matches[1];
+            }
+
+            // 提取 FPS
+            if (preg_match('/fps=\s*(\d+)/', $progressLine, $matches)) {
+                $result['fps'] = (int)$matches[1];
+            }
+
+            // 提取品質因子
+            if (preg_match('/q=\s*([\d\.]+)/', $progressLine, $matches)) {
+                $result['q'] = (float)$matches[1];
+            }
+
+            // 提取檔案大小
+            if (preg_match('/size=\s*(\d+)\s*KiB/', $progressLine, $matches)) {
+                $result['size'] = (int)$matches[1] . ' KiB';
+            }
+
+            // 提取處理時間
+            if (preg_match('/time=\s*(\d+:\d+:\d+\.\d+)/', $progressLine, $matches)) {
+                $result['time'] = $matches[1];
+
+                // 將時間轉換為秒
+                list($hours, $minutes, $seconds) = explode(':', $result['time']);
+                $totalSeconds = (int)$hours * 3600 + (int)$minutes * 60 + (float)$seconds;
+                $result['time_in_seconds'] = $totalSeconds;
+            }
+
+            // 提取比特率
+            if (preg_match('/bitrate=\s*([\d\.]+)\s*kbits\/s/', $progressLine, $matches)) {
+                $result['bitrate'] = $matches[1] . ' kbits/s';
+            }
+
+            // 提取速度
+            if (preg_match('/speed=\s*([\d\.]+)\s*x/', $progressLine, $matches)) {
+                $result['speed'] = (float)$matches[1] . 'x';
+            }
+
+            // 估算總幀數和完成百分比
+            // 如果有輸入影片的總時長，可以更精確地計算
+            // 此處使用簡單的估算方法
+            if (isset($result['time_in_seconds']) && isset($result['fps']) && $result['fps'] > 0) {
+                // 尋找影片總時長資訊
+                $durationLine = '';
+                foreach ($lines as $line) {
+                    if (strpos($line, 'time=') !== false) {
+                        $durationLine = $line;
+                        break;
+                    }
+                }
+
+                if ($durationLine && preg_match('/time=\s*(\d+):(\d+):(\d+\.\d+)/', $durationLine, $matches)) {
+                    $totalHours = (int)$matches[1];
+                    $totalMinutes = (int)$matches[2];
+                    $totalSeconds = (float)$matches[3];
+                    $totalDuration = $totalHours * 3600 + $totalMinutes * 60 + $totalSeconds;
+
+                    if ($totalDuration > 0) {
+                        $result['estimated_total_frames'] = (int)($totalDuration * $result['fps']);
+                        $result['progress'] = min(100,
+                            round(($result['time_in_seconds'] / $totalDuration) * 100, 2));
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+
     public function handle(): void
     {
         set_time_limit(60 * 60 * 24 * 365);
@@ -97,6 +251,7 @@ class VideoFileToDashJob implements ShouldQueue
         ]);
 
         try {
+            Cache::forget('pending_process_' . $dashVideos->id);
             Log::info("[JOBS]start processing " . $dashVideos->id);
             $object = CGFileSystem::getCGFileObject(Storage::disk($virtualFile->disk)->path($virtualFile->path));
             if (!($object instanceof CGBaseFile)) {
@@ -126,7 +281,7 @@ class VideoFileToDashJob implements ShouldQueue
                 Log::info("[JOBS]cwdObject: " . $cwdObject->getPath());
                 $processVideoObject = $object->renameToNewInstance($object->getFilename() . "." . $virtualFile->extension);
 
-                $ffmpeg = StreamingFFMpeg::create($this->config, $FFMPEGLogger);
+                $ffmpeg = FFMpeg::create($this->config, $FFMPEGLogger);
                 $copyed = $object->copyFile($processVideoObject);
                 $processVideoObject->rebuild();
                 Log::info("[JOBS]copyed: " . $copyed);
@@ -134,63 +289,65 @@ class VideoFileToDashJob implements ShouldQueue
                 Log::info("[JOBS]fullpath: " . $preparedVideoFilePath);
 
                 // 添加浮水印
-                // FFMPEG 多數錯誤問題跟 watermark 路徑有關
+                // 使用 filter_complex 實現更精確的浮水印控制
                 $hasAudio = $this->hasAudio($ffmpegLogPath, $preparedVideoFilePath);
                 Log::info("[JOBS]hasAudio: " . $hasAudio);
-                $watermarkImagePath = public_path('assets/images/watermark-cgcloud.png');
-                $pipLineStream2 = $ffmpeg->open($preparedVideoFilePath);
-                $pipLineStream = $ffmpeg->openAdvanced([$preparedVideoFilePath, $watermarkImagePath]);
-                //$ffmpeg->customInput($watermarkImagePath);
+                $watermarkImagePath = CGPathUtils::converterPathSlash(public_path('assets/images/watermark-cgcloud.png'));
                 Log::info("[JOBS]watermarkImagePath: " . $watermarkImagePath);
-                //$tempWaterMarkFilePath = './watermark.png';
-                //FileSystem::copy($watermarkImagePath, $tempWaterMarkFilePath);
-                //$pipLineStream->filters()->watermark($tempWaterMarkFilePath)->synchronize();
 
                 // 取得封面圖片
                 $watermarkedVideoObject = CGFileSystem::getCGFileObject(Storage::disk($virtualFile->disk)->path($virtualFile->path . "_output." . $virtualFile->extension));
                 $watermarkedVideoPath = $watermarkedVideoObject->getPath();
-                $format = new \FFMpeg\Format\Video\X264();
-                $kiloBitrate = $pipLineStream2->getFormat()->get('bit_rate') / 1000 * Config::get('app.videoToDashKiloBitrate'); // 轉換為 Kbps
-                $format->setKiloBitrate($kiloBitrate);
 
+                // 準備 filter_complex 命令
+                $format = new \FFMpeg\Format\Video\X264();
+                $videoFile = $ffmpeg->open($preparedVideoFilePath);
+
+                try {
+                    $kiloBitrate = $videoFile->getStreams()->videos()->first()->get('bit_rate') / 1000 * Config::get('app.videoToDashKiloBitrate');
+                } catch (Exception $e) {
+
+                }
+
+                // 獲取視頻比特率並設置輸出視頻比特率
+                try {
+                    if (isset($kiloBitrate)) {
+                        $format->setKiloBitrate($kiloBitrate);
+                    }
+                } catch (Exception $e) {
+                    Log::error($e->getTraceAsString());
+                }
+
+                // 設置音頻參數
                 if ($hasAudio) {
                     $format->setAudioKiloBitrate(128); // 只有在有音軌時設定
                 } else {
                     $format->setAdditionalParameters(['-an']); // 無音軌時忽略音訊
                 }
-                $start_time = 0;
 
-                $percentage_to_time_left = function ($percentage) use (&$start_time) {
-                    if ($start_time === 0) {
-                        $start_time = time();
-                        return "Calculating...";
-                    }
+                // 保存處理後的視頻
+                try {
+                    $ffmpegPath = $this->config['ffmpeg.binaries'];
+                    // 使用方法
+                    $command = sprintf('%s -i %s -i %s -filter_complex "overlay=main_w-overlay_w-10:main_h-overlay_h-10" -codec:a copy -b:v %dk -threads %d %s',
+                        escapeshellarg($ffmpegPath),
+                        escapeshellarg($preparedVideoFilePath),
+                        escapeshellarg($watermarkImagePath),
+                        escapeshellarg($kiloBitrate ?? "5000"),
+                        $this->config['ffmpeg.threads'],
+                        escapeshellarg($watermarkedVideoPath),
+                    );
 
-                    $diff_time = time() - $start_time;
-                    if ($percentage == 0) {
-                        $percentage = 0.01;
-                    }
-                    $seconds_left = (int)(100 * $diff_time / $percentage - $diff_time);
-                    //var_dump($seconds_left);
+                    Log::debug("[JOBS]executeCommandWithLiveOutput: " . $command);
 
-                    return @gmdate("H:i:s", $seconds_left);
-                };
-                $format->on('progress',
-                    function ($video, $format, $percentage) use ($percentage_to_time_left, $dashVideos) {
-                        // You can update a field in your database or can log it to a file
-                        // You can also create a socket connection and show a progress bar to users
-                        $a = sprintf("\rTranscoding watermark...(%s%%) %s [%s%s]", $percentage,
-                            $percentage_to_time_left($percentage), str_repeat('#', $percentage),
-                            str_repeat('-', (100 - $percentage)));
-                        Log::info($a);
-                        Cache::put('ffmpeg_watermark_progress_' . $dashVideos->id, $percentage, now()->addMinutes(2));
-                        //dump($a);
-                    });
-                $pipLineStream
-                    ->map(['0:v'], $format, $watermarkedVideoPath, $hasAudio)
-                    ->save();
-                $saveWaterMarkVideo = $pipLineStream->getPathfile();
-                Log::info("[JOBS]saveWaterMarkVideo: " . $saveWaterMarkVideo);
+                    $this->executeCommandWithLiveOutput($command, $dashVideos->id);
+                    Log::info("[JOBS]executeCommandWithLiveOutput Done");
+
+                    Log::info("[JOBS]saveWaterMarkVideo: " . $watermarkedVideoPath);
+                } catch (Exception $e) {
+                    Log::error("[JOBS]Error saving watermarked video: " . $e->getMessage());
+                    throw $e;
+                }
 
                 $watermarkedVideoObject = CGFileSystem::getCGFileObject(Storage::disk($virtualFile->disk)->path($virtualFile->path . "_output." . $virtualFile->extension));
 
@@ -229,7 +386,7 @@ class VideoFileToDashJob implements ShouldQueue
             ];
             $dashVideos->update(array_merge($arr, $analyze));
 
-            $FFMPEG_streaming_log->delete();
+            //$FFMPEG_streaming_log->delete();
 
             if ($watermarkedVideoObject instanceof CGBaseFile) {
                 $watermarkedVideoObject->delete();
@@ -262,6 +419,24 @@ class VideoFileToDashJob implements ShouldQueue
         return $audioStreams->count() > 0;
     }
 
+    public function executeCommandWithLiveOutput($command, $dashVideoId): void
+    {
+
+        $process = Process::timeout($this->config['timeout'])->start($command);
+
+        while ($process->running()) {
+            Log::debug("[JOBS]executeCommandWithLiveOutput process running");
+            $errorOutput = $process->errorOutput();
+            $tErrorOutput = $this->parseFFmpegOutput($errorOutput);
+            Cache::put('ffmpeg_watermark_progress_' . $dashVideoId, $tErrorOutput['progress'], now()->addMinutes(1));
+            usleep(500000); // 100ms
+        }
+
+        $result = $process->wait()->output();
+        Log::debug("[JOBS]executeCommandWithLiveOutput final output: " . $result);
+        Log::debug("[JOBS]executeCommandWithLiveOutput process stop");
+    }
+
     /**
      * @throws Exception
      */
@@ -281,19 +456,23 @@ class VideoFileToDashJob implements ShouldQueue
         $timeCode = TimeCode::fromSeconds(1);
         $frame = $video->frame($timeCode);
 
-        $saveThumbObject=null;
+        $saveThumbObject = null;
         try {
             $saveThumbObject = $object->renameToNewInstance($object->getFilename() . '_thumb%03d.jpg');
         } catch (Exception $e) {
             Log::error("[JOBS]makeThumbFile::\$object->renameToNewInstance => " . $e->getMessage());
         }
-        if($saveThumbObject === null) throw new Exception("saveThumbObject is null");
+        if ($saveThumbObject === null) {
+            throw new Exception("saveThumbObject is null");
+        }
         $saveThumbPath = $saveThumbObject->getPath();
 
         Log::info("[JOBS]saveThumbPath(before): " . $saveThumbPath);
 
         // 儲存擷取的影格圖片
         $frame->save($saveThumbPath);
+
+        sleep(3);
 
         try {
             $saveThumbObject = CGFileSystem::getCGFileObject($saveThumbObject->getDirname() . DIRECTORY_SEPARATOR . $object->getFilename() . '_thumb001.jpg');
@@ -308,14 +487,16 @@ class VideoFileToDashJob implements ShouldQueue
         $size = filesize($path);
         $mimeType = mime_content_type($path);
 
-        $saveThumbObject2=null;
+        $saveThumbObject2 = null;
         try {
             $saveThumbObject2 = $saveThumbObject->renameToNewInstance($saveThumbObject->getFilename() . '_thumb.jpg',
                 true);
         } catch (Exception $e) {
             Log::error("[JOBS]makeThumbFile::\$saveThumbObject2->renameToNewInstance => " . $e->getMessage());
         }
-        if($saveThumbObject2 === null) throw new Exception("saveThumbObject2 is null");
+        if ($saveThumbObject2 === null) {
+            throw new Exception("saveThumbObject2 is null");
+        }
         $saveThumbPath2 = $saveThumbObject2->getPath();
 
         $path2 = $saveThumbPath2;
@@ -383,7 +564,7 @@ class VideoFileToDashJob implements ShouldQueue
             $a = sprintf("Transcoding Streaming...(%s%%) %s [%s%s]", $percentage, $percentage_to_time_left($percentage),
                 str_repeat('#', $percentage), str_repeat('-', (100 - $percentage)));
             Log::info($a);
-            Cache::put('ffmpeg_streaming_progress_' . $dashVideos->id, $percentage, now()->addMinutes(2));
+            Cache::put('ffmpeg_streaming_progress_' . $dashVideos->id, $percentage, now()->addMinutes(5));
             dump($a);
         });
 
@@ -443,33 +624,43 @@ class VideoFileToDashJob implements ShouldQueue
             $metadata = $format->get('tags');
 
             // 取得 video stream
-            $videoStream = $streams->videos()->first();
-            $videoCodec = $videoStream->get('codec_name');
-            $width = $videoStream->get('width');
-            $height = $videoStream->get('height');
-            list($num, $den) = explode('/', $videoStream->get('r_frame_rate'));
-            $framerate = $den != 0 ? $num / $den : 0;
-            $videoFrames = $videoStream->get('nb_frames');
+            $videoStream = $streams->videos();
+            if ($videoStream !== null) {
+                $vs = $videoStream->first();
+                if ($vs !== null) {
+                    $videoCodec = $vs->get('codec_name');
+                    $width = $vs->get('width');
+                    $height = $vs->get('height');
+                    list($num, $den) = explode('/', $vs->get('r_frame_rate'));
+                    $framerate = $den != 0 ? $num / $den : 0;
+                    $videoFrames = $vs->get('nb_frames');
+                }
+            }
 
             // 取得 audio stream
-            $audioStream = $streams->audios()->first();
-            $audioCodec = $audioStream->get('codec_name');
-            $channels = $audioStream->get('channels');
-            $sampleRate = $audioStream->get('sample_rate');
+            $audioStream = $streams->audios();
+            if ($audioStream !== null) {
+                $AS = $audioStream->first();
+                if ($AS !== null) {
+                    $audioCodec = $AS->get('codec_name');
+                    $channels = $AS->get('channels');
+                    $sampleRate = $AS->get('sample_rate');
+                }
+            }
 
             // 輸出所有資訊
             return [
                 'format' => $formatName,
-                'audioCodec' => $audioCodec,
-                'videoCodec' => $videoCodec,
-                'width' => intval($width),
-                'height' => intval($height),
-                'framerate' => $framerate,
+                'audioCodec' => $audioCodec ?? "",
+                'videoCodec' => $videoCodec ?? "",
+                'width' => intval($width ?? 0),
+                'height' => intval($height ?? 0),
+                'framerate' => $framerate ?? 0,
                 'bitrate' => $bitrate,
                 'duration' => intval($duration),
-                'channels' => $channels,
-                'sampleRate' => $sampleRate,
-                'videoFrames' => $videoFrames,
+                'channels' => $channels ?? 0,
+                'sampleRate' => $sampleRate ?? 0,
+                'videoFrames' => $videoFrames ?? 0,
                 'metadata' => $metadata,
                 'videoStream' => json_encode($videoStream->all()),
                 'audioStream' => json_encode($audioStream->all()),

@@ -124,7 +124,8 @@ function filepondLoader() {
 
         // 文件添加事件處理
         filepond.on('addfile', function () {
-            fileAttachmentInput.upload_files = filepond.getFiles();
+            if(fileAttachmentInput !== null)
+                fileAttachmentInput.upload_files = filepond.getFiles();
         })
 
         // 文件還原處理

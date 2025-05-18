@@ -46,17 +46,47 @@ import './components/autoupdate.js';
 import Masonry from 'masonry-layout/masonry.js'
 import axios from "axios";
 
+let masonry;
 document.addEventListener('DOMContentLoaded', async function () {
     let element = document.querySelector('.panel-field-list');
     if(element !== null){
         setTimeout(() => {
-            new Masonry('.panel-field-list', {
+            masonry = new Masonry('.panel-field-list', {
                 itemSelector: '.panel-field-card',
                 percentPosition: true,
                 gutter: 12,
             });
             element.classList.remove('placeholder');
+
+            // 創建一個 MutationObserver 實例來監聽 DOM 變化
+            const observer = new MutationObserver((mutations) => {
+                // 當 DOM 變化時重新布局
+                if (masonry !== undefined) {
+                    masonry.layout();
+                }
+            });
+
+            // 配置 observer 監聽子節點的變化和屬性變化
+            observer.observe(element, {
+                childList: true,  // 監聽子節點的添加或移除
+                subtree: true,    // 監聽所有後代元素
+                attributes: true  // 監聽屬性變化
+            });
+
         }, 2000);
     }
+});
 
+
+
+window.addEventListener('scroll', function (e) {
+    if(e.target.scrollingElement.scrollTop  >= (e.target.scrollingElement?.scrollTopOld ?? 0) + 100){
+        console.log('scroll');
+        if(masonry === undefined) return;
+        console.log('layouted');
+        masonry.layout();
+        e.target.scrollingElement.scrollTopOld = e.target.scrollingElement.scrollTop;
+    } else {
+        e.target.scrollingElement.scrollTopOld = e.target.scrollingElement.scrollTop;
+    }
 });

@@ -343,7 +343,7 @@ class InternalController extends Controller
             } else {
                 $shareTable = ShareTable::where('type', '=', EShareTableType::public->value);
             }
-            $shareTables = $shareTable->paginate(30);
+            $shareTables = $shareTable->orderBy('created_at', "desc")->paginate(30);
             //Log::info(json_encode(DB::getQueryLog(), JSON_PRETTY_PRINT));
             return $shareTables;
         });

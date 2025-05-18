@@ -80,6 +80,21 @@ class VirtualFile extends Model
         return $internalImage;
     }
 
+    public function getThumbTemporaryUrl(DateTimeInterface $expiration = null): string
+    {
+        if($expiration === null) {
+            $expiration = now()->addMinutes();
+        }
+
+        return URL::temporarySignedRoute(
+            RouteNameField::APIPreviewFileTemporary4->value,
+            $expiration,
+            [
+                'fileId' => $this->uuid
+            ],
+        );
+    }
+
     public function getTemporaryUrl(DateTimeInterface $expiration = null, $shareTableId = null)
     {
         if($expiration === null) {

@@ -215,8 +215,12 @@
                                                                     $dashVideos = \App\Models\DashVideos::where('virtual_file_uuid', '=', $virtualFiles->first()->uuid)->get()->first();
                                                                     if($dashVideos !== null){
                                                                         $no = false;
+                                                                        /* @var \App\Models\VirtualFile $result */
+                                                                        $result = $dashVideos->thumbVirtualFile()->getResults();
+
+
                                                     @endphp
-                                                                        <video class="vjs video-js vjs-theme-forest presize" data-type="dash" controls data-src="{{ route(RouteNameField::APIPreviewFileDash->value, ['shareTableId' => $shareTable->id,'fileId' => $virtualFiles->first()->uuid,'fileName' => $dashVideos->filename.".".$dashVideos->extension]) }}"></video>
+                                                                        <video class="vjs video-js vjs-theme-forest presize" data-poster="{{$result->getThumbTemporaryUrl(now()->addMinutes(10))}}" data-type="dash" controls data-src="{{ route(RouteNameField::APIPreviewFileDash->value, ['shareTableId' => $shareTable->id,'fileId' => $virtualFiles->first()->uuid,'fileName' => $dashVideos->filename.".".$dashVideos->extension]) }}"></video>
                                                     @php
                                                                     }
                                                                     break;

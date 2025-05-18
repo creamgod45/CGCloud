@@ -90,7 +90,7 @@ body {
         /*xs:    */
         /*us:    */
 
-        *:not(textarea,.irs-handle,.irs-bar,.irs-to,.irs-from) {
+        *:not(textarea,.irs-handle,.irs-bar,.irs-to,.irs-from,.filepond--action-abort-item-processing) {
             transition: all 200ms;
         }
 
@@ -281,9 +281,10 @@ body {
 
 
             .share-tables-form{
-                @apply h-full w-full;
+                @apply h-full w-full dark:bg-neutral-600 dark:text-white rounded-xl pt-5;
+
                 .fdi-content{
-                    @apply bg-white mr-6 mx-5 rounded-xl;
+                    @apply dark:bg-neutral-600 bg-white mr-6 mx-5;
                     .fdic-field{
                         @apply dark:text-black text-black flex items-center justify-start gap-5 p-5;
                         label{

@@ -33,6 +33,7 @@ class ScheduleWorkCommand extends Command
      */
     public function handle()
     {
+        set_time_limit(365 * 24 * 60 * 60);
         $this->components->info(
             'Running scheduled tasks every minute.',
             $this->getLaravel()->isLocal() ? OutputInterface::VERBOSITY_NORMAL : OutputInterface::VERBOSITY_VERBOSE
