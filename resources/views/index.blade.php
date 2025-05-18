@@ -204,7 +204,7 @@
                                                             }
                                                         }
                                                     @endphp
-                                                    <video class="vjs video-js vjs-theme-forest presize" {{ $ftype }} {{ $poster }} controls data-src="{{ $f }}"></video>
+                                                    <video class="vjs video-js vjs-theme-forest presize" {{ $ftype }} {!! $poster !!} controls data-src="{{ $f }}"></video>
                                                 @elseif(Utilsv2::isSupportVideoFile($virtualFiles->first()->minetypes))
                                                     @php
                                                         /** @var \App\Models\ShareTableVirtualFile[]|\Illuminate\Database\Eloquent\Collection<\App\Models\ShareTableVirtualFile> $shareTableVirtualFiles */
