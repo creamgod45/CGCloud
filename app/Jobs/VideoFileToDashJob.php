@@ -359,14 +359,14 @@ class VideoFileToDashJob implements ShouldQueue
                 //$tempWaterMarkFilePath = null;
             }
 
+            $analyze = $this->analyze($watermarkedVideoPath, $FFMPEGLogger);
 
-            $path = $this->processed($virtualFile, $dashVideos, $FFMPEGLogger, $watermarkedVideoPath);
+            $path = $this->processed($virtualFile, $dashVideos, $FFMPEGLogger, $watermarkedVideoPath, $analyze);
             $CGBaseFolder = CGFileSystem::getCGFileObject($object->getDirname());
             if ($CGBaseFolder instanceof CGBaseFolder) {
                 $allFiles = json_encode($CGBaseFolder->allFiles(), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
                 FileSystem::write($object->getDirname() . "/allFiles.json", $allFiles);
             }
-            $analyze = $this->analyze($watermarkedVideoPath, $FFMPEGLogger);
             $newFileName = pathinfo($path, PATHINFO_FILENAME);
             $newExtension = pathinfo($path, PATHINFO_EXTENSION);
             $size = filesize($path);
@@ -528,16 +528,32 @@ class VideoFileToDashJob implements ShouldQueue
         ]);
     }
 
-    public function processed(VirtualFile $virtualFile, DashVideos $dashVideos, $log, $fullpath)
+    public function processed(VirtualFile $virtualFile, DashVideos $dashVideos, $log, $fullpath, array $analyze)
     {
         $ffmpeg = StreamingFFMpeg::create($this->config, $log);
 
-        $r_144p = (new Representation())->setKiloBitrate(80)->setResize(256, 144);
-        $r_240p = (new Representation())->setKiloBitrate(150)->setResize(426, 240);
-        $r_360p = (new Representation())->setKiloBitrate(300)->setResize(640, 360);
-        $r_480p = (new Representation())->setKiloBitrate(500)->setResize(854, 480);
-        $r_720p = (new Representation())->setKiloBitrate(1500)->setResize(1280, 720);
-        $r_1080p = (new Representation())->setKiloBitrate(3000)->setResize(1920, 1080);
+        if ($analyze['width'] > $analyze['height']) {
+            $r_144p = (new Representation())->setKiloBitrate(80)->setResize(256, 144);
+            $r_240p = (new Representation())->setKiloBitrate(150)->setResize(426, 240);
+            $r_360p = (new Representation())->setKiloBitrate(300)->setResize(640, 360);
+            $r_480p = (new Representation())->setKiloBitrate(500)->setResize(854, 480);
+            $r_720p = (new Representation())->setKiloBitrate(1500)->setResize(1280, 720);
+            $r_1080p = (new Representation())->setKiloBitrate(3000)->setResize(1920, 1080);
+        } else if ($analyze['width'] < $analyze['height']) {
+            $r_144p = (new Representation())->setKiloBitrate(80)->setResize(144, 256);
+            $r_240p = (new Representation())->setKiloBitrate(150)->setResize(240, 426);
+            $r_360p = (new Representation())->setKiloBitrate(300)->setResize(360, 640);
+            $r_480p = (new Representation())->setKiloBitrate(500)->setResize(480, 854);
+            $r_720p = (new Representation())->setKiloBitrate(1500)->setResize(720, 1280);
+            $r_1080p = (new Representation())->setKiloBitrate(3000)->setResize(1080, 1920);
+        } else {
+            $r_144p = (new Representation())->setKiloBitrate(80)->setResize(144, 144);
+            $r_240p = (new Representation())->setKiloBitrate(150)->setResize(240, 240);
+            $r_360p = (new Representation())->setKiloBitrate(300)->setResize(360, 360);
+            $r_480p = (new Representation())->setKiloBitrate(500)->setResize(480, 480);
+            $r_720p = (new Representation())->setKiloBitrate(1500)->setResize(720, 720);
+            $r_1080p = (new Representation())->setKiloBitrate(3000)->setResize(1080, 1080);
+        }
 
         $format = new X264();
         $start_time = 0;
