@@ -13,7 +13,11 @@ return new class extends Migration {
                 $table->foreignUuid('virtual_file_uuid')->comment('關聯檔案')->constrained('virtual_files', 'uuid')->onDelete('cascade');
                 $table->foreignId('share_table_virtual_file_id')->comment('關聯分享資源中間表')->constrained('share_table_virtual_file')->onDelete('cascade');
                 $table->foreignId('member_id')->comment('關聯擁有者')->constrained()->onDelete('cascade');
-                $table->foreignUuid('thumb_virtual_file_uuid')->nullable()->comment('關聯封面照片')->constrained('virtual_files', 'uuid');
+
+                // 改為軟外鍵 - 保留索引但不添加外鍵約束
+                $table->char('thumb_virtual_file_uuid', 36)->nullable()->comment('關聯封面照片');
+                $table->index('thumb_virtual_file_uuid'); // 保留索引但不添加外鍵約束
+
                 $table->text('path')->nullable()->comment('mpd 路徑');
                 $table->string('filename')->nullable()->comment('mpd 檔案名稱');
                 $table->string('extension')->nullable()->comment('mpd 副檔案名');
@@ -32,8 +36,8 @@ return new class extends Migration {
                 $table->string('sampleRate')->nullable()->comment('音訊的採樣率');
                 $table->string('videoFrames')->nullable()->comment('影片的總幀數');
                 $table->text('metadata')->nullable()->comment('影片的元數據，包括標題、作者、日期等');
-                $table->string('videoStream')->nullable()->comment('視頻流的詳細資料，包括幀率、編碼格式、解析度等');
-                $table->string('audioStream')->nullable()->comment('音頻流的詳細資料，如編解碼格式、音訊通道等');
+                $table->text('videoStream')->nullable()->comment('視頻流的詳細資料，包括幀率、編碼格式、解析度等');
+                $table->text('audioStream')->nullable()->comment('音頻流的詳細資料，如編解碼格式、音訊通道等');
                 $table->timestamps();
                 $table->engine('InnoDB');
             });

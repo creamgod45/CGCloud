@@ -284,7 +284,7 @@ class ShareTablesController extends Controller
                         if ($dashVideos === null) {
                             continue;
                         }
-                        $dashVideoFilePath = Storage::disk($dashVideos->disk)->path($dashVideos->path);
+                        $dashVideoFilePath = Storage::disk($dashVideos->disk)->path($dashVideos->path ?? "");
                         $object = CGFileSystem::getCGFileObject($dashVideoFilePath);
                         if ($object instanceof CGBaseFile) {
                             $folderObj = CGFileSystem::getCGFileObject($object->getDirname());
@@ -889,7 +889,9 @@ class ShareTablesController extends Controller
         $fileUUID = $request->route('fileId', 0);
         $vf = VirtualFile::whereUuid($fileUUID)->first();
         if ($vf !== null && $vf->size <= 1024 * 1024 * 400 && str_contains($vf->filename, "_output_thumb001_thumb.jpg")) {
-            return $this->filePreview($vf);
+            if (Storage::disk($vf->disk)->exists($vf->path)) {
+                return $this->filePreview($vf);
+            }
         }
         abort(404);
     }
