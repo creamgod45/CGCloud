@@ -29,6 +29,9 @@ function filepondLoader() {
         let process = filepondElement.dataset.upload;
         let revert = filepondElement.dataset.revert;
         let patch = filepondElement.dataset.patch;
+        let fn = filepondElement.dataset.fn;
+        let token = filepondElement.dataset.token;
+
         let thumbable = filepondElement.dataset.thumbable === "true";
         if (process === undefined || revert === undefined || patch === undefined) return; // 如果 URL 有任一未定義則返回
 

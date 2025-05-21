@@ -6,3 +6,8 @@
 .video-js{
     @apply rounded-lg;
 }
+
+
+.vjs-close-button{
+    @apply top-8 #{!important};
+}

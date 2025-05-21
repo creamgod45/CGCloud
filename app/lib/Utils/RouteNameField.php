@@ -78,4 +78,5 @@ enum RouteNameField: string
     case APIShareTableItemEditPost2 = 'root.api.sharetable.item.edit.post2';
     case APIPublicShareTablePreviewFileDash = 'root.api.public.sharetable.preview.file.dash';
     case APIPreviewFileTemporary4 = 'root.api.PreviewFileTemporary4';
+    case APIShareTableAddFile = 'root.api.sharetable.add.file';
 }

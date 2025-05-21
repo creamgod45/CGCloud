@@ -58,6 +58,7 @@ function vjs() {
         let type = vjs.dataset.type ?? 'normal';
         let minetype = vjs.dataset.minetype ?? 'video/mp4';
         let poster = vjs.dataset.poster ?? base64ImageLogo();
+        let title = vjs.dataset.title ?? '影片';
         if(src === undefined) continue;
         let isValidImage = false;
         let options = {
@@ -69,12 +70,22 @@ function vjs() {
             techOrder: [ 'chromecast', 'html5' ],
             width: width ?? '300px',
             poster: poster,
+            liveui: false,
+            controlBar: {
+                skipButtons: {
+                    forward: 5,
+                    backward: 5
+                }
+            }
         };
         if(height !== undefined) {
             options.height = height;
         }
         let player = videojs(vjs, options);
         player.ready(function() {
+            if (localStorage.getItem('volume') !== null) {
+                player.volume(parseInt(localStorage.getItem('volume')) / 100);
+            }
             axios.get(poster).catch(function (error) {
                 player.poster(base64ImageLogo());
                 console.log('poster error');
@@ -90,6 +101,9 @@ function vjs() {
                     type: minetype,
                 });
             }
+            player.on('volumechange', function (e){
+                localStorage.setItem('volume', String(player.volume()*100));
+            });
         });
         player.qualityMenu();
 

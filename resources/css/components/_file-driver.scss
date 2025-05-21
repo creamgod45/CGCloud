@@ -3,7 +3,7 @@
     .fd-item {
         @apply min-w-[256px] size-[256px] rounded-4xl relative ring-1 ring-slate-300 bg-slate-200 flex justify-center items-center;
         .fdi-preview {
-            @apply size-[256px] flex justify-center items-center px-2 overflow-hidden;
+            @apply size-[256px] flex justify-center items-center rounded-4xl px-2 overflow-hidden;
             .fdi-imginfo {
                 @apply w-[256px];
             }

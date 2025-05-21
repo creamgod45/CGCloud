@@ -129,7 +129,7 @@ class ShareTablesController extends Controller
                 if ($shareTable !== null) {
                     $collection = $shareTable->getAllVirtualFiles();
                     if ($collection->contains('uuid', '=', $fileUUID)) {
-                        $virtualFile = $collection->except([$fileUUID])->first();
+                        $virtualFile = $collection->expectKeys('uuid', $fileUUID)->first();
                         if ($virtualFile !== null && $virtualFile->size <= 1024 * 1024 * 400) {
                             return $this->filePreview($virtualFile);
                         } else {
@@ -189,7 +189,7 @@ class ShareTablesController extends Controller
         if ($shareTable !== null) {
             $allRelatedIds = $shareTable->getAllVirtualFiles();
             if ($allRelatedIds->contains('uuid', '=', $fileId)) {
-                $virtualFile = $allRelatedIds->except([$fileId])->first();
+                $virtualFile = $allRelatedIds->expectKeys('uuid', $fileId)->first();
 
                 if ($virtualFile !== null) {
                     $disk = Storage::disk($virtualFile->disk);
@@ -247,11 +247,24 @@ class ShareTablesController extends Controller
                     ['fileId' => $virtualFile->uuid, 'id' => $shareTableId]);
 
                 $preview = '';
+                $results = $virtualFile->dashVideos()->getResults();
+                if($results instanceof DashVideos){
+                    $dashVideo = $results;
+                    if ($dashVideo->isSuccess() && $dashVideo->isCreateDashVideo()) {
+                        $playerItemUrl = route(RouteNameField::PagePreviewFilePlayerDash->value, [
+                            'shareTableId' => $shareTable->id,
+                            'fileId' => $virtualFile->uuid,
+                            'fileName' => $dashVideo->filename . "." . $dashVideo->extension,
+                        ]);
+                        $preview .= '<a target="_blank" rel="noreferrer noopener" href="' . $playerItemUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;Dash 線上預覽</a>';
+                    }
+                }
+
                 if ($virtualFile->size <= 1024 * 1024 * 400) {
-                    $preview = '<a target="_blank" rel="noreferrer noopener" href="' . $virtualFile->getTemporaryUrl(now()->addMinutes(30),
+                    $preview .= '<a target="_blank" rel="noreferrer noopener" href="' . $virtualFile->getTemporaryUrl(now()->addMinutes(30),
                             $shareTableId) . '" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a>';
                 } else {
-                    $preview = '<a class="btn-md btn-border-0 btn btn-dead tippyer" data-placement="auto" data-content="檔案過大無法預覽文件"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a>';
+                    $preview .= '<a class="btn-md btn-border-0 btn btn-dead tippyer" data-placement="auto" data-content="檔案過大無法預覽文件"><i class="fa-solid fa-eye"></i>&nbsp;預覽</a>';
                 }
                 $virtualFile['action'] = '<div class="flex gap-3">' . $preview . '<a href="' . $downloadUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-color7"><i class="fa-solid fa-download"></i>&nbsp;下載</a><a data-fn="popover_shareable_delete_file" data-type="error" data-parent="#popover_index" data-title="是否確認刪除此檔案?" data-confirmboxcontent="此操作將會永遠的刪除!!" data-href="' . $deleteUrl . '" class="btn-md btn-border-0 btn btn-ripple btn-error confirm-box"><i class="fa-solid fa-trash"></i>&nbsp;刪除</a></div>';
                 $virtualFile['size'] = Utils::convertByte($virtualFile['size']);
@@ -352,9 +365,27 @@ class ShareTablesController extends Controller
         $shareTable = ShareTable::find($shareTableId);
         if ($shareTable !== null && $shareTable->member_id === Auth::user()->id) {
             $vb = new ValidatorBuilder($i18N, EValidatorType::SHARETABLEEDIT);
-            $v = $vb->validate($request->all(), ['current_password', 'password', 'password_confirmation'], true);
+            $data = $request->all();
+            if(is_array($data["files"])) {
+                $tFiles = [];
+                foreach ($data["files"] as $file) {
+                    if($file !== null) {
+                        if(Utilsv2::isJson($file)){
+                            try {
+                                $tFiles = array_merge($tFiles, Json::decode($file, true));
+                            } catch (JsonException $e) {
+
+                            }
+                        } else {
+                            $tFiles[] = $file;
+                        }
+                    }
+                }
+                $data["files"] = $tFiles;
+            }
+            $v = $vb->validate($data, ['current_password', 'password', 'password_confirmation'], true);
             if ($v instanceof MessageBag) {
-                $alertView = View::make('components.alert', ["type" => "%type%", "messages" => $v->all()]);
+                $alertView = View::make('components.alert', ["type" => "danger", "messages" => $v->all(), "customClass" => "mb-3"]);
                 $CSRF->reset();
                 return response()->json([
                     'type' => false,
@@ -370,14 +401,14 @@ class ShareTablesController extends Controller
 
                 // 傳入的檔案 UUID array
                 $newFiles = $tFiles->diff($files)->all(); // 新增的檔案 UUID
-                $deattchFiles = $files->diff($tFiles)->all(); // 需要移除的檔案 UUID
-                $originalFiles = $files->intersect($tFiles)->all(); // 原本的檔案 UUID // 原本的檔案 uuid
+                $detectFiles = $files->diff($tFiles)->makeVisible(['uuid'])->all(); // 需要移除的檔案 UUID
+                //$originalFiles = $files->intersect($tFiles)->all(); // 原本的檔案 UUID // 原本的檔案 uuid
 
-                dd([
-                    "deattchFiles: " => $deattchFiles,
-                    "newFiles: " => $newFiles,
-                    "originalFiles: " => $originalFiles,
-                ]);
+//                dump([
+//                    "deattchFiles: " => $detectFiles,
+//                    "newFiles: " => $newFiles,
+//                    "originalFiles: " => $originalFiles,
+//                ]);
 
                 $shareTable->update([
                     'name' => $v['shareTableName'],
@@ -385,6 +416,25 @@ class ShareTablesController extends Controller
                     'type' => $v['shareTableType'],
                     'secret' => (!empty($v['password'])) ? Hash::make($v['password']) : null,
                 ]);
+
+                $tShareTableVF = [];
+                foreach ($newFiles as $file) {
+                    $tShareTableVF[] = [
+                        'share_table_id' => $shareTable->id,
+                        'virtual_file_uuid' => $file['uuid'],
+                    ];
+                    $file->type = "persistent";
+                    $file->save();
+                }
+
+                $shareTable->shareTableVirtualFile()->createMany($tShareTableVF);
+
+                $shareTable->shareTableVirtualFile()->whereIn('virtual_file_uuid', $detectFiles)->delete();
+
+                $files->diff($tFiles)->map(function ($file) {
+                    $file->type = "temporary";
+                    $file->save();
+                });
 
                 $this->clearShareTableIndexCaches();
 
@@ -587,34 +637,32 @@ class ShareTablesController extends Controller
             /** @var VirtualFile[] | Collection<VirtualFile> $results */
             $results = $shareTable->getAllVirtualFiles();
             if ($results->contains('uuid', '=', $fileId)) {
-                foreach ($results as $result) {
-                    $virtualFile = $result;
-                    /** @var ShareTableVirtualFile $shareTableVirtualFiles */
-                    $shareTableVirtualFiles = $virtualFile->shareTables()->getResults();
-                    if ($shareTableVirtualFiles !== null && !$shareTableVirtualFiles->isCreateDashVideo()) {
-                        $dashVideos = DashVideos::createOrFirst([
+                $virtualFile = $results->expectKeys('uuid', $fileId)->first();
+                /** @var ShareTableVirtualFile $shareTableVirtualFiles */
+                $shareTableVirtualFiles = $virtualFile->shareTables()->getResults();
+                if ($shareTableVirtualFiles !== null && !$shareTableVirtualFiles->isCreateDashVideo()) {
+                    $dashVideos = DashVideos::createOrFirst([
+                        'type' => 'wait',
+                        'member_id' => Auth::user()->id,
+                        'virtual_file_uuid' => $virtualFile->uuid,
+                        'share_table_virtual_file_id' => $shareTableVirtualFiles->id,
+                    ]);
+                    Cache::put('pending_process_' . $dashVideos->id, true, now()->addDay());
+                    $shareTableVirtualFiles->update([
+                        'dash_videos_id' => $dashVideos->id,
+                    ]);
+                    return response()->json([
+                        'message' => "請求處理中...",
+                    ]);
+                } elseif ($shareTableVirtualFiles !== null && $shareTableVirtualFiles->isCreateDashVideo()) {
+                    $dashVideos = $shareTableVirtualFiles->dashVideos()->getResults();
+                    if ($dashVideos !== null && $dashVideos->type === 'failed') {
+                        $dashVideos->update([
                             'type' => 'wait',
-                            'member_id' => Auth::user()->id,
-                            'virtual_file_uuid' => $virtualFile->uuid,
-                            'share_table_virtual_file_id' => $shareTableVirtualFiles->id,
-                        ]);
-                        Cache::put('pending_process_' . $dashVideos->id, true, now()->addDay());
-                        $shareTableVirtualFiles->update([
-                            'dash_videos_id' => $dashVideos->id,
                         ]);
                         return response()->json([
                             'message' => "請求處理中...",
                         ]);
-                    } elseif ($shareTableVirtualFiles !== null && $shareTableVirtualFiles->isCreateDashVideo()) {
-                        $dashVideos = $shareTableVirtualFiles->dashVideos()->getResults();
-                        if ($dashVideos !== null && $dashVideos->type === 'failed') {
-                            $dashVideos->update([
-                                'type' => 'wait',
-                            ]);
-                            return response()->json([
-                                'message' => "請求處理中...",
-                            ]);
-                        }
                     }
                 }
             }
@@ -760,7 +808,7 @@ class ShareTablesController extends Controller
         if ($shareTable !== null) {
             $allRelatedIds = $shareTable->getAllVirtualFiles();
             if ($allRelatedIds->contains('uuid', '=', $fileId)) {
-                $virtualFile = $allRelatedIds->except([$fileId])->first();
+                $virtualFile = $allRelatedIds->expectKeys('uuid', $fileId)->first();
 
                 if ($virtualFile !== null) {
                     $disk = Storage::disk($virtualFile->disk);
@@ -873,7 +921,7 @@ class ShareTablesController extends Controller
         if ($shareTable !== null) {
             $collection = $shareTable->getAllVirtualFiles();
             if ($collection->contains('uuid', '=', $fileUUID)) {
-                $virtualFile = $collection->except([$fileUUID])->first();
+                $virtualFile = $collection->expectKeys('uuid', $fileUUID)->first();
                 if ($virtualFile !== null && $virtualFile->size <= 1024 * 1024 * 400) {
                     return $this->filePreview($virtualFile);
                 } else {
@@ -896,33 +944,6 @@ class ShareTablesController extends Controller
         abort(404);
     }
 
-    public function addShopItemPost(Request $request)
-    {
-        $gallery = $request->get('ItemImages');
-        $files = [];
-        foreach ($gallery as $item) {
-            if (Utilsv2::isJson($item)) {
-                try {
-                    $itemEl = Json::decode($item, true);
-                    $itemELCG = new CGArray($itemEl);
-                    if (!$itemELCG->hasKey('folder')) {
-                        foreach ($itemEl as $item2) {
-                            $files[] = $item2;
-                        }
-                    } else {
-                        $itemEl['folder'] = urldecode($itemEl['folder']);
-                        if (Utilsv2::isBase64($itemEl['folder'])) {
-                            $itemEl['folder'] = base64_decode($itemEl['folder']);
-                            $files[] = $itemEl['folder'];
-                        }
-                    }
-                } catch (JsonException $e) {
-                    Log::info($e->getMessage());
-                }
-            }
-        }
-        return view('Shop.AddShopItem', Controller::baseControllerInit($request, ["files" => $files])->toArrayable());
-    }
 
     public function shareTableItemCreatePost(Request $request)
     {

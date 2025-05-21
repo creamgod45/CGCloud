@@ -2497,6 +2497,10 @@ a.btn {
   @apply rounded-lg;
 }
 
+.vjs-close-button {
+  @apply top-8 !important;
+}
+
 .file-driver {
   @apply gap-5 p-5 flex flex-nowrap overflow-x-auto w-11/12 m-auto;
 }
@@ -2504,7 +2508,7 @@ a.btn {
   @apply min-w-[256px] size-[256px] rounded-4xl relative ring-1 ring-slate-300 bg-slate-200 flex justify-center items-center;
 }
 .file-driver .fd-item .fdi-preview {
-  @apply size-[256px] flex justify-center items-center px-2 overflow-hidden;
+  @apply size-[256px] flex justify-center items-center rounded-4xl px-2 overflow-hidden;
 }
 .file-driver .fd-item .fdi-preview .fdi-imginfo {
   @apply w-[256px];
@@ -2809,6 +2813,9 @@ body main .container2 {
             sm:w-screen sm:flex-wrap
             xs:w-screen xs:flex-wrap
             us:w-screen us:flex-wrap;
+}
+body main .container2 .share-table-caption {
+  @apply w-full text-3xl font-bold my-3;
 }
 body main .container2 .share-tables-form {
   @apply h-full w-full dark:bg-neutral-600 dark:text-white rounded-xl pt-5;

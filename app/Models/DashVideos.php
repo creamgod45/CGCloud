@@ -63,6 +63,11 @@ class DashVideos extends Model
         return $this->path !== null;
     }
 
+    public function isSuccess(): bool
+    {
+        return $this->type === "success";
+    }
+
     public function isProcessing(): bool
     {
         return $this->type === "processing";

@@ -14,7 +14,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 use LaravelIdea\Helper\App\Models\_IH_SharePermissions_C;
-use RahulHaque\Filepond\Models\Filepond;
 
 class ShareTable extends Model
 {
@@ -35,7 +34,7 @@ class ShareTable extends Model
     use HasFactory;
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection | VirtualFile[]
+     * @return \Illuminate\Database\Eloquent\Collection<VirtualFile> | VirtualFile[]
      */
     public function getAllVirtualFiles()
     {

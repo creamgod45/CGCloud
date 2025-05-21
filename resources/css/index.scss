@@ -278,7 +278,9 @@ body {
             xs:w-screen      xs:flex-wrap
             us:w-screen          us:flex-wrap    ;
 
-
+            .share-table-caption{
+                @apply w-full text-3xl font-bold my-3;
+            }
 
             .share-tables-form{
                 @apply h-full w-full dark:bg-neutral-600 dark:text-white rounded-xl pt-5;
