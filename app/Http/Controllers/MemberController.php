@@ -151,7 +151,7 @@ class MemberController extends Controller
         if ($v instanceof MessageBag) {
             // validator errors here
             $alertView = \Illuminate\Support\Facades\View::make('components.alert',
-                ["type" => "%type%", "messages" => $v->all()]);
+                ["type" => "%type%", "messages" => $v->all(), "customClass" => "mt-3"]);
             $CSRF->reset();
             return response()->json([
                 'type' => false,
@@ -356,7 +356,7 @@ class MemberController extends Controller
 //                $fingerprint,
 //            ])));
             $alertView = \Illuminate\Support\Facades\View::make('components.alert',
-                ["type" => "%type%", "messages" => $v->all()]);
+                ["type" => "%type%", "messages" => $v->all(), "customClass" => "mt-3"]);
             $CSRF->reset();
             return response()->json([
                 'type' => false,
@@ -451,7 +451,7 @@ class MemberController extends Controller
 //                $fingerprint,
 //            ])));
             $alertView = \Illuminate\Support\Facades\View::make('components.alert',
-                ["type" => "warning", "messages" => $v->all()]);
+                ["type" => "warning", "messages" => $v->all(), "customClass" => "mt-3"]);
             $CSRF->reset();
             return response()->json([
                 'type' => false,
@@ -472,7 +472,7 @@ class MemberController extends Controller
                 $errors = new MessageBag;
                 $errors->add('token', $i18N->getLanguage(ELanguageText::CSRFVerificationFailed));
                 $alertView = \Illuminate\Support\Facades\View::make('components.alert',
-                    ["type" => "danger", "messages" => $errors->all()]);
+                    ["type" => "danger", "messages" => $errors->all(), "customClass" => "mt-3"]);
                 $CSRF->reset();
                 return response()->json([
                     'type' => false,
@@ -500,7 +500,7 @@ class MemberController extends Controller
 //                            $fingerprint,
 //                        ])));
                         $alertView = \Illuminate\Support\Facades\View::make('components.alert',
-                            ["type" => "danger", "messages" => $errors->all()]);
+                            ["type" => "danger", "messages" => $errors->all(), "customClass" => "mt-3"]);
                         Auth::logout();
                         return response()->json([
                             'type' => false,
@@ -539,7 +539,7 @@ class MemberController extends Controller
 //                        $fingerprint,
 //                    ])));
                     $alertView = \Illuminate\Support\Facades\View::make('components.alert',
-                        ["type" => "warning", "messages" => $errors->all()]);
+                        ["type" => "warning", "messages" => $errors->all(), "customClass" => "mt-3"]);
                     //Log::info($request->ip() . ": " . PHP_EOL . "    ValidationException=asd," . PHP_EOL . "    Request(Json)=" . Json::encode($request->all()));
                     return response()->json([
                         'type' => false,
@@ -556,7 +556,7 @@ class MemberController extends Controller
                 $errors = new MessageBag;
                 $errors->add('username', $msg);
                 $alertView = \Illuminate\Support\Facades\View::make('components.alert',
-                    ["type" => "danger", "messages" => $errors->all()]);
+                    ["type" => "danger", "messages" => $errors->all(), "customClass" => "mt-3"]);
 
                 return response()->json([
                     'type' => false,

@@ -1,5 +1,5 @@
 @vite(['resources/css/index.css', 'resources/js/index.js'])
-@use (App\Lib\I18N\ELanguageText;use App\Lib\I18N\I18N;use App\Lib\Utils\Htmlv2;use App\Lib\Utils\Utilsv2;use App\View\Components\PopoverOptions;use Illuminate\Http\Request;use Illuminate\Pagination\LengthAwarePaginator;use Illuminate\Support\Facades\Config)
+@use (App\Lib\I18N\ELanguageText;use App\Lib\I18N\I18N;use App\Lib\Utils\Htmlv2;use App\Lib\Utils\Utils;use App\Lib\Utils\Utilsv2;use App\View\Components\PopoverOptions;use Illuminate\Http\Request;use Illuminate\Pagination\LengthAwarePaginator;use Illuminate\Support\Facades\Config; use Nette\Utils\Json;use App\Lib\Utils\RouteNameField)
 @php
     /***
      * @var string[] $urlParams 當前 URL 參數
@@ -8,18 +8,15 @@
      * @var Request $request 請求
      * @var string $fingerprint 客戶端指紋
      * @var string $theme 主題
-
      * @var \App\Models\ShopConfig[] $styleConfig 系統設定
      */
     $menu=true;
     $footer=true;
-
-    $inventorys = $moreParams[0]['inventorys'];
-    $search = $moreParams[0]['search'];
-    $maxPrice = $minPrice = 0;
-    if($inventorys instanceof LengthAwarePaginator){
-        $maxPrice = number_format((float)$moreParams[0]['maxPrice'], 2, ".", "");
-        $minPrice = number_format((float)$moreParams[0]['minPrice'], 2, ".", "");
+    $shareTables = [];
+    if(!empty($moreParams)){
+        if(isset($moreParams[0]['$shareTables'])){
+            $shareTables = $moreParams[0]['$shareTables'];
+        }
     }
 @endphp
 @extends('layouts.default')
@@ -41,13 +38,13 @@
 @section('content')
     <x-scroll-indicator indicator-target="body"></x-scroll-indicator>
     <main>
+        @php
+            $popoverid = "popover_index";
+            $popoverOptions = new PopoverOptions()
+        @endphp
         <div class="container1">
-            @php
-                $popover = "PW_".\Illuminate\Support\Str::random();
-            @endphp
-            <x-popover-windows class="shop-popover !hidden"
-                               popover-title="預覽商品" :id="$popover"
-                               :popover-options="new PopoverOptions()">
+            <x-popover-windows :id="$popoverid" :popover-options="$popoverOptions" popover-title="預覽分享資訊"
+                               class="shop-popover !hidden">
                 <div class="shop-popover-placeholder placeholder placeholder-full-wh">
                     <div class="shop-popover-loader" role="status">
                         <svg aria-hidden="true"
@@ -63,21 +60,24 @@
                         <span class="sr-only">Loading...</span>
                     </div>
                 </div>
-                <iframe class="shop-iframe"></iframe>
+                <iframe class="custom-page-iframe"></iframe>
             </x-popover-windows>
-            <x-FilterBar :maxPrice="$maxPrice" :minPrice="$minPrice"></x-FilterBar>
-            <div class="shop-list-frame">
-                @if($search !== null && $search !== "")
-                    <div class="search-text">
-                        搜尋結果: {{$search}} 搜尋數量: {{ $inventorys->total() }}
-                    </div>
-                @endif
-                @if($inventorys->total() === 0)
-                <h1>無搜尋結果</h1>
-                @else
-                <x-ShopItem2 :popoverid="$popover" :i18-n="$i18N" :inventorys="$inventorys"></x-ShopItem2>
-                @endif
-            </div>
+            <div class="panel-title-field gfont-noto-serif-tc-bold">檔案列表</div>
+            @auth
+                <form class="panel-upload-field" method="post"
+                      action="{{ route(RouteNameField::PageShareTableItemPost->value)  }}">
+                    @csrf
+                    <input type="submit" class="btn btn-ripple btn-color7 btn-md-strip" name="upload" value="上傳">
+                    <input type="file" class="filepond w-1/2"
+                           data-allowtypes="image/png::image/jpg::image/jpeg::image/svg+xml::image/gif::image/webp::image/apng::image/bmp::image/avif::video/av1::video/H264::video/H264-SVC::video/H264-RCDO::video/H265::video/JPEG::video/JPEG::video/mpeg::video/mpeg4-generic::video/ogg::video/quicktime::video/JPEG::video/vnd.mpegurl::video/vnd.youtube.yt::video/VP8::video/VP9::video/mp4::video/mp4V-ES::video/MPV::video/vnd.directv.mpeg::video/vnd.dece.mp4::video/vnd.uvvu.mp4::video/H266::video/H263::video/H263-1998::video/H263-2000::video/H261::application/zip::application/x-zip-compressed::multipart/x-zip::application/x-compressed"
+                           data-upload="{{ route(RouteNameField::APIShareTableItemUploadImage->value) }}"
+                           data-revert="{{ route(RouteNameField::APIShareTableItemUploadImageRevert->value) }}"
+                           data-patch="{{ route(RouteNameField::APIShareTableItemUploadImagePatch->value, ["fileinfo"=>" "]) }}"
+                           data-multiple="true"
+                           name="ItemImages[]"/>
+                </form>
+            @endauth
+            <x-panel-field-card-list :share-tables="$shareTables" :popoverid="$popoverid" :i18-n="$i18N"></x-panel-field-card-list>
         </div>
     </main>
 @endsection

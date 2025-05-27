@@ -13,6 +13,7 @@ use App\Lib\Utils\Utils;
 use App\Lib\Utils\Utilsv2;
 use App\Lib\Utils\ValidatorBuilder;
 use App\Models\Member;
+use App\Models\SharePermissions;
 use App\Models\ShareTable;
 use App\Models\ShopConfig;
 use App\Models\SystemLog;
@@ -21,6 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
@@ -318,33 +320,81 @@ class InternalController extends Controller
 
     public function index(Request $request)
     {
-        $pageKey = 'shareTableIndexCache_p_' . $request->get('page', 1);
+        $user = Auth::user();
+        if($user !== null) {
+            $user->id;
+            // 記錄所有快取後的分頁 ( 頁數為 1)
+            $pageKey = 'shareTableIndexCache_p_' . $request->get('page', 1)."_user_".$user->id;
+        } else {
+            $pageKey = 'shareTableIndexCache_p_' . $request->get('page', 1);
+        }
         DB::enableQueryLog();
-        $shareTables = Cache::remember($pageKey, now()->addMinutes(), function () use ($pageKey) {
+        $shareTables = Cache::remember($pageKey, now()->addMinutes(15), function () use ($pageKey, $user) {
             // 紀錄所有快取後的分頁
             $key = 'shareTableIndexCaches';
             if (Cache::has($key)) {
                 $var = Cache::get($key);
-                if (is_array($var)) {
+                if (is_array($var) && !in_array($pageKey, $var)) {
                     $var [] = $pageKey;
                 }
                 Cache::put($key, $var, now()->addDays());
             } else {
                 Cache::put($key, [$pageKey], now()->addDays());
             }
-            $user = Auth::user();
-            //DB::enableQueryLog();
+            DB::enableQueryLog();
             if ($user !== null) {
-                $shareTable = ShareTable::where('type', '=', EShareTableType::public->value)
-                    ->orWhere(function ($query) use ($user) {
-                        $query->where('type', '=', EShareTableType::private->value)
-                            ->where('member_id', '=', $user->id);
-                    });
+                // 使用子查詢或聯表方式一次獲取所有需要的數據
+                $shareTable = ShareTable::select('share_tables.*')
+                    ->where(function($query) use ($user) {
+                        $query->where('share_tables.type', '=', EShareTableType::public->value)
+                            ->orWhere(function ($q) use ($user) {
+                                $q->where('share_tables.type', '=', EShareTableType::private->value)
+                                    ->where('share_tables.member_id', '=', $user->id);
+                            });
+                    })
+                    ->orWhereExists(function ($query) use ($user) {
+                        $query->select(DB::raw(1))
+                            ->from('share_permissions')
+                            ->whereColumn('share_permissions.share_tables_id', 'share_tables.id')
+                            ->where('share_permissions.member_id', '=', $user->id)
+                            ->where('share_tables.type', '=', EShareTableType::private->value);
+                    })
+                    ->orderBy('share_tables.created_at', 'desc')
+                    ->paginate(30);
             } else {
-                $shareTable = ShareTable::where('type', '=', EShareTableType::public->value);
+                $shareTable = ShareTable::where('type', '=', EShareTableType::public->value)
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(30);
             }
-            $shareTables = $shareTable->orderBy('created_at', "desc")->paginate(30);
-            //Log::info(json_encode(DB::getQueryLog(), JSON_PRETTY_PRINT));
+            $orderBy = $shareTable;
+            if ($user !== null) {
+                // 使用 with 預加載關聯數據
+                $sharePermissions = SharePermissions::where('member_id', '=', $user->id)
+                    ->with('shareTable')
+                    ->get();
+
+                $privateShareTables = $sharePermissions
+                    ->map(function ($permission) {
+                        return $permission->shareTable;
+                    })
+                    ->filter(function ($shareTable) use ($orderBy) {
+                        return $shareTable &&
+                            !$orderBy->contains($shareTable) &&
+                            $shareTable->type === EShareTableType::private->value;
+                    });
+
+                // 一次性添加所有私有表
+                $orderBy->push(...$privateShareTables);
+
+                // 排序
+                $orderBy->setCollection($orderBy->sortBy([
+                    ['created_at', 'desc'],
+                    ['id', 'desc'],
+                ]));
+            }
+
+            $shareTables = $orderBy;
+            Log::info(json_encode(DB::getQueryLog(), JSON_PRETTY_PRINT));
             return $shareTables;
         });
         return view('index', Controller::baseControllerInit($request, [ '$shareTables' => $shareTables])->toArrayable());
@@ -396,17 +446,17 @@ class InternalController extends Controller
                 $bezier->point(200, 50); // control point 2
                 $bezier->point(150, 200); // control point 3
                 $bezier->point(300, 200); // control point 4
-                $bezier->border(Utils::getRandomHexColor(false), 4); // border color & size
+                $bezier->border(Utils::getRandomHexColor(false), 4); // border color and size
             });
             $image->drawRectangle(10, 100, function (RectangleFactory $rectangle) {
-                $rectangle->size(180, 125); // width & height of rectangle
+                $rectangle->size(180, 125); // width and height of rectangle
                 $rectangle->background('orange'); // background color of rectangle
-                $rectangle->border('white', 2); // border color & size of rectangle
+                $rectangle->border('white', 2); // border color and size of rectangle
             });
             $image->drawEllipse(150, 150, function (EllipseFactory $ellipse) {
-                $ellipse->size(180, 125); // width & height of ellipse
+                $ellipse->size(180, 125); // width and height of ellipse
                 $ellipse->background('f00'); // background color
-                $ellipse->border('00f', 2); // border color & size
+                $ellipse->border('00f', 2); // border color and size
             });
             $image->drawLine(function (LineFactory $line) use ($image) {
                 $line->from(0, 0); // starting point of line

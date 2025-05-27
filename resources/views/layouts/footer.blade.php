@@ -25,6 +25,12 @@
                 </div>
             </div>
             <div class="item">
+                <div class="title">說明</div>
+                <div class="description">{{ Config::get('app.description') }}</div>
+                <div class="">版本: [{{ Config::get('app.version') }}]</div>
+                <div class="">編譯版本: [{{ Config::get('app.buildVersion') }}]</div>
+            </div>
+            {{-- <div class="item">
                 <div class="title">合作夥伴</div>
                 <a class="menu-btn btn btn-ripple">
                     <i class="fa-solid fa-question"></i>
@@ -57,7 +63,7 @@
                     <i class="fa-solid fa-phone-volume"></i>
                     <span>&nbsp;聯絡我們</span>
                 </a>
-            </div>
+            </div> --}}
         </div>
         <div class="footer1">
             <div class="row">
@@ -65,7 +71,7 @@
                                                                                                  href="https://github.com/creamgod45">CreamGod45</a>
                 </div>
                 <div class="col">Power by&nbsp;<a class="laravel" href="https://laravel.com/" target="_blank">Laravel
-                        12</a> 編譯版本: [{{ Config::get('app.buildVersion') }}]
+                        12</a>
                 </div>
             </div>
         </div>
