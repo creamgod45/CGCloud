@@ -78,6 +78,7 @@
         "tailwind-scrollbar": "^3.1.0",
         "tinymce": "^7.5.1",
         "tippy.js": "^6.3.7",
+        "toastify-js": "^1.12.0",
         "tom-select": "^2.4.1",
         "videojs-contrib-dash": "^5.1.1",
         "videojs-contrib-quality-menu": "^1.0.3",
