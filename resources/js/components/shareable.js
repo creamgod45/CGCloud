@@ -1,6 +1,6 @@
 import axios from "axios";
 
-function initPopupElement(id, user, href) {
+function initPopupElement(id, user, href, users) {
     if (document.getElementById( "shareable_"+id) !== null) return;
 
     let shareablePopover = document.createElement("div");
@@ -82,6 +82,16 @@ function initPopupElement(id, user, href) {
     membersSelect.setAttribute("data-width", "100%");
     membersSelect.setAttribute("name", "shareMembers");
     membersSelect.setAttribute("multiple", "");
+    membersSelect.setAttribute("data-options", users);
+    let optionsids = [];
+    const parse = JSON.parse(users);
+    if(parse !== null) {
+        console.log(parse);
+        for (let userElement of parse) {
+            optionsids.push(userElement['value']);
+        }
+        membersSelect.setAttribute("data-optionsids", JSON.stringify(optionsids));
+    }
 
     shareListOperator.appendChild(membersSelect);
     shareListField.appendChild(shareListTitle);
@@ -154,6 +164,7 @@ function initPopupElement(id, user, href) {
     document.dispatchEvent(new CustomEvent('CGCP::init'));
     document.dispatchEvent(new CustomEvent('CGSW::init'));
     document.dispatchEvent(new CustomEvent('CGTS::init'));
+    document.dispatchEvent(new CustomEvent('CGCT::init'));
 
     setTimeout(() => {
         switcher.on('click', function () {
@@ -244,6 +255,7 @@ async function initDownloadMenuPopupElement(id, href, json, delete_url) {
     document.body.appendChild(shareablePopover);
     document.dispatchEvent(new CustomEvent('CGTABLE::init'));
     document.dispatchEvent(new CustomEvent('CGPLACEHOLDER::init'));
+    document.dispatchEvent(new CustomEvent('CGCT::init'));
     setTimeout(()=>{
         document.dispatchEvent(new CustomEvent('CGCONFIRMBOX::init'));
     }, 1000);
@@ -311,6 +323,7 @@ async function initConversionPopupElement(id, href, json) {
     document.body.appendChild(shareablePopover);
     document.dispatchEvent(new CustomEvent('CGTABLE::init'));
     document.dispatchEvent(new CustomEvent('CGPLACEHOLDER::init'));
+    document.dispatchEvent(new CustomEvent('CGCT::init'));
     setTimeout(()=>{
         document.dispatchEvent(new CustomEvent('CGCONFIRMBOX::init'));
     }, 1000);
@@ -323,7 +336,6 @@ async function shareable() {
         shareable.onclick = async () => {
             let id = shareable.dataset.id;
             let href = shareable.dataset.href;
-            let user = shareable.dataset.user;
             let type = shareable.dataset.type;
             let data = shareable.dataset.data;
             if (type === undefined) return;
@@ -331,15 +343,22 @@ async function shareable() {
             if (type === "download") {
                 if (data === undefined) return;
                 let delete_url = shareable.dataset.delete;
+                let owner = shareable.dataset.owner;
                 if (delete_url === undefined) return;
-                await initDownloadMenuPopupElement(id, href, data, delete_url);
+                await initDownloadMenuPopupElement(id, href, data, delete_url, owner);
                 popover = document.getElementById("download_" + id);
             } else if (type === "share") {
+                let user = shareable.dataset.user;
+                let users = shareable.dataset.users;
                 if (user === undefined) {
                     console.log("user url is undefined");
                     return;
                 }
-                await initPopupElement(id, user, href);
+                if (users === undefined) {
+                    console.log("users is undefined");
+                    return;
+                }
+                await initPopupElement(id, user, href, users);
                 popover = document.getElementById("shareable_" + id);
             } else if (type === "conversion") {
                 await initConversionPopupElement(id, href, data);

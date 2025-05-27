@@ -13,6 +13,7 @@ function TomSelect_() {
         let placeholder = dataset.placeholder; //The placeholder of the control. Defaults to input element's placeholder, unless this one is specified. To update the placeholder setting after initialization, call inputState()
         let items = dataset.items;
         let options = dataset.options;
+        let optionsIds = dataset.optionsids;
         let create = dataset.create === "true"; // Determines if the user is allowed to create new items that aren't in the initial list of options. This setting can be any of the following: true, false, or a function.
         let persist = dataset.persist === "true"; // If false, items created by the user will not show up as available options once they are unselected.
         let maxItems = dataset.maxitems;
@@ -126,6 +127,10 @@ function TomSelect_() {
             }
         }
         let tomSelect = new TomSelect(tomSelectElement, custome_options);
+
+        if(optionsIds !== undefined) {
+            tomSelect.setValue(JSON.parse(optionsIds));
+        }
 
         if(disabled){
             tomSelect.disable();
