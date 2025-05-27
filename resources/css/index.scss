@@ -167,6 +167,19 @@ body {
 
                         .pfc-operator {
                             @apply flex justify-center items-center w-full;
+                            .grid-btn-group {
+                                @apply flex-wrap flex space-x-2 space-x-reverse space-y-2 w-full;
+                                .grid-btn:first-child {
+                                    @apply mt-2 me-2;
+                                }
+                                .grid-btn {
+                                    @apply flex-auto w-1/5 h-8 flex justify-center items-center;
+                                }
+                                .grid-btn:last-child {
+                                    @apply mt-2 me-0;
+                                }
+                            }
+
                             .btn-group{
                                 @apply m-2;
                             }
@@ -283,10 +296,10 @@ body {
             }
 
             .share-tables-form{
-                @apply h-full w-full dark:bg-neutral-600 dark:text-white rounded-xl pt-5;
+                @apply h-full w-full dark:bg-neutral-600 dark:text-white bg-blue-200 rounded-xl pt-5;
 
                 .fdi-content{
-                    @apply dark:bg-neutral-600 bg-white mr-6 mx-5;
+                    @apply dark:bg-neutral-600  mr-6 mx-5;
                     .fdic-field{
                         @apply dark:text-black text-black flex items-center justify-start gap-5 p-5;
                         label{
@@ -687,10 +700,10 @@ body {
         .footer-menu-panel{
             @apply justify-center grid grid-cols-1 min-w-[75vw] max-w-[90vw] bg-slate-200 ring-1 ring-slate-200 rounded-t-4xl p-5;
             .footer-menu{
-                @apply grid gap-2 grid-cols-4 w-full
-                xxl:grid-cols-4
-                xl:grid-cols-4
-                menu:grid-cols-4
+                @apply grid gap-2 grid-cols-3 w-full
+                xxl:grid-cols-3
+                xl:grid-cols-3
+                menu:grid-cols-3
                 lg:grid-cols-3
                 md:grid-cols-3
                 footer:grid-cols-2

@@ -8,6 +8,7 @@
 @import 'filepond-plugin-file-poster/dist/filepond-plugin-file-poster.min.css';
 @import 'video.js/dist/video-js.min.css';
 @import 'components/videojs-zoom.css';
+@import "toastify-js/src/toastify.css";
 @import "videojs-playlist-ui/dist/videojs-playlist-ui.css";
 @import "@kokotree-inc/videojs-upnext-plugin/upnext-styles.min.css";
 @import 'videojs-vjsdownload/dist/videojs-vjsdownload.css';
@@ -2579,6 +2580,10 @@ a.btn {
   @apply backdrop-blur-sm bg-neutral-800/50;
 }
 
+.toastify {
+  @apply flex space-x-3 items-center;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -2721,6 +2726,18 @@ body main .container1 .panel-field-list .panel-field-card.vertical .pfc-title {
 body main .container1 .panel-field-list .panel-field-card.vertical .pfc-operator {
   @apply flex justify-center items-center w-full;
 }
+body main .container1 .panel-field-list .panel-field-card.vertical .pfc-operator .grid-btn-group {
+  @apply flex-wrap flex space-x-2 space-x-reverse space-y-2 w-full;
+}
+body main .container1 .panel-field-list .panel-field-card.vertical .pfc-operator .grid-btn-group .grid-btn:first-child {
+  @apply mt-2 me-2;
+}
+body main .container1 .panel-field-list .panel-field-card.vertical .pfc-operator .grid-btn-group .grid-btn {
+  @apply flex-auto w-1/5 h-8 flex justify-center items-center;
+}
+body main .container1 .panel-field-list .panel-field-card.vertical .pfc-operator .grid-btn-group .grid-btn:last-child {
+  @apply mt-2 me-0;
+}
 body main .container1 .panel-field-list .panel-field-card.vertical .pfc-operator .btn-group {
   @apply m-2;
 }
@@ -2818,10 +2835,10 @@ body main .container2 .share-table-caption {
   @apply w-full text-3xl font-bold my-3;
 }
 body main .container2 .share-tables-form {
-  @apply h-full w-full dark:bg-neutral-600 dark:text-white rounded-xl pt-5;
+  @apply h-full w-full dark:bg-neutral-600 dark:text-white bg-blue-200 rounded-xl pt-5;
 }
 body main .container2 .share-tables-form .fdi-content {
-  @apply dark:bg-neutral-600 bg-white mr-6 mx-5;
+  @apply dark:bg-neutral-600 mr-6 mx-5;
 }
 body main .container2 .share-tables-form .fdi-content .fdic-field {
   @apply dark:text-black text-black flex items-center justify-start gap-5 p-5;
@@ -3187,10 +3204,10 @@ body footer .footer-menu-panel {
   @apply justify-center grid grid-cols-1 min-w-[75vw] max-w-[90vw] bg-slate-200 ring-1 ring-slate-200 rounded-t-4xl p-5;
 }
 body footer .footer-menu-panel .footer-menu {
-  @apply grid gap-2 grid-cols-4 w-full
-                xxl:grid-cols-4
-                xl:grid-cols-4
-                menu:grid-cols-4
+  @apply grid gap-2 grid-cols-3 w-full
+                xxl:grid-cols-3
+                xl:grid-cols-3
+                menu:grid-cols-3
                 lg:grid-cols-3
                 md:grid-cols-3
                 footer:grid-cols-2

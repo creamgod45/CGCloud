@@ -43,6 +43,7 @@ import './components/shareable.js';
 import './components/copyer.js';
 import './components/ConfirmBox.js';
 import './components/autoupdate.js';
+import './components/toastify.js';
 import Masonry from 'masonry-layout/masonry.js'
 import axios from "axios";
 
@@ -56,13 +57,20 @@ document.addEventListener('DOMContentLoaded', async function () {
                 percentPosition: true,
                 gutter: 12,
             });
+            masonry.cglocked = false;
             element.classList.remove('placeholder');
 
             // 創建一個 MutationObserver 實例來監聽 DOM 變化
             const observer = new MutationObserver((mutations) => {
                 // 當 DOM 變化時重新布局
-                if (masonry !== undefined) {
+                if (masonry !== undefined && masonry.cglocked === false) {
+                    console.log('layouted');
+                    masonry.cglocked = true;
                     masonry.layout();
+                    setTimeout(() => {
+                        masonry.cglocked = false;
+                        console.log('layout again');
+                    }, 500);
                 }
             });
 
@@ -77,14 +85,18 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 });
 
-
-
 window.addEventListener('scroll', function (e) {
     if(e.target.scrollingElement.scrollTop  >= (e.target.scrollingElement?.scrollTopOld ?? 0) + 100){
         console.log('scroll');
-        if(masonry === undefined) return;
-        console.log('layouted');
-        masonry.layout();
+        if (masonry !== undefined && masonry.cglocked === false) {
+            console.log('layouted');
+            masonry.cglocked = true;
+            masonry.layout();
+            setTimeout(() => {
+                masonry.cglocked = false;
+                console.log('layout again');
+            }, 500);
+        }
         e.target.scrollingElement.scrollTopOld = e.target.scrollingElement.scrollTop;
     } else {
         e.target.scrollingElement.scrollTopOld = e.target.scrollingElement.scrollTop;
