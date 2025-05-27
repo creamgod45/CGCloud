@@ -8,6 +8,7 @@
 @import 'filepond-plugin-file-poster/dist/filepond-plugin-file-poster.min.css';
 @import 'video.js/dist/video-js.min.css';
 @import 'components/videojs-zoom.css';
+@import "toastify-js/src/toastify.css";
 @import "videojs-playlist-ui/dist/videojs-playlist-ui.css";
 @import "@kokotree-inc/videojs-upnext-plugin/upnext-styles.min.css";
 @import 'videojs-vjsdownload/dist/videojs-vjsdownload.css';
@@ -2580,6 +2581,10 @@ a.btn {
 
 .shareable-popover::backdrop {
   @apply backdrop-blur-sm bg-neutral-800/50;
+}
+
+.toastify {
+  @apply flex space-x-3 items-center;
 }
 
 body {

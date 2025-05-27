@@ -60,6 +60,10 @@
     </a>
     @endguest
     @auth
+    <a class="dropdown-menu-item btn btn-dead btn-md-strip btn-border-0 text-black">
+        <div class="icon"><i class="fa-solid fa-user"></i></div>
+        <div class="dropdown-menu-title noto-serif-tc-black">{{ (\Illuminate\Support\Facades\Auth::user() !== null) ? \Illuminate\Support\Facades\Auth::user()->username : ""  }}</div>
+    </a>
     <a href="{{ route(RouteNameField::PageLogout->value) }}" class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
         <div class="icon"><i class="fa-solid fa-computer"></i></div>
         <div class="dropdown-menu-title noto-serif-tc-black">登出</div>
