@@ -70,14 +70,19 @@ class VirtualFile extends Model
         return Storage::disk($this->disk);
     }
 
-    public function getImage($shareTableId): Image
+    public function getImage($shareTableId): ?Image
     {
         $manager = new ImageManager(new Driver());
         $filesystem = $this->getFileSystem();
-        $image = $manager->read($filesystem->readStream($this->path));
-        $internalImage = new Image($this->getTemporaryUrl(null, $shareTableId), $image->size()->width(),
-            $image->size()->height(), $this->minetypes, "", "", image: $image);
-        return $internalImage;
+        if ($filesystem->exists($this->path)) {
+            $image = $manager->read(
+                $filesystem->readStream($this->path)
+            );
+            $internalImage = new Image($this->getTemporaryUrl(null, $shareTableId), $image->size()->width(),
+                $image->size()->height(), $this->minetypes, "", "", image: $image);
+            return $internalImage;
+        }
+        return null;
     }
 
     public function getThumbTemporaryUrl(DateTimeInterface $expiration = null): string

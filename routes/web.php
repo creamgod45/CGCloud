@@ -35,6 +35,7 @@ Route::middleware("checkClientID")->group(function () {
     //Route::post('user', [InternalController::class, 'user']);
     //Route::post('browser', [InternalController::class, 'browser'])->name(RouteNameField::APIBrowser->value);
     Route::get('/', [InternalController::class, 'index'])->name(RouteNameField::PageHome->value);
+    //Route::get('/index2', [InternalController::class, 'index2'])->name(RouteNameField::PageHome->value);
     Route::post('/clientconfig', [InternalController::class, 'getClientConfig'])->name(RouteNameField::APIClientConfig->value);
     Route::middleware(['auth', 'verified'])->prefix("sharetable")->group(function () {
         Route::post('share/{id}', [ShareTablesController::class, 'shareableShareTableItemPost'])->name(RouteNameField::APIShareableShareTableItem->value);

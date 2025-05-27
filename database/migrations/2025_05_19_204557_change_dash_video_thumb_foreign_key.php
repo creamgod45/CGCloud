@@ -7,32 +7,26 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        // 移除現有的外鍵約束
-        Schema::table('dash_videos', function (Blueprint $table) {
-            $table->dropForeign('dash_videos_thumb_virtual_file_uuid_foreign');
-        });
+        Schema::table('share_permissions', function (Blueprint $table) {
+            // 檢查欄位是否存在，如存在則先移除
+            if (Schema::hasColumn('share_permissions', 'start_at')) {
+                $table->dropColumn('start_at');
+            }
+            if (Schema::hasColumn('share_permissions', 'end_at')) {
+                $table->dropColumn('end_at');
+            }
 
-        // 確保下一個 down 方法可以還原此更改
+            // 新增 integer 類型的欄位
+            $table->integer('start_at')->default(0)->comment('開始時間（整數型態）');
+            $table->integer('end_at')->default(0)->comment('結束時間（整數型態）');
+        });
     }
 
     public function down(): void
     {
-        // 如果需要還原，重新添加外鍵約束
-        // 既然我們已經在 create_dash_videos_table 遷移中修改了 thumb_virtual_file_uuid 為軟外鍵
-        // 所以這個遷移文件不再需要進行外鍵約束的移除操作
-        // 此遷移可用於其他表結構調整或者保留為將來的更改
-
-        // 修改 videoStream 和 audioStream 確保它們是 text 類型
-        Schema::table('dash_videos', function (Blueprint $table) {
-            if (Schema::hasColumn('dash_videos', 'videoStream') &&
-                Schema::getColumnType('dash_videos', 'videoStream') === 'string') {
-                $table->text('videoStream')->nullable()->comment('視頻流的詳細資料，包括幀率、編碼格式、解析度等')->change();
-            }
-
-            if (Schema::hasColumn('dash_videos', 'audioStream') &&
-                Schema::getColumnType('dash_videos', 'audioStream') === 'string') {
-                $table->text('audioStream')->nullable()->comment('音頻流的詳細資料，如編解碼格式、音訊通道等')->change();
-            }
+        Schema::table('share_permissions', function (Blueprint $table) {
+            $table->dropColumn('start_at');
+            $table->dropColumn('end_at');
         });
     }
 };

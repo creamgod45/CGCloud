@@ -27,6 +27,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -197,9 +198,10 @@ class ShareTablesController extends Controller
 
                     if ($disk->exists($path)) {
                         $stream = $disk->readStream($path);
-                        $chunkSize = 1024 * 2048; // 每次传输的字节数
-                        $rateLimit = 1024 * 1512; // 每秒最大传输速率
-                        return new StreamedResponse(function () use ($stream, $chunkSize, $rateLimit) {
+                        // 每次传输的字节数
+                        $rateLimit = 1024 * config('app.downloadFileRateKB'); // 每秒最大传输速率
+                        return new StreamedResponse(function () use ($stream, $rateLimit) {
+                            $chunkSize = 1024 * 2048;
                             $delay = $chunkSize / $rateLimit; // 每次传输后的延迟时间
                             while (!feof($stream)) {
                                 echo fread($stream, $chunkSize);
@@ -338,10 +340,12 @@ class ShareTablesController extends Controller
             $var = Cache::get('shareTableIndexCaches');
             if (is_array($var)) {
                 foreach ($var as $value) {
-                    $pageKey = 'shareTableIndexCache_p_' . $value;
-                    Cache::forget($pageKey);
+                    //$pageKey = 'shareTableIndexCache_p_' . $value;
+                    //Cache::forget($pageKey);
+                    Log::debug("CLEAR CACHE KEY ".$value);
                     Cache::forget($value);
                 }
+                Cache::put('shareTableIndexCaches', []);
             }
         }
     }
@@ -404,11 +408,29 @@ class ShareTablesController extends Controller
                 $detectFiles = $files->diff($tFiles)->makeVisible(['uuid'])->all(); // 需要移除的檔案 UUID
                 //$originalFiles = $files->intersect($tFiles)->all(); // 原本的檔案 UUID // 原本的檔案 uuid
 
+
+
 //                dump([
 //                    "deattchFiles: " => $detectFiles,
 //                    "newFiles: " => $newFiles,
 //                    "originalFiles: " => $originalFiles,
 //                ]);
+                $tShareMembers = [];
+                //DB::enableQueryLog();
+                $members = $shareTable->relationMember();
+                //Log::debug(var_export(DB::getQueryLog(), true));
+                foreach ($v["shareMembers"] as $memberId) {
+                    if($memberId !== $shareTable->member_id && !$members->contains('member_id', '=', $memberId)){
+                        $tShareMembers[] = [
+                            'share_table_id' => $shareTable->id,
+                            'member_id' => $memberId,
+                            'permission_type' => '7',
+                            'expired_at' => now()->addDays(15)->timestamp,
+                        ];
+                    };
+                }
+
+                $shareTable->shareTablePermission()->createMany($tShareMembers);
 
                 $shareTable->update([
                     'name' => $v['shareTableName'],
@@ -424,6 +446,7 @@ class ShareTablesController extends Controller
                         'virtual_file_uuid' => $file['uuid'],
                     ];
                     $file->type = "persistent";
+                    $file->expired_at = -1;
                     $file->save();
                 }
 
@@ -459,7 +482,7 @@ class ShareTablesController extends Controller
             $vb = new ValidatorBuilder($i18N, EValidatorType::SHARETABLEEDIT);
             $v = $vb->validate($request->all(), ['current_password', 'password', 'password_confirmation'], true);
             if ($v instanceof MessageBag) {
-                $alertView = View::make('components.alert', ["type" => "%type%", "messages" => $v->all()]);
+                $alertView = View::make('components.alert', ["type" => "%type%", "messages" => $v->all(), "customClass" => "mt-3"]);
                 $CSRF->reset();
                 return response()->json([
                     'type' => false,
@@ -572,6 +595,7 @@ class ShareTablesController extends Controller
                     }
                     abort(404, 'File not found.');
                 }
+                abort(403, 'No permission to delete this file.');
             }
         }
         abort(404, 'Sharetable not found.');
@@ -584,17 +608,18 @@ class ShareTablesController extends Controller
         if ($dashVideos !== null && !$dashVideos->isCreateDashVideo()) {
             $waterMarkProgress = Cache::get('ffmpeg_watermark_progress_' . $dashVideos->id);
             $streamProgress = Cache::get('ffmpeg_streaming_progress_' . $dashVideos->id);
-            if ($waterMarkProgress !== null && (int)$waterMarkProgress <= 100) {
-                Cache::delete('ffmpeg_watermark_progress_' . $dashVideos->id);
-                return response()->json([
-                    'message' => 'success',
-                    'value' => $waterMarkProgress,
-                ]);
-            } elseif ($streamProgress !== null && (int)$streamProgress <= 100) {
+            if ($streamProgress !== null && (int)$streamProgress <= 100) {
                 Cache::delete('ffmpeg_streaming_progress_' . $dashVideos->id);
                 return response()->json([
                     'message' => 'success2',
                     'value' => $streamProgress,
+                ]);
+            } elseif ($waterMarkProgress !== null && $waterMarkProgress !== "") {
+                Cache::put('pending_process_' . $dashVideos->id, true, now()->addMinutes(1));
+                Cache::delete('ffmpeg_watermark_progress_' . $dashVideos->id);
+                return response()->json([
+                    'message' => 'success',
+                    'value' => $waterMarkProgress,
                 ]);
             }
         }
@@ -816,9 +841,10 @@ class ShareTablesController extends Controller
 
                     if ($disk->exists($path)) {
                         $stream = $disk->readStream($path);
-                        $chunkSize = 1024 * 2048; // 每次传输的字节数
-                        $rateLimit = 1024 * 1512; // 每秒最大传输速率
-                        return new StreamedResponse(function () use ($stream, $chunkSize, $rateLimit) {
+                        // 每次传输的字节数
+                        $rateLimit = 1024 * config('app.downloadFileRateKB'); // 每秒最大传输速率
+                        return new StreamedResponse(function () use ($stream, $rateLimit) {
+                            $chunkSize = 1024 * 2048;
                             $delay = $chunkSize / $rateLimit; // 每次传输后的延迟时间
                             while (!feof($stream)) {
                                 echo fread($stream, $chunkSize);
@@ -986,12 +1012,14 @@ class ShareTablesController extends Controller
                 ]);
 
                 foreach ($shareMembers as $shareMember) {
-                    SharePermissions::create([
-                        'share_tables_id' => $shareTable->id,
-                        'member_id' => (int)$shareMember,
-                        'permission_type' => '7',
-                        'expired_at' => now()->addDays(15)->timestamp,
-                    ]);
+                    if($shareMember !== Auth::user()?->id){
+                        SharePermissions::create([
+                            'share_tables_id' => $shareTable->id,
+                            'member_id' => (int)$shareMember,
+                            'permission_type' => '7',
+                            'expired_at' => now()->addDays(15)->timestamp,
+                        ]);
+                    }
                 }
 
                 foreach ($files as $file) {
@@ -1186,8 +1214,17 @@ class ShareTablesController extends Controller
                 $random = Str::random(10);
                 foreach ($file as $item) {
                     if ($item instanceof UploadedFile) {
-                        $filePath = $item->storePublicly('ShareTable/TEMP/Block/' . $random, 'local');
+                        $filePath = $item->storeAs('ShareTable/TEMP/Block/' , $random, 'local');
                         $uuid = Str::uuid();
+                        $mimeType = $item->getMimeType();
+                        $object = CGFileSystem::getCGFileObject($filePath);
+                        if($object instanceof CGBaseFile) {
+                            try {
+                                $mimeType = $object->mimeLikely();
+                            } catch (Exception $e) {
+
+                            }
+                        }
                         $v = VirtualFile::create([
                             'uuid' => $uuid->toString(),
                             'members_id' => Auth::user()->id ?? null,
@@ -1196,7 +1233,7 @@ class ShareTablesController extends Controller
                             'path' => $filePath,
                             'disk' => 'local',
                             'extension' => $item->getClientOriginalExtension(),
-                            'minetypes' => $item->getMimeType(),
+                            'minetypes' => $mimeType,
                             'size' => $item->getSize(),
                             'expired_at' => now()->addMinutes(10)->timestamp,
                         ]);

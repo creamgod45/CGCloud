@@ -94,6 +94,20 @@ class AppServiceProvider extends ServiceProvider
             // 返回包含所有匹配元素的集合
             return $matches;
         });
+
+        Collection::macro('toTomSelect', function (): string {
+            $items = $this->items;
+            $newArrays=[];
+            foreach ($items as $key => $item) {
+                $newArrays [] = [
+                    'value' => $key,
+                    'text' => $item,
+                    'title' => $item,
+                    'name' => $item
+                ];
+            }
+            return collect($newArrays)->toJson();
+        });
         //
         // 註冊任務處理成功的監聽器
         Queue::after(function (JobProcessed $event) {

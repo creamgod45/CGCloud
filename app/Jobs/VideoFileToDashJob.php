@@ -428,7 +428,7 @@ class VideoFileToDashJob implements ShouldQueue
             Log::debug("[JOBS]executeCommandWithLiveOutput process running");
             $errorOutput = $process->errorOutput();
             $tErrorOutput = $this->parseFFmpegOutput($errorOutput);
-            Cache::put('ffmpeg_watermark_progress_' . $dashVideoId, $tErrorOutput['progress'], now()->addMinutes(1));
+            Cache::put('ffmpeg_watermark_progress_' . $dashVideoId, $tErrorOutput['time'], now()->addMinutes(1));
             usleep(500000); // 100ms
         }
 
@@ -581,6 +581,9 @@ class VideoFileToDashJob implements ShouldQueue
                 str_repeat('#', $percentage), str_repeat('-', (100 - $percentage)));
             Log::info($a);
             Cache::put('ffmpeg_streaming_progress_' . $dashVideos->id, $percentage, now()->addMinutes(5));
+            if (Cache::has('pending_process_' . $dashVideos->id)) {
+                Cache::forget('pending_process_' . $dashVideos->id);
+            }
             dump($a);
         });
 
