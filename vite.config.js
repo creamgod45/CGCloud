@@ -37,6 +37,7 @@ export default defineConfig({
                             'http://127.0.0.1:8000/',
                             'https://cgcx.bltn.cc/',
                             'https://cgcx.blaetoan.cyou/',
+                            'https://cgcloud.test/',
                         ],
                         domainLockRedirectUrl: 'about:blank',
                         forceTransformStrings: [],
