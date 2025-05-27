@@ -16,7 +16,7 @@ function autoupdate(){
                         let data = await response.data;
                         console.log(data);
                         if(data.message === "success"){
-                            _autoupdate.innerText = "浮水印影片 生成中... " + data.value + "%";
+                            _autoupdate.innerText = "浮水印影片 生成中... " + data.value;
                         }
                         if(data.message === "success2"){
                             _autoupdate.innerText = "轉換 Dash 生成中... " + data.value + "%";

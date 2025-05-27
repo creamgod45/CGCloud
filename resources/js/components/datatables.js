@@ -314,8 +314,23 @@ function attachDatatableEvents(datatableEl, options, popover) {
         document.dispatchEvent(new CustomEvent('BtnLoad'));
         document.dispatchEvent(new CustomEvent('CGTIPPYER::init'));
         document.dispatchEvent(new CustomEvent('CGAUTOUPDATE::init'));
+        document.dispatchEvent(new CustomEvent('CGCT::init'));
         if (datatableEl.faildAlert1El) datatableEl.faildAlert1El.hide();
         clearInterval(datatableEl.timer);
+    });
+
+    datatableEl.datatableObj.on('responsive-display', function (e, datatable, row, showHide, update) {
+        document.dispatchEvent(new CustomEvent('BtnLoad'));
+        document.dispatchEvent(new CustomEvent('CGTIPPYER::init'));
+        document.dispatchEvent(new CustomEvent('CGAUTOUPDATE::init'));
+        document.dispatchEvent(new CustomEvent('CGCT::init'));
+    });
+
+    datatableEl.datatableObj.on('responsive-resize', function (e, datatable, row, showHide, update) {
+        document.dispatchEvent(new CustomEvent('BtnLoad'));
+        document.dispatchEvent(new CustomEvent('CGTIPPYER::init'));
+        document.dispatchEvent(new CustomEvent('CGAUTOUPDATE::init'));
+        document.dispatchEvent(new CustomEvent('CGCT::init'));
     });
 
     datatableEl.datatableObj.on('length', () => {

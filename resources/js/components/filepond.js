@@ -12,7 +12,6 @@ import * as Utils from "./utils.js";
 import axios from "axios";
 // 註冊所有需要使用的 FilePond 插件
 FilePond.registerPlugin(FilePondPluginImagePreview);
-FilePond.registerPlugin(FilePondPluginImageTransform);
 FilePond.registerPlugin(FilePondPluginImageExifOrientation);
 FilePond.registerPlugin(FilePondPluginFileValidateSize);
 FilePond.registerPlugin(FilePondPluginFileValidateType);
@@ -108,6 +107,7 @@ function filepondLoader() {
             fileValidateTypeLabelExpectedTypes: '需要 {allButLastType} 或 {lastType}',
         };
         if(thumbable){
+            FilePond.registerPlugin(FilePondPluginImageTransform);
             options.imageTransformVariants = {
                 thumb_medium_: (transforms) => {
                     transforms.resize = {

@@ -852,6 +852,20 @@ function popover4(ct, target) {
 }
 
 /**
+ * 綁定一個元素的點擊事件，點擊後下載
+ *
+ * @param {HTMLElement} ct 綁定點擊事件的元素
+ * @param {string} target 目標元素的選擇器
+ * @return {boolean|void} 點擊時目標元素為 null 返回 false，否則無返回值
+ */
+function download_toast(ct, target) {
+    ct.addEventListener("click", () => {
+        const filename = ct.dataset.filename;
+        document.dispatchEvent(new CustomEvent("CGTOASTIFY::notice", { detail: { message: "已請求下載 "+filename+" 資源", avatar: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tIUZvbnQgQXdlc29tZSBGcmVlIDYuNy4yIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlL2ZyZWUgQ29weXJpZ2h0IDIwMjUgRm9udGljb25zLCBJbmMuLS0+PHBhdGggZmlsbD0iIzYzRTZCRSIgZD0iTTI4OCAzMmMwLTE3LjctMTQuMy0zMi0zMi0zMnMtMzIgMTQuMy0zMiAzMmwwIDI0Mi43LTczLjQtNzMuNGMtMTIuNS0xMi41LTMyLjgtMTIuNS00NS4zIDBzLTEyLjUgMzIuOCAwIDQ1LjNsMTI4IDEyOGMxMi41IDEyLjUgMzIuOCAxMi41IDQ1LjMgMGwxMjgtMTI4YzEyLjUtMTIuNSAxMi41LTMyLjggMC00NS4zcy0zMi44LTEyLjUtNDUuMyAwTDI4OCAyNzQuNyAyODggMzJ6TTY0IDM1MmMtMzUuMyAwLTY0IDI4LjctNjQgNjRsMCAzMmMwIDM1LjMgMjguNyA2NCA2NCA2NGwzODQgMGMzNS4zIDAgNjQtMjguNyA2NC02NGwwLTMyYzAtMzUuMy0yOC43LTY0LTY0LTY0bC0xMDEuNSAwLTQ1LjMgNDUuM2MtMjUgMjUtNjUuNSAyNS05MC41IDBMMTY1LjUgMzUyIDY0IDM1MnptMzY4IDU2YTI0IDI0IDAgMSAxIDAgNDggMjQgMjQgMCAxIDEgMC00OHoiLz48L3N2Zz4=" } }));
+    });
+}
+
+/**
  * 根據.ct元素的data屬性執行相應的函數。每個.ct元素必須具備data-fn與data-target屬性，
  * 函數會依據data-fn屬性的值來決定呼叫哪一個功能，並將data-target屬性的值傳給該功能。
  * 支援的功能包括：toggleable、password-toggle、datalist_selector、profile.email.sendMailVerifyCode、
@@ -862,12 +876,13 @@ function popover4(ct, target) {
  * @return {void} 無返回值
  */
 function customTrigger() {
-    var cts = document.querySelectorAll('.ct');
+    var cts = document.querySelectorAll('.ct:not(.ct-rendered)');
     for (let ct of cts) {
         //console.log(ct)
         if (ct.dataset.fn !== null && ct.dataset.target !== null) {
             let target = ct.dataset.target;
             //console.log(target)
+            ct.classList.add("ct-rendered")
             switch (ct.dataset.fn) {
                 case 'toggleable':
                     toggleable(ct, target);
@@ -914,9 +929,16 @@ function customTrigger() {
                 case "popover4":
                     popover4(ct, target);
                     break;
+                case "download-toast":
+                    download_toast(ct, target);
+                    break;
+                default:
+                    ct.classList.remove("ct-rendered");
+                    break;
             }
         }
     }
 }
 
+document.addEventListener("CGCT::init", customTrigger);
 document.addEventListener('DOMContentLoaded', customTrigger);
