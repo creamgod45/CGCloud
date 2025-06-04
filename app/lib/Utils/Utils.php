@@ -190,20 +190,16 @@ class Utils
      *
      * @param $directory
      *
-     * @return bool|null
+     * @return bool
      */
-    public static function setWorkingDirectory($directory)
+    public static function setWorkingDirectory($directory): bool
     {
         if (is_dir($directory)) {
             // 尝试改变当前工作目录
-            if (chdir($directory)) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return null;
+            return chdir($directory);
         }
+
+        return false;
     }
 
     /**
