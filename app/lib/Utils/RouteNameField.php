@@ -49,6 +49,7 @@ enum RouteNameField: string
     case PagePublicShareTablePreviewItem = 'root.public.sharetable.item.preview';
     case PagePublicShareTablePreviewFilePlayerDash = 'root.public.sharetable.preview.file.player.dash';
     case PagePreviewFilePlayerDash = 'root.sharetable.preview.file.player.dash';
+    case PageMyShareTables = 'root.sharetables.my';
 
     // API
     case APIEncodeJson = 'root.api.EncodeJson';

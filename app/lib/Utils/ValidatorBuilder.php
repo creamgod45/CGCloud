@@ -302,6 +302,7 @@ class ValidatorBuilder
             'token' => $this->i18N->getLanguage(ELanguageText::validator_field_token),
             'verification' => $this->i18N->getLanguage(ELanguageText::validator_field_VerificationCode),
             'sendMailVerifyCodeToken' => $this->i18N->getLanguage(ELanguageText::validator_field_sendMailVerifyCodeToken),
+            'shareTableName' => $this->i18N->getLanguage(ELanguageText::validator_field_shareTableName),
             // "信箱身份驗證權杖"
             'code' => $this->i18N->getLanguage(ELanguageText::validator_field_VerificationCode),
             'lang' => $this->i18N->getLanguage(ELanguageText::language),
