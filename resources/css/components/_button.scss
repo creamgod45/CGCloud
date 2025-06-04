@@ -110,6 +110,10 @@ a.btn {
     @apply bg-line border-line-50 hover:bg-line-50;
     transition: all 200ms !important;
 
+    &:focus {
+        @apply hover:bg-line-50;
+    }
+
     &:active {
         @apply ring-line ring-2 ring-offset-2;
     }
@@ -118,6 +122,10 @@ a.btn {
 .btn-ok, .btn-success {
     @apply bg-green-600 border-green-500 hover:bg-green-500;
     transition: all 200ms !important;
+
+    &:focus {
+        @apply bg-green-500;
+    }
 
     &:active {
         @apply ring-green-600 ring-2 ring-offset-2;
@@ -128,6 +136,10 @@ a.btn {
     @apply bg-slate-300 border-slate-200 hover:bg-slate-100;
     transition: all 200ms !important;
 
+    &:focus {
+        @apply bg-slate-100;
+    }
+
     &:active {
         @apply ring-slate-300 ring-2 ring-offset-2;
     }
@@ -137,6 +149,10 @@ a.btn {
     @apply bg-red-500 border-red-400 hover:bg-red-400;
     transition: all 200ms !important;
 
+    &:focus {
+        @apply bg-red-400;
+    }
+
     &:not(&~.btn-group):active {
         @apply ring-red-500 ring-2 ring-offset-2;
     }
@@ -145,6 +161,10 @@ a.btn {
 .btn-warning {
     @apply bg-yellow-400 border-yellow-300 hover:bg-yellow-300 text-black;
     transition: all 200ms !important;
+
+    &:focus {
+        @apply bg-yellow-300;
+    }
 
     &:not(&~.btn-group):active {
         @apply ring-yellow-400 ring-2 ring-offset-2;
@@ -180,6 +200,10 @@ a.btn {
         @apply bg-color1-50;
     }
 
+    &:focus {
+        @apply bg-color1-50;
+    }
+
     &:active:not(.btn-group) {
         @apply ring-color1 ring-2 ring-offset-2;
     }
@@ -188,6 +212,10 @@ a.btn {
 
 .btn-color1-reverse {
     &:hover {
+        @apply bg-color1-50;
+    }
+
+    &:focus {
         @apply bg-color1-50;
     }
 
@@ -204,6 +232,10 @@ a.btn {
         @apply bg-color2-50;
     }
 
+    &:focus {
+        @apply bg-color2-50;
+    }
+
     &:active:not(.btn-group) {
         @apply ring-color2 ring-2 ring-offset-2;
     }
@@ -214,6 +246,10 @@ a.btn {
     transition: all 200ms !important;
 
     &:hover {
+        @apply bg-color3-50;
+    }
+
+    &:focus {
         @apply bg-color3-50;
     }
 
@@ -230,6 +266,10 @@ a.btn {
         @apply bg-color4-50;
     }
 
+    &:focus {
+        @apply bg-color4-50;
+    }
+
     &:active:not(.btn-group) {
         @apply ring-color4 ring-2 ring-offset-2;
     }
@@ -240,6 +280,10 @@ a.btn {
     transition: all 200ms !important;
 
     &:hover {
+        @apply bg-color5-50;
+    }
+
+    &:focus {
         @apply bg-color5-50;
     }
 
@@ -256,6 +300,10 @@ a.btn {
         @apply bg-color6-50;
     }
 
+    &:focus {
+        @apply bg-color6-50;
+    }
+
     &:active:not(.btn-group) {
         @apply ring-color6 ring-2 ring-offset-2;
     }
@@ -266,6 +314,10 @@ a.btn {
     transition: all 200ms !important;
 
     &:hover {
+        @apply bg-color7-50;
+    }
+
+    &:focus {
         @apply bg-color7-50;
     }
 
