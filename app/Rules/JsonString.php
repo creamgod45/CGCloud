@@ -19,7 +19,7 @@ class JsonString implements ValidationRule
         //$value = Str::replace("\\", "", $value);
         $json_decode = json_decode($value);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $fail('這個 :attribute 不是正確的數值。');
+            $fail('這個 :attribute 不是正確的 JSON 數值。');
         }
     }
 }
