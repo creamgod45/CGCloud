@@ -360,6 +360,12 @@ enum ELanguageText
     case ShareTableItemViewNoAuthorizationUser;
     case FileSizeTooLarge;
 
+    case validator_field_shareTableName;
+
+    case page_my_title;
+
+    case page_my_sharetables_title;
+
     public static function isVaild(string $name): bool
     {
         foreach (ELanguageText::cases() as $case) {
