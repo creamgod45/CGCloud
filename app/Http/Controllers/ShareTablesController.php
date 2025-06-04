@@ -1371,6 +1371,87 @@ class ShareTablesController extends Controller
         }
     }
 
+    public function myShareTables(Request $request)
+    {
+        $user = Auth::user();
+        if($user !== null) {
+            $user->id;
+            // 記錄所有快取後的分頁 ( 頁數為 1)
+            $pageKey = 'shareTableIndexCache_p_' . $request->get('page', 1)."_user_".$user->id;
+        } else {
+            $pageKey = 'shareTableIndexCache_p_' . $request->get('page', 1);
+        }
+        DB::enableQueryLog();
+        $shareTables = Cache::remember($pageKey, now()->addMinutes(15), function () use ($pageKey, $user) {
+            // 紀錄所有快取後的分頁
+            $key = 'shareTableIndexCaches';
+            if (Cache::has($key)) {
+                $var = Cache::get($key);
+                if (is_array($var) && !in_array($pageKey, $var)) {
+                    $var [] = $pageKey;
+                }
+                Cache::put($key, $var, now()->addDays());
+            } else {
+                Cache::put($key, [$pageKey], now()->addDays());
+            }
+            DB::enableQueryLog();
+            if ($user !== null) {
+                // 使用子查詢或聯表方式一次獲取所有需要的數據
+                $shareTable = ShareTable::select('share_tables.*')
+                    ->where(function($query) use ($user) {
+                        $query->where(function ($q) use ($user) {
+                                $q->where('share_tables.type', '=', EShareTableType::private->value)
+                                    ->where('share_tables.member_id', '=', $user->id);
+                            });
+                    })
+                    ->orWhereExists(function ($query) use ($user) {
+                        $query->select(DB::raw(1))
+                            ->from('share_permissions')
+                            ->whereColumn('share_permissions.share_tables_id', 'share_tables.id')
+                            ->where('share_permissions.member_id', '=', $user->id)
+                            ->where('share_tables.type', '=', EShareTableType::private->value);
+                    })
+                    ->orderBy('share_tables.created_at', 'desc')
+                    ->paginate(30);
+            } else {
+                $shareTable = ShareTable::where('type', '=', EShareTableType::public->value)
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(30);
+            }
+            $orderBy = $shareTable;
+            if ($user !== null) {
+                // 使用 with 預加載關聯數據
+                $sharePermissions = SharePermissions::where('member_id', '=', $user->id)
+                    ->with('shareTable')
+                    ->get();
+
+                $privateShareTables = $sharePermissions
+                    ->map(function ($permission) {
+                        return $permission->shareTable;
+                    })
+                    ->filter(function ($shareTable) use ($orderBy) {
+                        return $shareTable &&
+                            !$orderBy->contains($shareTable) &&
+                            $shareTable->type === EShareTableType::private->value;
+                    });
+
+                // 一次性添加所有私有表
+                $orderBy->push(...$privateShareTables);
+
+                // 排序
+                $orderBy->setCollection($orderBy->sortBy([
+                    ['created_at', 'desc'],
+                    ['id', 'desc'],
+                ]));
+            }
+
+            $shareTables = $orderBy;
+            Log::info(json_encode(DB::getQueryLog(), JSON_PRETTY_PRINT));
+            return $shareTables;
+        });
+        return view('ShareTable.my', Controller::baseControllerInit($request, [ '$shareTables' => $shareTables])->toArrayable());
+    }
+
     private function filePreviewLimitSpeed(?VirtualFile $virtualFile): StreamedResponse
     {
         set_time_limit(60 * 60 * 24);

@@ -28,20 +28,20 @@
     </div>
 </nav>
 <div id="dropdown-status1" class="dropdown-menu !hidden">
-    <div class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
+    <a href="{{ route(RouteNameField::PageHome) }}" class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
         <div class="icon"><i class="fa-solid fa-computer"></i></div>
         <div class="dropdown-menu-title noto-serif-tc-black">首頁</div>
-    </div>
-    <div class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
-        <div class="icon"><i class="fa-solid fa-computer"></i></div>
+    </a>
+    <a href="{{ route(RouteNameField::PageHome) }}" class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
+        <div class="icon"><i class="fa-solid fa-upload"></i></div>
         <div class="dropdown-menu-title noto-serif-tc-black">上傳檔案</div>
-    </div>
-    <div class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
-        <div class="icon"><i class="fa-solid fa-computer"></i></div>
+    </a>
+    <a href="{{ route(RouteNameField::PageMyShareTables) }}" class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
+        <div class="icon"><i class="fa-solid fa-warehouse"></i></div>
         <div class="dropdown-menu-title noto-serif-tc-black">管理檔案</div>
-    </div>
+    </a>
     <div class="dropdown-menu-item btn btn-color7 btn-md-strip btn-ripple btn-border-0" onmouseup="document.dispatchEvent(new CustomEvent('CG::BtnRipple', { detail: this}))">
-        <div class="icon"><i class="fa-solid fa-computer"></i></div>
+        <div class="icon"><i class="fa-solid fa-address-card"></i></div>
         <div class="dropdown-menu-title noto-serif-tc-black">個人設定</div>
     </div>
     <a class="dropdown-menu-item btn btn-md-strip btn-color7 btn-ripple btn-border-0 ct dark-mode-trigger" onmouseup="document.dispatchEvent(new CustomEvent('CG::Dark', { detail: this}))">
