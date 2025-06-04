@@ -11,10 +11,13 @@ class ClientConfig
 
     public function __construct(string $language = "zh_TW")
     {
-        if (ELanguageCode::isVaild($language)) {
-            $this->language = $language;
-            $this->languageClass = ELanguageCode::valueof($language);
+        if (!ELanguageCode::isVaild($language)) {
+            // Fallback to default language when the given code is invalid
+            $language = ELanguageCode::zh_TW->name;
         }
+
+        $this->language = $language;
+        $this->languageClass = ELanguageCode::valueof($language);
     }
 
     /**
