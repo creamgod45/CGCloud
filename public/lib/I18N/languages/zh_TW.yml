@@ -373,7 +373,9 @@ validator_field_sendMailVerifyCodeToken: 電子郵件認證令牌
 validator_field_VerificationCode: 驗證碼
 ValidatorBuilderFailed: 驗證失敗
 MailSalutation: 'by %appname%'
-ResetPasswordgreeting: 'Hello!! Dear.%username%'
+ResetPasswordgreeting: '嗨囉!! %username% 使用者'
 ShareTableItemCreatePostSuccessMessage: 檔案共享數據成功創建。
 ShareTableItemViewNoAuthorizationUser: 你沒有設定授權用戶
-FileSizeTooLarge: '檔案大小太大'
+FileSizeTooLarge: 檔案大小太大
+validator_field_shareTableName: 分享名稱
+page_my_sharetables_title: '我分享的內容'
