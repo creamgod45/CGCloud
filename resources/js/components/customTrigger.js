@@ -172,24 +172,61 @@ function createRipple(el) {
 function sendMailVerifyCode_profile_email(ct, target) {
     ct.onclick = () => {
         if (ct.dataset.token === null) return false;
+        ct.disabled = true;
+        ct.classList.add("btn-dead");
+        ct.classList.remove("btn-color7");
         let csrf = document.querySelector("#csrf_token");
-        if (csrf === null) return false;
+        if (csrf === null) {
+            ct.disabled = false;
+            ct.classList.remove("btn-dead");
+            ct.classList.add("btn-color7");
+            return false;
+        }
         let formdata = new FormData();
         formdata.append('token', ct.dataset.token);
+        let onfulfilled = async (res) => {
+            //console.log(res);
+
+            let action1 = ct.dataset.action1;
+            let action1El = document.querySelector(action1);
+            if(action1El !== null){
+                action1El.tippy.show();
+                action1El.dataset.send = "true";
+            }
+            let json;
+            try {
+                json = await res.json();
+            } catch (e) {
+                console.error(e);
+                return false;
+            }
+            //console.log(json);
+            let el = document.querySelector(target);
+            ct.dataset.token = json.token;
+            el.innerText = json.message;
+            let cooldown = parseInt(json.cooldown);
+            let date = new Date();
+            let seconds = cooldown - Math.floor((date.valueOf() / 1000));
+            /*ct.cooldown = seconds;
+            console.log(seconds);
+            setInterval(() => {
+                ct.cooldown = ct.cooldown - 1;
+                console.log(ct.cooldown);
+            }, 1000);*/
+            setTimeout(() => {
+                clearInterval(ct.timer);
+                ct.classList.remove("btn-dead");
+                ct.classList.add("btn-color7");
+                ct.disabled = false;
+            }, seconds * 1000);
+        };
         fetch('/profile/email/sendMailVerifyCode', {
             method: "post", headers: {
                 'X-CSRF-TOKEN': csrf.value
             }, body: formdata,
         })
-            .then(async (res) => {
-                //console.log(res);
-                let json = await res.json();
-                //console.log(json);
-                let el = document.querySelector(target);
-                ct.dataset.token = json.token;
-                el.innerText = json.message;
-            })
-            .catch(console.log);
+            .then(onfulfilled)
+            .catch(onfulfilled);
     };
 }
 
@@ -204,52 +241,81 @@ function sendMailVerifyCode_profile_email(ct, target) {
 function verifyCode_profile_email(ct, target) {
     if (ct.dataset.action !== null && ct.dataset.action1 !== null && ct.dataset.action2 !== null && ct.dataset.action3 !== null && ct.dataset.action4 !== null && ct.dataset.token !== null) {
         ct.onclick = () => {
+            ct.disabled = true;
             let actionel = document.querySelector(ct.dataset.action);
             let action1el = document.querySelector(ct.dataset.action1);
             let action2el = document.querySelector(ct.dataset.action2);
             let action3el = document.querySelector(ct.dataset.action3);
             let action4el = document.querySelector(ct.dataset.action4);
             let targetel = document.querySelector(target);
-            if (targetel.value === null) return false;
-            if (targetel.value === "") return false;
+            if(targetel.dataset.send !== "true"){
+                action1el.tippy.show();
+                ct.disabled = false;
+                return false;
+            }
+            if (targetel.value === null) {
+                targetel.tippy.show();
+                ct.disabled = false;
+                return false;
+            }
+            if (targetel.value === "") {
+                targetel.tippy.show();
+                ct.disabled = false;
+                return false;
+            }
             if (targetel.minLength !== null) {
                 if (targetel.value.length < targetel.minLength) {
+                    targetel.tippy.show();
+                    ct.disabled = false;
                     return false;
                 }
             }
-            if (ct.dataset.token === null) return false;
+            if (ct.dataset.token === null) {
+                ct.disabled = false;
+                return false;
+            }
             let csrf = document.querySelector("#csrf_token");
-            if (csrf === null) return false;
+            if (csrf === null) {
+                ct.disabled = false;
+                return false;
+            }
             let formdata = new FormData();
             formdata.append("code", targetel.value);
             formdata.append('token', ct.dataset.token);
+            let onfulfilled = async (res) => {
+                //console.log(res);
+                let json = await res.json();
+                //console.log(json);
+                if (res.status === 200) {
+                    if (json.access_token !== "") {
+                        let htmlInputElement = document.createElement("input");
+                        htmlInputElement.value = json.access_token;
+                        htmlInputElement.name = "sendMailVerifyCodeToken";
+                        htmlInputElement.id = "sendMailVerifyCodeToken";
+                        htmlInputElement.type = "hidden";
+                        actionel.innerHTML = "";
+                        actionel.append(htmlInputElement);
+                        action1el.remove();
+                        action2el.remove();
+                        action3el.disabled = false;
+                        action4el.disabled = false;
+                        ct.dataset.token = json.token;
+                    }
+                } else {
+                    ct.disabled = false;
+                    targetel.tippy.show();
+                }
+            };
             fetch('/profile/email/verifyCode', {
                 method: "post", body: formdata, headers: {
                     'X-CSRF-TOKEN': csrf.value
                 },
             })
-                .then(async (res) => {
-                    //console.log(res);
-                    let json = await res.json();
-                    //console.log(json);
-                    if (res.status === 200) {
-                        if (json.access_token !== "") {
-                            let htmlInputElement = document.createElement("input");
-                            htmlInputElement.value = json.access_token;
-                            htmlInputElement.name = "sendMailVerifyCodeToken";
-                            htmlInputElement.id = "sendMailVerifyCodeToken";
-                            htmlInputElement.type = "hidden";
-                            actionel.innerHTML = "";
-                            actionel.append(htmlInputElement);
-                            action1el.remove();
-                            action2el.remove();
-                            action3el.disabled = false;
-                            action4el.disabled = false;
-                            ct.dataset.token = json.token;
-                        }
-                    }
-                })
-                .catch(console.log);
+                .then(onfulfilled)
+                .catch(() => {
+                    ct.disabled = false;
+                    return false;
+                });
         };
     }
 }
@@ -264,34 +330,78 @@ function verifyCode_profile_email(ct, target) {
 function newMailVerifyCode_profile_email(ct, target) {
     if (ct.dataset.token !== null && ct.dataset.data !== null && ct.dataset.result !== null) {
         ct.onclick = () => {
+            ct.disabled = true;
             let targetel = document.querySelector(target);
             let data = document.querySelector(ct.dataset.data);
-            if (data.value === null) return false;
-            if (data.value === "") return false;
-            if (!Utils.validateEmail(data.value)) return false;
+            if (data.value === null) {
+                ct.disabled = false;
+                data.tippy.show();
+                return false;
+            }
+            if (data.value === "") {
+                ct.disabled = false;
+                data.tippy.show();
+                return false;
+            }
+            if (!Utils.validateEmail(data.value)) {
+                ct.disabled = false;
+                data.tippy.show();
+                return false;
+            }
             if (data.maxLength !== null) {
                 if (data.value.length > data.maxLength) {
+                    ct.disabled = false;
+                    data.tippy.show();
                     return false;
                 }
             }
-            if (ct.dataset.token === "") return false;
-            if (ct.dataset.token === null) return false;
-            if (ct.dataset.token === undefined) return false;
+            if (ct.dataset.token === "") {
+                ct.disabled = false;
+                return false;
+            }
+            if (ct.dataset.token === null) {
+                ct.disabled = false;
+                return false;
+            }
+            if (ct.dataset.token === undefined) {
+                ct.disabled = false;
+                return false;
+            }
             let csrf = document.querySelector("#csrf_token");
-            if (csrf === null) return false;
+            if (csrf === null) {
+                ct.disabled = false;
+                return false;
+            }
             let formdata = new FormData();
             formdata.append("email", data.value);
             formdata.append("token", ct.dataset.token);
-            fetch("/profile/email/newMailVerifyCode", {
-                method: 'post', body: formdata, headers: {
-                    'X-CSRF-TOKEN': csrf.value
-                },
-            }).then(async (res) => {
+            let onfulfilled = async (res) => {
                 //console.log(res);
                 let json = await res.json();
                 ct.dataset.token = json.token;
                 targetel.innerText = json.message;
-            });
+                let cooldown = parseInt(json.cooldown);
+                let date = new Date();
+                let seconds = cooldown - Math.floor((date.valueOf() / 1000));
+                if (cooldown !== null) {
+                    //ct.cooldown = seconds;
+                    ct.classList.remove("btn-color7");
+                    ct.classList.add("btn-dead");
+                    let timer = setInterval(() => {
+                        if (ct.cooldown <= 0) {
+                            clearInterval(timer);
+                            ct.classList.add("btn-color7");
+                            ct.classList.remove("btn-dead");
+                            ct.disabled = false;
+                        }
+                    }, seconds * 1000)
+                }
+            };
+            fetch("/profile/email/newMailVerifyCode", {
+                method: 'post', body: formdata, headers: {
+                    'X-CSRF-TOKEN': csrf.value
+                },
+            }).then(onfulfilled).catch(onfulfilled);
         };
     }
 }
@@ -306,26 +416,68 @@ function newMailVerifyCode_profile_email(ct, target) {
 function profileUpdateEmail(ct, target) {
     if (ct.dataset.token !== null && ct.dataset.method !== null) {
         ct.onclick = () => {
+            ct.disabled = true;
+            let count = 0;
             let value1el = document.querySelector(ct.dataset.value1);
             let value2el = document.querySelector(ct.dataset.value2);
             let value3el = document.querySelector(ct.dataset.value3);
+            let value4el = document.querySelector(ct.dataset.value4);
             let resultel = document.querySelector(ct.dataset.result);
             let targetel = document.querySelector(target);
-            if (value1el.value === null) return false;
-            if (value2el.value === null) return false;
-            if (value3el.value === null) return false;
-            if (value1el.value === "") return false;
-            if (value2el.value === "") return false;
-            if (value3el.value === "") return false;
+            if (value1el.value === null) {
+                ct.disabled = false;
+                value1el.tippy.show();
+                return false;
+            }
+            if (value2el.value === null) {
+                ct.disabled = false;
+                return false;
+            }
+            if(value3el === null) {
+                if(value4el !== null && value4el.hasOwnProperty("tippy")) {
+                    value4el.tippy.show();
+                }
+                ct.disabled = false;
+                return false;
+            }
+            if (value3el.value === null) {
+                ct.disabled = false;
+                return false;
+            }
+            if (value1el.value === "") {
+                ct.disabled = false;
+                value1el.tippy.show();
+                return false;
+            }
+            if (value2el.value === "") {
+                ct.disabled = false;
+                return false;
+            }
+            if (value3el.value === "") {
+                ct.disabled = false;
+                return false;
+            }
             if (value1el.minLength !== null) {
                 if (value1el.value.length < value1el.minLength) {
+                    ct.disabled = false;
+                    value1el.tippy.show();
                     return false;
                 }
             }
-            if (resultel === null) return false;
-            if (!Utils.validateEmail(value2el.value)) return false;
+            if (resultel === null) {
+                ct.disabled = false;
+                return false;
+            }
+            if (!Utils.validateEmail(value2el.value)) {
+                ct.disabled = false;
+                value2el.tippy.show();
+                return false;
+            }
             let csrf = document.querySelector("#csrf_token");
-            if (csrf === null) return false;
+            if (csrf === null) {
+                ct.disabled = false;
+                return false;
+            }
             let formdata = new FormData();
             formdata.append("method", ct.dataset.method);
             formdata.append("token", ct.dataset.token);
@@ -347,6 +499,8 @@ function profileUpdateEmail(ct, target) {
                         await location.reload();
                     }, 3000)
                 }
+                value2el.tippy.show();
+                ct.disabled = false;
             });
         };
     }
