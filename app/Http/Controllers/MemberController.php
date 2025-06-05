@@ -776,7 +776,7 @@ class MemberController extends Controller
                 //dump($i18N);
                 $notification = new SendMailVerifyCodeNotification($i18N, $random);
                 Notification::send($member, $notification->delay(now()->addSeconds(5)));
-                Cache::put($cacheKey, time() + 60, 60);
+                Cache::put($cacheKey, time() + 300, 300);
                 return response()->json([
                     "message" => $i18N->getLanguage(
                             ELanguageText::sendMailVerifyCode_Response_success) . " " .
@@ -828,11 +828,13 @@ class MemberController extends Controller
                     ], ResponseHTTP::HTTP_BAD_REQUEST);
                 }
                 if (Cache::has($cacheKey)) {
+                    $timeout = Cache::get($cacheKey);
                     return response()->json([
                         "message" => $i18N->getLanguage(
                                 ELanguageText::sendMailVerifyCode_Response_error1) . " " .
                             $i18N->getLanguage(ELanguageText::ExpireTime, true)
                                 ->placeholderParser("timestamp", Utils::timeStamp(Cache::get($cacheKey)))->toString(),
+                        "cooldown" => $timeout,
                         "token" => $csrf,
                     ], ResponseHTTP::HTTP_BAD_REQUEST);
                 } else {
@@ -842,12 +844,14 @@ class MemberController extends Controller
                     $notification = new SendMailVerifyCodeNotification($i18N, $random);
                     $notification->delay(Carbon::now()->addSeconds(5));
                     Notification::route('mail', $v['email'])->notify($notification);
-                    Cache::put($cacheKey, time() + 60, 60);
+                    $timeout = time() + 300;
+                    Cache::put($cacheKey, $timeout, 300);
                     return response()->json([
                         "message" => $i18N->getLanguage(
                                 ELanguageText::sendMailVerifyCode_Response_success) . " " .
                             $i18N->getLanguage(ELanguageText::ExpireTime, true)
                                 ->placeholderParser("timestamp", Utils::timeStamp(Cache::get($cacheKey)))->toString(),
+                        "cooldown" => $timeout,
                         "token" => $csrf,
                     ], ResponseHTTP::HTTP_OK);
                 }
