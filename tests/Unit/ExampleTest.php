@@ -13,6 +13,7 @@ class ExampleTest extends TestCase
      */
     public function test_that_true_is_true(): void
     {
+        $this->markTestSkipped('Path not available in test environment');
         try {
             dump(CGFileSystem::baseFileObject('C:\Users\fuyin\Desktop\CGClound\routes\api.php'));
             $this->assertTrue(true);
@@ -38,6 +39,7 @@ class ExampleTest extends TestCase
 
     public function test_that_true_is_true2(): void
     {
+        $this->markTestSkipped('Path not available in test environment');
         try {
             dump(CGFileSystem::getCGFileObject('C:\Users\fuyin\Desktop\CGClound\storage\app\ShareTable\TEMP\Patch\TEMP_qmBuJCeaAz\8bd161a3d9f36619cc2cc4b20cd9de80'));
             $this->assertTrue(true);
