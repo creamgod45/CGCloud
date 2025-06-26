@@ -107,7 +107,7 @@ body {
             us:w-full us:px-4
             ;
             .panel-title-field{
-                @apply text-2xl font-bold my-3;
+                @apply text-2xl font-bold my-3 text-black dark:text-color1;
             }
 
             .panel-upload-field{

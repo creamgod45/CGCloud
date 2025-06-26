@@ -24,9 +24,9 @@
         @php
             $id = "PFC_".\Illuminate\Support\Str::random(5);
         @endphp
-        <div class="pfc-icon ct" data-fn="popover3" data-source="{{ $shareTable->id }}"
+        <div aria-haspopup="dialog" role="link" class="pfc-icon ct" data-fn="popover3" data-source="{{ $shareTable->id }}"
              data-target="#{{ $popoverid }}"><i class="fa-solid fa-file"></i></div>
-        <div class="pfc-title tippyer" data-placement="bottom" data-htmlable="true"
+        <div aria-description="{{ $shareTable->name }}" role="tooltip" class="pfc-title tippyer" data-placement="bottom" data-htmlable="true"
              data-content="#{{ $id }}"><i
                 class="fa-solid fa-circle-info"></i> {{ $shareTable->name }}
         </div>
@@ -212,34 +212,34 @@
                     }
                 @endphp
                 @if($shareTable->isOwner(\Illuminate\Support\Facades\Auth::user()))
-                    <a data-id="{{ $random }}"
+                    <button data-id="{{ $random }}"
                        data-type="conversion"
                        data-href="{{ route(RouteNameField::APIShareTableItemConversion->value, ['id' => $random, 'fileId' => "%fileId%" ]) }}"
                        data-data="{{ json_encode($v) }}"
                        popovertarget="{{ "conversion_".$random }}"
                        class="grid-btn btn-md btn-border-0 btn btn-ripple btn-color3 shareable"
                        data-placement="bottom"
-                       title="轉換"><i class="fa-solid fa-file-export"></i></a>
+                       title="轉換"><i class="fa-solid fa-file-export"></i></button>
                     @php
                         $relationMember = $shareTable->relationMember();
                     @endphp
-                    <a data-href="{{ $url }}"
+                    <button data-href="{{ $url }}"
                        data-id="{{ $random }}"
-                       data-type="share"
+                       data-type="share" role="link" aria-disabled="false" tabindex="0" aria-pressed="false"
                        data-user="{{ route(RouteNameField::APIGetUsers->value) }}"
                        data-users="{{ $relationMember->isNotEmpty() ? $relationMember->pluck('username', 'id')->toTomSelect() : "[]" }}"
                        popovertarget="{{ "shareable_".$random }}"
                        class="grid-btn btn-md btn-border-0 btn btn-ripple btn-color2 shareable"
                        data-placement="bottom"
-                       title="分享給"><i class="fa-solid fa-share"></i></a>
+                       title="分享給"><i class="fa-solid fa-share"></i></button>
                 @endif
                 @if($shareTable->isOwner(\Illuminate\Support\Facades\Auth::user()))
-                    <div class="grid-btn btn-md btn-border-0 btn btn-ripple btn-ok copyer"
+                    <button class="grid-btn btn-md btn-border-0 btn btn-ripple btn-ok copyer"
                          data-url="{{ $url }}"
-                         data-placement="bottom"
+                         data-placement="bottom" role="link" aria-disabled="false" tabindex="0" aria-pressed="false"
                          title="複製">
                         <i class="fa-solid fa-link"></i>
-                    </div>
+                    </button>
                 @endif
                 @php
                     $random1 = $shareTable->id;
@@ -258,7 +258,7 @@
                                         'fileId' => $item['uuid'],
                                         'fileName' => $dashVideo->filename.".".$dashVideo->extension,
                                     ]);
-                                    $dashVideoBtn = '<a target="_blank" rel="noreferrer noopener" json="'.$dashVideo->toJson().'" href="'.$url.'" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;線上串流預覽</a>';
+                                    $dashVideoBtn = '<a target="_blank" rel="noreferrer noopener" href="'.$url.'" class="btn-md btn-border-0 btn btn-ripple btn-warning"><i class="fa-solid fa-eye"></i>&nbsp;線上串流預覽</a>';
                                 }
                             }
                             $previewBtn = "";
@@ -275,30 +275,30 @@
                         }
                     }
                 @endphp
-                <div data-id="{{ $random1 }}"
+                <button data-id="{{ $random1 }}"
                      data-type="download"
                      data-href="{{ route(RouteNameField::PageShareTableItemDownload->value, ['id'=> $shareTable->id,"fileId"=> "%fileId%" ]) }}"
                      data-delete="{{ route(RouteNameField::PageShareTableItemDelete->value, ['id'=> $shareTable->id,"fileId"=> "%fileId%" ]) }}"
                      data-data="{{ json_encode($v) }}"
                      popovertarget="{{ "download_".$random1 }}"
                      class="grid-btn btn-md btn-border-0 btn btn-ripple btn-color7 shareable !me-0"
-                     data-placement="bottom"
-                     title="下載"><i class="fa-solid fa-download"></i></div>
+                     data-placement="bottom" role="link" aria-disabled="false" tabindex="0" aria-pressed="false"
+                     title="下載"><i class="fa-solid fa-download"></i></button>
                 @if($shareTable->isOwner(\Illuminate\Support\Facades\Auth::user()))
-                    <div class="grid-btn btn-md btn-border-0 btn btn-ripple btn-warning ct"
+                    <button class="grid-btn btn-md btn-border-0 btn btn-ripple btn-warning ct"
                          data-fn="popover4" data-source="{{ $shareTable->id }}"
                          data-target="#{{ $popoverid }}"
-                         data-placement="bottom"
-                         title="編輯"><i class="fa-solid fa-pen-to-square"></i></div>
-                    <div class="grid-btn btn-md btn-border-0 btn btn-ripple btn-error last confirm-box"
+                         data-placement="bottom" role="link" aria-disabled="false" tabindex="0" aria-pressed="false"
+                         title="編輯"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <button class="grid-btn btn-md btn-border-0 btn btn-ripple btn-error last confirm-box"
                          data-fn="shareable_delete"
                          data-title="你確定要刪除此分享資源?"
                          data-confirmboxcontent="此操作將會永遠的刪除!!"
-                         data-type="error"
+                         data-type="error" role="link" aria-disabled="false" tabindex="0" aria-pressed="false"
                          data-href="{{ route(RouteNameField::PageShareTableDelete->value, ['id'=> $shareTable->id ]) }}"
                          data-placement="bottom"
                          title="刪除"><i class="fa-solid fa-trash"></i>
-                    </div>
+                    </button>
                 @endif
             </div>
         </div>

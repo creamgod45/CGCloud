@@ -1280,6 +1280,9 @@ a.btn {
   @apply bg-line border-line-50 hover:bg-line-50;
   transition: all 200ms !important;
 }
+.btn-line:focus {
+  @apply hover:bg-line-50;
+}
 .btn-line:active {
   @apply ring-line ring-2 ring-offset-2;
 }
@@ -1287,6 +1290,9 @@ a.btn {
 .btn-ok, .btn-success {
   @apply bg-green-600 border-green-500 hover:bg-green-500;
   transition: all 200ms !important;
+}
+.btn-ok:focus, .btn-success:focus {
+  @apply bg-green-500;
 }
 .btn-ok:active, .btn-success:active {
   @apply ring-green-600 ring-2 ring-offset-2;
@@ -1296,6 +1302,9 @@ a.btn {
   @apply bg-slate-300 border-slate-200 hover:bg-slate-100;
   transition: all 200ms !important;
 }
+.btn-cancel:focus {
+  @apply bg-slate-100;
+}
 .btn-cancel:active {
   @apply ring-slate-300 ring-2 ring-offset-2;
 }
@@ -1304,6 +1313,9 @@ a.btn {
   @apply bg-red-500 border-red-400 hover:bg-red-400;
   transition: all 200ms !important;
 }
+.btn-error:focus {
+  @apply bg-red-400;
+}
 .btn-error:not(.btn-error ~ .btn-group):active {
   @apply ring-red-500 ring-2 ring-offset-2;
 }
@@ -1311,6 +1323,9 @@ a.btn {
 .btn-warning {
   @apply bg-yellow-400 border-yellow-300 hover:bg-yellow-300 text-black;
   transition: all 200ms !important;
+}
+.btn-warning:focus {
+  @apply bg-yellow-300;
 }
 .btn-warning:not(.btn-warning ~ .btn-group):active {
   @apply ring-yellow-400 ring-2 ring-offset-2;
@@ -1343,11 +1358,17 @@ a.btn {
 .btn-color1:hover {
   @apply bg-color1-50;
 }
+.btn-color1:focus {
+  @apply bg-color1-50;
+}
 .btn-color1:active:not(.btn-group) {
   @apply ring-color1 ring-2 ring-offset-2;
 }
 
 .btn-color1-reverse:hover {
+  @apply bg-color1-50;
+}
+.btn-color1-reverse:focus {
   @apply bg-color1-50;
 }
 .btn-color1-reverse:active:not(.btn-group) {
@@ -1361,6 +1382,9 @@ a.btn {
 .btn-color2:hover {
   @apply bg-color2-50;
 }
+.btn-color2:focus {
+  @apply bg-color2-50;
+}
 .btn-color2:active:not(.btn-group) {
   @apply ring-color2 ring-2 ring-offset-2;
 }
@@ -1370,6 +1394,9 @@ a.btn {
   transition: all 200ms !important;
 }
 .btn-color3:hover {
+  @apply bg-color3-50;
+}
+.btn-color3:focus {
   @apply bg-color3-50;
 }
 .btn-color3:active:not(.btn-group) {
@@ -1383,6 +1410,9 @@ a.btn {
 .btn-color4:hover {
   @apply bg-color4-50;
 }
+.btn-color4:focus {
+  @apply bg-color4-50;
+}
 .btn-color4:active:not(.btn-group) {
   @apply ring-color4 ring-2 ring-offset-2;
 }
@@ -1392,6 +1422,9 @@ a.btn {
   transition: all 200ms !important;
 }
 .btn-color5:hover {
+  @apply bg-color5-50;
+}
+.btn-color5:focus {
   @apply bg-color5-50;
 }
 .btn-color5:active:not(.btn-group) {
@@ -1405,6 +1438,9 @@ a.btn {
 .btn-color6:hover {
   @apply bg-color6-50;
 }
+.btn-color6:focus {
+  @apply bg-color6-50;
+}
 .btn-color6:active:not(.btn-group) {
   @apply ring-color6 ring-2 ring-offset-2;
 }
@@ -1414,6 +1450,9 @@ a.btn {
   transition: all 200ms !important;
 }
 .btn-color7:hover {
+  @apply bg-color7-50;
+}
+.btn-color7:focus {
   @apply bg-color7-50;
 }
 .btn-color7:active:not(.btn-group) {

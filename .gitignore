@@ -31,3 +31,4 @@ bootstrap/ssr/
 /scripts/ffmpeg.exe
 /scripts/ffplay.exe
 /scripts/ffprobe.exe
+/public/dom-examples-main/

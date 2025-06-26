@@ -219,5 +219,7 @@ class DictionaryMap
         $i->setLanguagev2(ELanguageText::ShareTableItemCreatePostSuccessMessage, "File sharing data created successfully.");
         $i->setLanguagev2(ELanguageText::ShareTableItemViewNoAuthorizationUser, "You have not set up an authorized user");
         $i->setLanguagev2(ELanguageText::FileSizeTooLarge, "File size too large");
+        $i->setLanguagev2(ELanguageText::validator_field_shareTableName, "share table name");
+        $i->setLanguagev2(ELanguageText::page_my_sharetables_title, "My ShareTables");
     }
 }

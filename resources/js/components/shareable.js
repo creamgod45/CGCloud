@@ -333,7 +333,7 @@ async function shareable() {
     let shareables = document.querySelectorAll(".shareable");
     for (let shareable of shareables) {
         shareable.classList.add("shareableed");
-        shareable.onclick = async () => {
+        shareable.addEventListener('click', async () => {
             let id = shareable.dataset.id;
             let href = shareable.dataset.href;
             let type = shareable.dataset.type;
@@ -347,6 +347,9 @@ async function shareable() {
                 if (delete_url === undefined) return;
                 await initDownloadMenuPopupElement(id, href, data, delete_url, owner);
                 popover = document.getElementById("download_" + id);
+                await setTimeout(async () => {
+                    if (popover) await popover.showPopover();
+                }, 100);
             } else if (type === "share") {
                 let user = shareable.dataset.user;
                 let users = shareable.dataset.users;
@@ -364,12 +367,7 @@ async function shareable() {
                 await initConversionPopupElement(id, href, data);
                 popover = document.getElementById("conversion_" + id);
             }
-            if (popover.open) {
-                await popover.hidePopover();
-            } else {
-                await popover.showPopover();
-            }
-        }
+        });
     }
 }
 
