@@ -21,4 +21,10 @@ function panelFieldCard() {
     }
 }
 
+function panelFieldCard_update(event) {
+    console.log(event);
+
+}
+
 document.addEventListener("DOMContentLoaded", panelFieldCard);
+document.addEventListener("CGPFC::update", panelFieldCard_update);

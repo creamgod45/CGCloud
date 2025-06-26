@@ -13,6 +13,8 @@ return [
     |
     */
 
+    'storagePath' => env("STORAGE_PATH", null),
+
     'default' => env('FILESYSTEM_DISK', 'local'),
 
     /*

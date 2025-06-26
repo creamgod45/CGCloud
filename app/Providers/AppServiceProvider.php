@@ -7,6 +7,8 @@ use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Config;
 use InvalidArgumentException;
 use Log;
 use PhpParser\Node\Expr\Cast\Double;
@@ -19,6 +21,12 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
+
+        //dump(Config::get('filesystems.storagePath'));
+        //if(Config::get('filesystems.storagePath') !== null){
+        //    App::useStoragePath(Config::get('filesystems.storagePath'));
+        //    dump(storage_path('logs/laravel.log'));
+        //}
     }
 
     /**

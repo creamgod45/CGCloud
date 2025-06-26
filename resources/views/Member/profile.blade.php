@@ -57,7 +57,7 @@
                                             data-fn="profile.email.sendMailVerifyCode"
                                             data-token="{{(new CSRF("profile.email.sendMailVerifyCode"))->get()}}"
                                             data-target="#sendMailVerifyCodeResult"
-                                            data-action1="#MailCatcher"
+                                            data-marksendstatus="#MailCatcher"
                                     >發送驗證碼【驗證身份】
                                     </button>
                                     <div id="sendMailVerifyCodeResult"></div>
@@ -101,6 +101,7 @@
                                                     data-token="{{(new CSRF("profile.email.newMailVerifyCode"))->get()}}"
                                                     data-target="#newMailVerifyCodeResult"
                                                     data-data="#email"
+                                                    data-needfinish="#sendMailVerifyCode"
                                             >發送
                                             </button>
                                         </div>

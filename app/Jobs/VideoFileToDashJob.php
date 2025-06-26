@@ -594,7 +594,12 @@ class VideoFileToDashJob implements ShouldQueue
         /** @var ShareTable $shareTable */
         $shareTable = $shareTableVirtualFile->shareTable()->getResults();
 
-        $saveDashPath = Storage::disk('public')->path("DashVideos/" . $shareTable->id . '/' . $filename . ".mpd");
+        $folder = "DashVideos/" . $shareTable->id;
+        $saveDashPath = Storage::disk('public')->path($folder . '/' . $filename . ".mpd");
+        $saveFolderDashPath = Storage::disk('public')->exists($folder);
+        if($saveFolderDashPath) {
+            Storage::disk('public')->delete($folder);
+        }
         $video->dash()->setFormat($format)->setSegDuration(3) // Default value is 10
         //->setAdaption('id=0,streams=v id=1,streams=a')
         //->x264()

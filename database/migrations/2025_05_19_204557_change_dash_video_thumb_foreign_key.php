@@ -17,8 +17,8 @@ return new class extends Migration {
             }
 
             // 新增 integer 類型的欄位
-            $table->integer('start_at')->default(0)->comment('開始時間（整數型態）');
-            $table->integer('end_at')->default(0)->comment('結束時間（整數型態）');
+            $table->integer('start_at')->default(0);//->comment('開始時間（整數型態）');
+            $table->integer('end_at')->default(0);//->comment('結束時間（整數型態）');
         });
     }
 
