@@ -32,6 +32,7 @@ class ShareTable extends Model
 
     protected $casts = [
         'expired_at' => ExpiresAtCast::class,
+        'member_id' => "int"
     ];
 
     use HasFactory;

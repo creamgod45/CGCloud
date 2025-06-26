@@ -187,11 +187,11 @@ function sendMailVerifyCode_profile_email(ct, target) {
         let onfulfilled = async (res) => {
             //console.log(res);
 
-            let action1 = ct.dataset.action1;
-            let action1El = document.querySelector(action1);
-            if(action1El !== null){
-                action1El.tippy.show();
-                action1El.dataset.send = "true";
+            let markSendStatus = ct.dataset.marksendstatus;
+            let markSendStatusEl = document.querySelector(markSendStatus);
+            if(markSendStatusEl !== null){
+                markSendStatusEl.tippy.show();
+                markSendStatusEl.dataset.send = "true";
             }
             let json;
             try {
@@ -332,6 +332,12 @@ function newMailVerifyCode_profile_email(ct, target) {
         ct.onclick = () => {
             ct.disabled = true;
             let targetel = document.querySelector(target);
+            let needFinishEl = document.querySelector(ct.dataset.needfinish);
+            if(needFinishEl !== null){
+                needFinishEl.tippy.show();
+                ct.disabled = false;
+                return false;
+            }
             let data = document.querySelector(ct.dataset.data);
             if (data.value === null) {
                 ct.disabled = false;
@@ -387,13 +393,11 @@ function newMailVerifyCode_profile_email(ct, target) {
                     //ct.cooldown = seconds;
                     ct.classList.remove("btn-color7");
                     ct.classList.add("btn-dead");
-                    let timer = setInterval(() => {
-                        if (ct.cooldown <= 0) {
-                            clearInterval(timer);
-                            ct.classList.add("btn-color7");
-                            ct.classList.remove("btn-dead");
-                            ct.disabled = false;
-                        }
+                    ct.timer = setInterval(() => {
+                        clearInterval(ct.timer);
+                        ct.classList.add("btn-color7");
+                        ct.classList.remove("btn-dead");
+                        ct.disabled = false;
                     }, seconds * 1000)
                 }
             };
@@ -499,7 +503,6 @@ function profileUpdateEmail(ct, target) {
                         await location.reload();
                     }, 3000)
                 }
-                value2el.tippy.show();
                 ct.disabled = false;
             });
         };
@@ -993,6 +996,10 @@ function popover4(ct, target) {
                 dialog_closebtn.onclick = closefn;
                 window.addEventListener('message', function(event) {
                     if (event.data === 'close') {
+                        document.dispatchEvent(new CustomEvent('CGPOPOVER::close'));
+                        document.dispatchEvent(new CustomEvent('CGPFC::update', { detail: {
+                            source: source,
+                        }}));
                         closefn();
                     } else if (event.data === 'open') {
                         document.dispatchEvent(new CustomEvent('CGPOPOVER::init'));

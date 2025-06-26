@@ -19,6 +19,10 @@ require __DIR__.'/vendor/autoload.php';
 
 $app = require_once __DIR__.'/bootstrap/app.php';
 
+$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+$app->useStoragePath($_ENV['STORAGE_PATH'] ?? $app->basePath('storage'));
+
 /*
 |--------------------------------------------------------------------------
 | Run The Artisan Application

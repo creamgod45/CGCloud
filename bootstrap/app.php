@@ -41,6 +41,10 @@ $app->singleton(
     App\Exceptions\Handler::class
 );
 
+$dotenv = \Dotenv\Dotenv::createImmutable(__DIR__.'/../');
+$dotenv->load();
+$app->useStoragePath($_ENV['STORAGE_PATH'] ?? $app->basePath('storage'));
+
 /*
 |--------------------------------------------------------------------------
 | Return The Application
