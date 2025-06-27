@@ -8,7 +8,10 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('share_table_virtual_file', function (Blueprint $table) {
-            $table->foreignId('dash_videos_id')->default(null)->nullable(true)->change();
+            $table->foreign('dash_videos_id')
+                ->references('id')
+                ->on('dash_videos')
+                ->onDelete('cascade');
         });
     }
 
