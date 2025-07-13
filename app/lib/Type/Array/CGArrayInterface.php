@@ -2,7 +2,7 @@
 
 namespace App\Lib\Type\Array;
 
-interface CGArrayInterface
+interface CGArrayInterface extends \ArrayAccess, \Countable, \Iterator
 {
     public function Add($Mixed);
 

@@ -96,6 +96,26 @@ class CGBaseFile extends CGBaseFileObject
     }
 
     /**
+     * 逐條讀取文件，並將其內容返回為行數組。
+     *
+     * @return false|array
+     * @throws Exception
+     */
+    public function readFile(): false|string
+    {
+        // 確保目標是檔案
+        if (!$this->isFile()) {
+            throw new RuntimeException('無法開啟非檔案類型的資源');
+        }
+
+        // 檢查讀取權限
+        if (!$this->isFileReadAccessed()) {
+            throw new RuntimeException('沒有檔案的讀取權限');
+        }
+        return file_get_contents(parent::getPath());
+    }
+
+    /**
      * @param string $content
      *
      * @return false|int 函數返回寫入文件的字節數或失敗時錯誤的字節數。

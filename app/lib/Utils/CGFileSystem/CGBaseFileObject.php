@@ -488,4 +488,13 @@ class CGBaseFileObject
     {
         return $this->filePermissions;
     }
+
+    /**
+     * @throws Exception
+     */
+    public function touchAndCastToCGBaseFile(): CGBaseFile
+    {
+        touch($this->path);
+        return new CGBaseFile($this->path);
+    }
 }

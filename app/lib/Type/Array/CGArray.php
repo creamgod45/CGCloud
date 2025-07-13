@@ -6,6 +6,7 @@ namespace App\Lib\Type\Array;
 class CGArray implements CGArrayInterface
 {
     protected array $array = [];
+    private int $position = 0;
 
     public function __construct($array = [])
     {
@@ -16,14 +17,18 @@ class CGArray implements CGArrayInterface
         return $this;
     }
 
-    public function getKeys()
+    /**
+     * 取得陣列中的鍵值。
+     *
+     * @param mixed|null $filter_value 選填，篩選的值。
+     * @param bool       $strict       是否使用嚴格比較。
+     *
+     * @return array
+     */
+    public function getKeys(mixed $filter_value = null, bool $strict = false)
     {
-        $arr = [];
-        foreach ($this->array as $key => $value) {
-            $arr[] = $key;
-        }
-        $this->array = $arr;
-        return $this;
+        if($filter_value === null) return array_keys($this->array);
+        return array_keys($this->array, $filter_value, $strict);
     }
 
     public function getValues()
@@ -137,17 +142,40 @@ class CGArray implements CGArrayInterface
         return $this;
     }
 
-    public function getFrist()
+    /**
+     * 取得陣列中的第 0 個元素。
+     *
+     * @return mixed
+     */
+    public function getFirst()
     {
         return $this->array[0];
     }
 
-    public function getFirstObject()
+    public function getFirstObject(): CGArray|null
     {
-        foreach ($this->array as $item) {
-            return $item;
+        $array_key_first = array_key_first($this->array);
+
+        if ($array_key_first !== null) {
+            return new CGArray($this->array[$array_key_first]);
         }
         return null;
+    }
+
+    public function getFirstObjectKey()
+    {
+        $array_key_first = array_key_first($this->array);
+        if (!empty($array_key_first)) {
+            return $array_key_first;
+        }
+    }
+
+    public function getLastObjectKey()
+    {
+        $array_key_last = array_key_last($this->array);
+        if (!empty($array_key_last)) {
+            return $array_key_last;
+        }
     }
 
     public function Add($Mixed): void
@@ -239,6 +267,33 @@ class CGArray implements CGArrayInterface
     public function toPath(): CGPath
     {
         return new CGPath($this->array);
+    }
+
+    /**
+     * ArrayAccess 接口的實現方法
+     */
+    public function offsetExists($offset): bool
+    {
+        return isset($this->array[$offset]);
+    }
+
+    public function offsetGet($offset): mixed
+    {
+        return $this->Get($offset);
+    }
+
+    public function offsetSet($offset, $value): void
+    {
+        if (is_null($offset)) {
+            $this->Add($value);
+        } else {
+            $this->Set($offset, $value);
+        }
+    }
+
+    public function offsetUnset($offset): void
+    {
+        $this->Delete($offset);
     }
 
     public function resort()
@@ -375,5 +430,51 @@ class CGArray implements CGArrayInterface
             $k++;
         }
         return $arr;
+    }
+
+    /**
+     * Iterator 接口的實現方法
+     */
+    public function current(): mixed
+    {
+        return $this->array[$this->key()];
+    }
+
+    public function key(): mixed
+    {
+        $keys = array_keys($this->array);
+        return $keys[$this->position] ?? null;
+    }
+
+    public function next(): void
+    {
+        $this->position++;
+    }
+
+    public function rewind(): void
+    {
+        $this->position = 0;
+    }
+
+    public function valid(): bool
+    {
+        $keys = array_keys($this->array);
+        return isset($keys[$this->position]);
+    }
+
+    /**
+     * @return int
+     */
+    public function getPosition(): int
+    {
+        return $this->position;
+    }
+
+    /**
+     * @param int $position
+     */
+    public function setPosition(int $position): void
+    {
+        $this->position = $position;
     }
 }
