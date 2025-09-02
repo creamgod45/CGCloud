@@ -20,7 +20,7 @@ class VirtualFileFactory extends Factory
             'extension' => $this->faker->word(),
             'minetypes' => $this->faker->word(),
             'disk' => $this->faker->word(),
-            'expires_at' => $this->faker->randomNumber(),
+            'expired_at' => $this->faker->randomNumber(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ];
