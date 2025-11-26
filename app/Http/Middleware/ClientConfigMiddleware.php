@@ -17,8 +17,7 @@ class ClientConfigMiddleware
             $minutes = 60 * 24 * 30;
             // 將 cookie 加入回應中
             $cookie = Cookie::make('theme', 'light', $minutes);
-            $response->withCookie($cookie);
-            return $response;
+            return $response->cookie($cookie);
         } elseif ($request->has('theme')) {
             // 呼叫下一個請求
             $response = $next($request);
@@ -31,8 +30,7 @@ class ClientConfigMiddleware
             $minutes = 60 * 24 * 30;
             // 將 cookie 加入回應中
             $cookie = Cookie::make('theme', $theme, $minutes);
-            $response->withCookie($cookie);
-            return $response;
+            return $response->cookie($cookie);
         }
         return $next($request);
     }

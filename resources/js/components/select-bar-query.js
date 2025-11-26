@@ -438,7 +438,8 @@ function build_fake_input(addressList) {
     const sbqFI = addressList.inputField.querySelector(".sbq-fast-input");
     const temp = sbqFI ? sbqFI.innerHTML : "";
 
-    addressList.inputField.innerHTML = temp;
+    // Use textContent instead of innerHTML to prevent code injection
+    addressList.inputField.textContent = temp;
 
     for (const [key, value] of Object.entries(root["step"])) {
         for (const valueElement of value) {
@@ -450,7 +451,7 @@ function build_fake_input(addressList) {
 
             const label = document.createElement("span");
             label.classList.add("label");
-            label.innerText = valueElement.value ? `${valueElement.label}: ${valueElement.value}` : valueElement.label;
+            label.textContent = valueElement.value ? `${valueElement.label}: ${valueElement.value}` : valueElement.label;
             content.append(label);
 
             if (["none", "and", "or"].includes(valueElement.input)) {
