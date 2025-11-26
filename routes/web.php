@@ -4,6 +4,7 @@ use App\Http\Controllers\HTMLTemplateController;
 use App\Http\Controllers\InternalController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ShareTablesController;
+use App\Http\Middleware\ClientConfigMiddleware;
 use App\Http\Middleware\EMiddleWareAliases;
 use App\Lib\Utils\RouteNameField;
 use Illuminate\Support\Facades\Route;
@@ -20,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 */
 Route::prefix("p")->group(function () {
     Route::get('share/{shortcode}', [ShareTablesController::class, 'publicShareableShareTableItem'])->name(RouteNameField::PageShareableShareTableItem->value);
-    Route::get('download/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTableDownloadItem'])->name(RouteNameField::PagePublicShareTableDownloadItem->value);
+    Route::get('download/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTableDownloadItem'])->name(RouteNameField::PagePublicShareTableDownloadItem->value)->withoutMiddleware(ClientConfigMiddleware::class);
     Route::get('preview/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTablePreviewItem'])->name(RouteNameField::PagePublicShareTablePreviewItem->value)->middleware('signed');
     Route::get('player/{shareTableId}/{fileId}/{fileName}', [ShareTablesController::class, 'publicShareableShareTablePlayerPreviewFile'])->name(RouteNameField::PagePublicShareTablePreviewFilePlayerDash->value);
     Route::get('dash/{shareTableId}/{fileId}/{fileName}', [ShareTablesController::class, 'publicShareableShareTableDashPreviewFile'])->name(RouteNameField::APIPublicShareTablePreviewFileDash->value);
