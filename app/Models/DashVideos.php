@@ -50,7 +50,7 @@ class DashVideos extends Model
 
     public function shareTableVirtualFile(): BelongsTo
     {
-        return $this->belongsTo(ShareTableVirtualFile::class, 'id', 'dash_videos_id');
+        return $this->belongsTo(ShareTableVirtualFile::class, 'share_table_virtual_file_id', 'id');
     }
 
     public function member(): HasOne

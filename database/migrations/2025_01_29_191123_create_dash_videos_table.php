@@ -43,7 +43,10 @@ return new class extends Migration {
             });
 
         Schema::table('share_table_virtual_file', function (Blueprint $table) {
-            $table->foreignId('dash_videos_id')->comment('關聯 dash_videos 表')->change()->constrained('dash_videos')->onDelete('cascade');
+            $table->foreign('dash_videos_id')
+                ->references('id')
+                ->on('dash_videos')
+                ->onDelete('cascade');
         });
     }
 
