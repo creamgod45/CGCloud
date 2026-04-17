@@ -88,14 +88,16 @@ class VirtualFile extends Model
     public function getThumbTemporaryUrl(DateTimeInterface $expiration = null): string
     {
         if($expiration === null) {
-            $expiration = now()->addMinutes();
+            $expiration = now()->addHour()->startOfHour();
         }
+
+        $extension = $this->extension ?: 'jpg';
 
         return URL::temporarySignedRoute(
             RouteNameField::APIPreviewFileTemporary4->value,
             $expiration,
             [
-                'fileId' => $this->uuid
+                'fileId' => $this->uuid . '.' . $extension
             ],
         );
     }
@@ -103,22 +105,23 @@ class VirtualFile extends Model
     public function getTemporaryUrl(DateTimeInterface $expiration = null, $shareTableId = null)
     {
         if($expiration === null) {
-            $expiration = now()->addMinutes();
+            $expiration = now()->addHour()->startOfHour();
         }
         $temporaryUrl = "";
+        $extension = $this->extension ?: 'jpg';
 
         if($shareTableId === null) {
             $temporaryUrl = URL::temporarySignedRoute(
                 RouteNameField::APIPreviewFileTemporary->value,
                 $expiration,
-                ['fileId' => $this->uuid],
+                ['fileId' => $this->uuid . '.' . $extension],
             );
         } else {
             $temporaryUrl = URL::temporarySignedRoute(
                 RouteNameField::APIPreviewFileTemporary2->value,
                 $expiration,
                 [
-                    'fileId' => $this->uuid,
+                    'fileId' => $this->uuid . '.' . $extension,
                     'shareTableId' => $shareTableId,
                 ],
             );

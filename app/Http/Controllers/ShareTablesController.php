@@ -188,6 +188,7 @@ class ShareTablesController extends Controller
                 'Content-Type' => $disk->mimeType($filename),
                 'Content-Length' => $disk->size($filename),
                 'Content-Disposition' => 'inline; filename="'.$virtualFile->filename.'"',
+                'Cache-Control' => 'public, max-age=3600',
             ]);
         }
         abort(404);
@@ -929,7 +930,8 @@ class ShareTablesController extends Controller
 
     public function apiPreviewFileTemporary(Request $request)
     {
-        $fileUUID = $request->route('fileId', 0);
+        $fileId = $request->route('fileId', 0);
+        $fileUUID = explode('.', $fileId)[0];
         $CGLCI = self::baseControllerInit($request);
         $fingerprint = $CGLCI->getFingerprint();
         $key = 'sharTableItemPost'.$fingerprint;
@@ -973,7 +975,8 @@ class ShareTablesController extends Controller
 
     public function apiPreviewFileTemporary2(Request $request)
     {
-        $fileUUID = $request->route('fileId', 0);
+        $fileId = $request->route('fileId', 0);
+        $fileUUID = explode('.', $fileId)[0];
         $shareTableId = $request->route('shareTableId', 0);
         $shareTable = ShareTable::find($shareTableId);
         if ($shareTable !== null) {
@@ -992,7 +995,8 @@ class ShareTablesController extends Controller
 
     public function apiPreviewFileTemporary4(Request $request)
     {
-        $fileUUID = $request->route('fileId', 0);
+        $fileId = $request->route('fileId', 0);
+        $fileUUID = explode('.', $fileId)[0];
         $vf = VirtualFile::whereUuid($fileUUID)->first();
         if ($vf !== null && $vf->size <= 1024 * 1024 * 400 && str_contains($vf->filename, '_output_thumb001_thumb.jpg')) {
             if (Storage::disk($vf->disk)->exists($vf->path)) {
