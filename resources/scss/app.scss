@@ -8,6 +8,7 @@
 @import "ion-rangeslider/css/ion.rangeSlider.min.css";
 @import 'photoviewer/dist/photoviewer.min.css';
 @import "select2/dist/css/select2.min.css";
+@import "tom-select/dist/css/tom-select.default.css";
 .gfont-noto-serif-tc-extralight {
   font-family: "Noto Serif TC", serif;
   font-weight: 200;
@@ -1855,6 +1856,43 @@ a.btn {
 
 .form-solid:read-only {
   @apply cursor-grab focus:outline-0;
+}
+
+// TomSelect Overrides to match INPUT design
+.ts-wrapper.tom-select {
+  @apply w-full transition-all;
+
+  .ts-control {
+    @apply bg-slate-200 border-0 ring-1 ring-slate-200 shadow-sm rounded-md px-3 py-2 min-h-fit transition-all;
+    border-bottom: 2px dashed var(--color7) !important;
+
+    input {
+      @apply dark:text-black !important;
+    }
+  }
+
+  &.multi .ts-control > div {
+    background-color: color-mix(in srgb, var(--color7), transparent 80%);
+    border: 1px solid color-mix(in srgb, var(--color7), transparent 70%);
+    @apply rounded px-2 py-0.5 mr-1 mb-1;
+  }
+
+  &.focus .ts-control {
+    @apply outline-none ring-2;
+    --tw-ring-color: color-mix(in srgb, var(--color7), transparent 50%);
+  }
+
+  .ts-dropdown {
+    @apply bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 shadow-lg rounded-md mt-1;
+
+    .option {
+      @apply py-2 px-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors;
+      &.active {
+        background-color: color-mix(in srgb, var(--color7), transparent 80%);
+        @apply text-black dark:text-white;
+      }
+    }
+  }
 }
 
 .form-color {

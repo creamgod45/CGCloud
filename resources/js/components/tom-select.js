@@ -1,5 +1,4 @@
-//import TomSelect from "tom-select/base";
-import TomSelect from 'tom-select/dist/esm/tom-select.complete.js';
+import TomSelect from 'tom-select';
 import axios from "axios";
 
 //https://tom-select.js.org/docs/

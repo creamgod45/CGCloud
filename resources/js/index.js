@@ -20,7 +20,8 @@ import './components/dialog.js';
 //import './components/ShopItem.js';
 //import './components/ShopCart.js';
 import './components/validate.js';
-//import './components/select2.js';
+import './components/select2.js';
+import './components/tom-select.js';
 import './components/tab.js';
 // tippy dynamically imported below
 import './components/sticksy.js';
@@ -62,11 +63,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (document.querySelectorAll('.datatable').length > 0) {
         import('./components/datatables.js').then(() => {
             document.dispatchEvent(new CustomEvent('CGTABLE::init'));
-        });
-    }
-    if (document.querySelectorAll('.tom-select').length > 0) {
-        import('./components/tom-select.js').then(() => {
-            document.dispatchEvent(new CustomEvent('CGTS::init'));
         });
     }
     import('./components/tippy.js').then(() => {
