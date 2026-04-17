@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\HTMLTemplateController;
 use App\Http\Controllers\InternalController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\ShareTablePasswordController;
 use App\Http\Controllers\ShareTablesController;
 use App\Http\Middleware\ClientConfigMiddleware;
 use App\Http\Middleware\EMiddleWareAliases;
@@ -19,8 +19,9 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-Route::prefix("p")->group(function () {
+Route::prefix('p')->group(function () {
     Route::get('share/{shortcode}', [ShareTablesController::class, 'publicShareableShareTableItem'])->name(RouteNameField::PageShareableShareTableItem->value);
+    Route::post('share/{shortcode}/unlock', [ShareTablePasswordController::class, 'unlock'])->name(RouteNameField::APIShareTableUnlock->value);
     Route::get('download/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTableDownloadItem'])->name(RouteNameField::PagePublicShareTableDownloadItem->value)->withoutMiddleware(ClientConfigMiddleware::class);
     Route::get('preview/{shortcode}/{fileId}', [ShareTablesController::class, 'publicShareableShareTablePreviewItem'])->name(RouteNameField::PagePublicShareTablePreviewItem->value)->middleware('signed');
     Route::get('player/{shareTableId}/{fileId}/{fileName}', [ShareTablesController::class, 'publicShareableShareTablePlayerPreviewFile'])->name(RouteNameField::PagePublicShareTablePreviewFilePlayerDash->value);
@@ -29,16 +30,16 @@ Route::prefix("p")->group(function () {
 
 Route::get('hello', [InternalController::class, 'getClientID'])->name(RouteNameField::PageGetClientID->value);
 Route::post('hello', [InternalController::class, 'getClientIDPost'])->name(RouteNameField::PageGetClientIDPost->value);
-Route::middleware("checkClientID")->group(function () {
-    //Route::get('designcomponents', [InternalController::class,'designComponents'])->name(RouteNameField::PageDesignComponents->value);
-    //Route::post('broadcast', [InternalController::class, 'broadcast_Notification_Notification'])->name(RouteNameField::APIBroadcast->value);
-    //Route::post('language', [InternalController::class, 'language'])->name(RouteNameField::APILanguage->value);
-    //Route::post('user', [InternalController::class, 'user']);
-    //Route::post('browser', [InternalController::class, 'browser'])->name(RouteNameField::APIBrowser->value);
+Route::middleware('checkClientID')->group(function () {
+    // Route::get('designcomponents', [InternalController::class,'designComponents'])->name(RouteNameField::PageDesignComponents->value);
+    // Route::post('broadcast', [InternalController::class, 'broadcast_Notification_Notification'])->name(RouteNameField::APIBroadcast->value);
+    // Route::post('language', [InternalController::class, 'language'])->name(RouteNameField::APILanguage->value);
+    // Route::post('user', [InternalController::class, 'user']);
+    // Route::post('browser', [InternalController::class, 'browser'])->name(RouteNameField::APIBrowser->value);
     Route::get('/', [InternalController::class, 'index'])->name(RouteNameField::PageHome->value);
-    //Route::get('/index2', [InternalController::class, 'index2'])->name(RouteNameField::PageHome->value);
+    // Route::get('/index2', [InternalController::class, 'index2'])->name(RouteNameField::PageHome->value);
     Route::post('/clientconfig', [InternalController::class, 'getClientConfig'])->name(RouteNameField::APIClientConfig->value);
-    Route::middleware(['auth', 'verified'])->prefix("sharetable")->group(function () {
+    Route::middleware(['auth', 'verified'])->prefix('sharetable')->group(function () {
         Route::post('share/{id}', [ShareTablesController::class, 'shareableShareTableItemPost'])->name(RouteNameField::APIShareableShareTableItem->value);
         Route::get('item/success', [ShareTablesController::class, 'successShareTable'])->name(RouteNameField::PageShareTableItemSuccess->value);
         Route::post('item/conversion/{id}/{fileId}', [ShareTablesController::class, 'conversionShareTableItem'])->name(RouteNameField::APIShareTableItemConversion->value);
@@ -56,6 +57,7 @@ Route::middleware("checkClientID")->group(function () {
         Route::delete('upload/revert', [ShareTablesController::class, 'shareTableItemUploadImageRevert'])->name(RouteNameField::APIShareTableItemUploadImageRevert->value);
         Route::patch('upload/patch/{fileinfo}', [ShareTablesController::class, 'shareTableItemUploadImagePatch'])->name(RouteNameField::APIShareTableItemUploadImagePatch->value);
         Route::get('upload/patch/{fileinfo}', [ShareTablesController::class, 'shareTableItemUploadImageHead'])->name(RouteNameField::APIShareTableItemUploadImageHead->value);
+        Route::post('upload/heartbeat', [ShareTablesController::class, 'shareTableItemUploadHeartbeat'])->name(RouteNameField::APIShareTableUploadHeartbeat->value);
         Route::get('fetch/{fileId}', [ShareTablesController::class, 'shareTableItemUploadImageFetch'])->name(RouteNameField::APIShareTableItemUploadImageFetch->value);
         Route::get('preview/{fileId}', [ShareTablesController::class, 'apiPreviewFileTemporary'])->name(RouteNameField::APIPreviewFileTemporary->value)->middleware('signed'); // getTemporaryUrl used
         Route::get('preview/{shareTableId}/{fileId}', [ShareTablesController::class, 'apiPreviewFileTemporary2'])->name(RouteNameField::APIPreviewFileTemporary2->value)->middleware('signed'); // getTemporaryUrl used

@@ -11,6 +11,16 @@ import 'datatables.net-responsive-dt';
 import 'datatables.net-scroller-dt';
 import 'datatables.net-select-dt';
 import 'datatables.net-staterestore-dt';
+
+// CSS imports
+import "datatables.net-dt/css/dataTables.dataTables.min.css";
+import "datatables.net-fixedcolumns-dt/css/fixedColumns.dataTables.min.css";
+import "datatables.net-fixedheader-dt/css/fixedHeader.dataTables.min.css";
+import "datatables.net-responsive-dt/css/responsive.dataTables.min.css";
+import "datatables.net-scroller-dt/css/scroller.dataTables.min.css";
+import "datatables.net-select-dt/css/select.dataTables.css";
+import "datatables.net-staterestore-dt/css/stateRestore.dataTables.min.css";
+
 import './datatable.tailwind.js';
 //import 'datatables.net-autofill-dt';
 //import 'datatables.net-colreorder-dt';

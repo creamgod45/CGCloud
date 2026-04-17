@@ -20,12 +20,11 @@ import './components/dialog.js';
 //import './components/ShopItem.js';
 //import './components/ShopCart.js';
 import './components/validate.js';
-import './components/filepond.js';
 //import './components/select2.js';
 import './components/tab.js';
-import './components/tippy.js';
+// tippy dynamically imported below
 import './components/sticksy.js';
-import './components/datatables.js';
+// datatables dynamically imported below
 import './components/rwd.js';
 import './components/pagination.js';
 import './components/organizable.js';
@@ -33,23 +32,48 @@ import './components/dark.js';
 import './components/form.js';
 import './components/form-ct.js';
 import './components/scroll-indicator.js';
-//import './components/dashvideo.js';
-import './components/videoJs.js';
+// videoJs dynamically imported below
 import './components/file-driver.js';
 import './components/imginfo.js';
-import './components/tom-select.js';
+// tom-select dynamically imported below
 import './components/presize.js';
 import './components/shareable.js';
 import './components/copyer.js';
 import './components/ConfirmBox.js';
 import './components/autoupdate.js';
-import './components/toastify.js';
+// toastify dynamically imported below
 import './components/panel-field-card.js';
 import Masonry from 'masonry-layout/masonry.js'
 import axios from "axios";
 
 let masonry;
 document.addEventListener('DOMContentLoaded', async function () {
+    // Dynamic Imports (Code Splitting)
+    if (document.querySelectorAll('.filepond').length > 0) {
+        import('./components/filepond.js').then(() => {
+            document.dispatchEvent(new CustomEvent('CG_FILEPOND::init'));
+        });
+    }
+    if (document.querySelectorAll('.vjs').length > 0) {
+        import('./components/videoJs.js').then(() => {
+            document.dispatchEvent(new CustomEvent('CG::Video_init'));
+        });
+    }
+    if (document.querySelectorAll('.datatable').length > 0) {
+        import('./components/datatables.js').then(() => {
+            document.dispatchEvent(new CustomEvent('CGTABLE::init'));
+        });
+    }
+    if (document.querySelectorAll('.tom-select').length > 0) {
+        import('./components/tom-select.js').then(() => {
+            document.dispatchEvent(new CustomEvent('CGTS::init'));
+        });
+    }
+    import('./components/tippy.js').then(() => {
+        document.dispatchEvent(new CustomEvent('CGTIPPYER::init'));
+    });
+    import('./components/toastify.js');
+
     let element = document.querySelector('.panel-field-list');
     if(element !== null){
         setTimeout(() => {

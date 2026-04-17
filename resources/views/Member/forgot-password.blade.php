@@ -1,5 +1,5 @@
 @use(App\Lib\I18N\ELanguageText;use App\Lib\I18N\I18N;use App\Lib\Utils\RouteNameField)
-@vite(['resources/css/index.css', 'resources/js/index.js'])
+@vite(['resources/scss/app.scss', 'resources/js/index.js'])
 @php
     /***
      * @var string[] $urlParams 當前 URL 參數

@@ -21,7 +21,7 @@
     //dump($shopItem);
 @endphp
 @if($asset === true || $asset === "true")
-    @vite(['resources/css/index.css', 'resources/js/index.js'])
+    @vite(['resources/scss/app.scss', 'resources/js/index.js'])
 @endif
 @php
     $shopItemPageoption = new ShopItemPageOption("normal", topSpaceing: "20", stickysize: "", maxPrice: $maxPrice,

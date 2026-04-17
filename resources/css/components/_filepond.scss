@@ -1,0 +1,91 @@
+// ─── FilePond Custom Theme Override ───────────────────────────────────────────
+// 整合主題色系，使 FilePond 與整體 UI 一致
+
+.filepond--root {
+    @apply font-sans;
+
+    // Drop label（拖曳提示區）
+    .filepond--drop-label {
+        @apply min-h-[120px] flex items-center justify-center;
+
+        label {
+            @apply text-base text-slate-500 dark:text-slate-400 cursor-pointer select-none;
+            &::before {
+                content: '📂 ';
+            }
+        }
+    }
+
+    // Panel（外框容器）
+    .filepond--panel-root {
+        @apply bg-slate-50 dark:bg-neutral-700 border-2 border-dashed border-slate-300 dark:border-neutral-500 rounded-xl;
+        transition: border-color 200ms, background-color 200ms;
+    }
+
+    // 拖曳進入時高亮
+    &.filepond--hopper[data-hopper-state='drag-over'] .filepond--panel-root {
+        @apply border-color7 bg-amber-50 dark:border-amber-400 dark:bg-neutral-600;
+    }
+
+    // 單個檔案項目
+    .filepond--item {
+        @apply rounded-lg overflow-hidden;
+    }
+
+    // 檔案項目面板
+    .filepond--item-panel {
+        @apply rounded-lg;
+        background: theme('colors.slate.100');
+    }
+
+    // 進度條
+    .filepond--file-action-button {
+        @apply cursor-pointer;
+    }
+
+    // 上傳進度條顏色
+    .filepond--progress-indicator {
+        color: theme('colors.amber.500');
+    }
+
+    // 錯誤狀態
+    .filepond--item[data-filepond-item-state='load-invalid'] .filepond--item-panel,
+    .filepond--item[data-filepond-item-state='processing-error'] .filepond--item-panel {
+        background: theme('colors.red.100');
+    }
+
+    // 成功狀態
+    .filepond--item[data-filepond-item-state='processing-complete'] .filepond--item-panel {
+        background: theme('colors.emerald.100');
+    }
+
+    // 圖片預覽插件整合
+    .filepond--image-preview-overlay {
+        @apply rounded-t-lg;
+    }
+
+    // Credit 標籤縮小
+    .filepond--credits {
+        @apply opacity-30 text-xs;
+    }
+
+    // List scroller
+    .filepond--list-scroller {
+        @apply overflow-y-auto;
+    }
+}
+
+// Dark mode 整體覆蓋
+.dark .filepond--root {
+    .filepond--panel-root {
+        @apply bg-neutral-700 border-neutral-500;
+    }
+
+    .filepond--item-panel {
+        background: theme('colors.neutral.600');
+    }
+
+    .filepond--drop-label label {
+        @apply text-neutral-400;
+    }
+}

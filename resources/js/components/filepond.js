@@ -10,6 +10,12 @@ import FilePondPluginFilePoster from 'filepond-plugin-file-poster';
 import FilePondPluginImageValidateSize from 'filepond-plugin-image-validate-size';
 import * as Utils from "./utils.js";
 import axios from "axios";
+
+// CSS imports
+import 'filepond/dist/filepond.min.css';
+import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css';
+import 'filepond-plugin-file-poster/dist/filepond-plugin-file-poster.min.css';
+
 // 註冊所有需要使用的 FilePond 插件
 FilePond.registerPlugin(FilePondPluginImagePreview);
 FilePond.registerPlugin(FilePondPluginImageExifOrientation);
@@ -150,10 +156,26 @@ function filepondLoader() {
                 return filepondElement.uploaded; // 提交表單前檢查是否有文件成功上傳
             };
         }
+
+        // Heartbeat 自動延長快取時間 (每 5 分鐘)
+        setInterval(function() {
+            if (filepond.getFiles().length > 0) {
+                fetch('/p/sharetable/upload/heartbeat', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                }).catch(() => {}); // 忽略錯誤
+            }
+        }, 5 * 60 * 1000);
     }
 }
 
 // DOM 加載完成後執行 filepondLoader 函數
 document.addEventListener("DOMContentLoaded", function () {
+    filepondLoader();
+});
+document.addEventListener("CG_FILEPOND::init", function () {
     filepondLoader();
 });

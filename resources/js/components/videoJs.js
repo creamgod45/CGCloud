@@ -12,6 +12,18 @@ import 'videojs-persist';
 import 'videojs-landscape-fullscreen';
 import axios from "axios";
 
+// CSS imports
+import 'video.js/dist/video-js.min.css';
+import './videojs-zoom.css';
+import "videojs-playlist-ui/dist/videojs-playlist-ui.css";
+import "@kokotree-inc/videojs-upnext-plugin/upnext-styles.min.css";
+import 'videojs-vjsdownload/dist/videojs-vjsdownload.css';
+import '@videojs/themes/dist/city/index.css';
+import '@videojs/themes/dist/fantasy/index.css';
+import '@videojs/themes/dist/forest/index.css';
+import '@videojs/themes/dist/sea/index.css';
+import '@silvermine/videojs-chromecast/dist/silvermine-videojs-chromecast.css';
+
 chromecast(videojs, {
     preloadWebComponents: true,
 });
@@ -139,6 +151,9 @@ document.addEventListener('CG::Video', function (e) {
     vjs();
 
 })
+document.addEventListener('CG::Video_init', function () {
+    vjs();
+});
 document.addEventListener('DOMContentLoaded', function () {
     vjs();
 });

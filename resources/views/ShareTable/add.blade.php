@@ -41,7 +41,7 @@
             $footer=true;
         }
 @endphp
-@vite(['resources/css/index.css', 'resources/js/index.js'])
+@vite(['resources/scss/app.scss', 'resources/js/index.js'])
 @extends('layouts.default')
 @section('title', "新增分享內容 | ".Config::get('app.name'))
 @section('head')

@@ -1,4 +1,4 @@
-@vite(['resources/css/index.css', 'resources/js/index.js'])
+@vite(['resources/scss/app.scss', 'resources/js/index.js'])
 @use (App\Lib\I18N\ELanguageText;use App\Lib\I18N\I18N;use App\Lib\Utils\Htmlv2;use App\Lib\Utils\Utilsv2;use App\View\Components\PopoverOptions;use Illuminate\Http\Request;use Illuminate\Pagination\LengthAwarePaginator;use Illuminate\Support\Facades\Config; use Nette\Utils\Json;use App\Lib\Utils\RouteNameField;use App\Lib\Server\CSRF)
 @php
     /***
@@ -94,7 +94,7 @@
                         分享資訊說明
                     </div>
                     <div class="form-content-content">
-                        <textarea class="form-solid">{{ $shareTable->description }}</textarea>
+                        <textarea class="form-solid" readonly>{{ $shareTable->description }}</textarea>
                     </div>
                 </div>
                 <div class="form-content-group">
@@ -134,6 +134,26 @@
                 </div>
             </div>
             <div class="form-panel-box">
+                <h1 class="form-panel-box-title">媒體畫廊</h1>
+                <div class="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    @foreach($virtualFiles as $vf)
+                        @if(\Illuminate\Support\Str::startsWith($vf->minetypes ?? '', ['image/', 'video/']) && empty($vf['#']))
+                            @php
+                                if (isset($vf->size) && is_numeric($vf->size) && $vf->size > 1024 * 1024 * 400) continue;
+                                $tempUrl = $vf->getTemporaryUrl(now()->addMinutes(30), $shareTable->id);
+                            @endphp
+                            <div class="gallery-item" style="aspect-ratio: 1; overflow: hidden; border-radius: 8px; border: 1px solid #333; background: #000; display: flex; align-items: center; justify-content: center;">
+                                @if(\Illuminate\Support\Str::startsWith($vf->minetypes ?? '', 'video/'))
+                                    <video controls preload="metadata" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <source src="{{ $tempUrl }}" type="{{ $vf->minetypes }}">
+                                    </video>
+                                @else
+                                    <img loading="lazy" src="{{ $tempUrl }}" alt="{{ $vf->filename }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"/>
+                                @endif
+                            </div>
+                        @endif
+                    @endforeach
+                </div>
                 <h1 class="form-panel-box-title">檔案列表</h1>
                 @php
                     $columns = [

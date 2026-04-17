@@ -15,7 +15,7 @@ enum RouteNameField: string
     case PagePasswordResetPost = 'root.member.password.reset.post';
     case PageForgetPassword = 'root.member.password.request';
     case PageForgetPasswordPost = 'root.member.password.request.post';
-    case PageEmailVerification = 'root.member.email.verification'; //verification.verify
+    case PageEmailVerification = 'root.member.email.verification'; // verification.verify
     case PageEmailReSendMailVerification = 'root.member.email.verification.resend';
     case PageProfile = 'root.member.profile';
     case PageProfilePost = 'root.member.profile.post';
@@ -57,6 +57,7 @@ enum RouteNameField: string
     case APIBrowser = 'root.api.Browser';
     case APIBroadcast = 'root.api.Broadcast';
     case APIHTMLTemplateNotification = 'root.api.HTMLTemplateNotification';
+    case APIShareTableUploadHeartbeat = 'root.api.sharetable.upload.heartbeat';
     case APIShareTableItemCreatePost = 'root.api.sharetable.item.create.post';
     case APIShareTableItemEditPost = 'root.api.sharetable.item.edit.post';
     case APIShareTableItemUploadImage = 'root.api.shop.item.upload';
@@ -71,7 +72,7 @@ enum RouteNameField: string
     case APICustomerOrderListPost = 'root.api.customer.order.list.post';
     case APIPreviewFileTemporary = 'root.api.PreviewFileTemporary';
     case APIPreviewFileTemporary2 = 'root.api.PreviewFileTemporary2';
-    case APIGetUsers =  'root.api.get.users';
+    case APIGetUsers = 'root.api.get.users';
     case APIShareableShareTableItem = 'root.api.shareable.sharetable.item';
     case APIShareTableItemConversion = 'root.api.sharetable.item.conversion';
     case APIPreviewFileDash = 'root.api.PreviewFileDash';
@@ -80,4 +81,5 @@ enum RouteNameField: string
     case APIPublicShareTablePreviewFileDash = 'root.api.public.sharetable.preview.file.dash';
     case APIPreviewFileTemporary4 = 'root.api.PreviewFileTemporary4';
     case APIShareTableAddFile = 'root.api.sharetable.add.file';
+    case APIShareTableUnlock = 'root.api.sharetable.unlock';
 }

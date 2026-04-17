@@ -23,7 +23,7 @@
 @extends('layouts.default')
 @section('title', $shopItem->name." | ".Config::get('app.name'))
 @section('head')
-    @vite(['resources/css/index.css', 'resources/js/index.js'])
+    @vite(['resources/scss/app.scss', 'resources/js/index.js'])
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="{{ Config::get("app.name") }} | {{ $shopItem->name }}">
     <meta name="twitter:site" content="{{ "@".route(RouteNameField::PageShopItem->value,['id' => $shopItem->id]) }}">

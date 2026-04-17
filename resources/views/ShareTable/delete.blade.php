@@ -1,4 +1,4 @@
-@vite(['resources/css/index.css', 'resources/js/index.js'])
+@vite(['resources/scss/app.scss', 'resources/js/index.js'])
 @use (App\Lib\I18N\ELanguageText;use App\Lib\I18N\I18N;use Illuminate\Http\Request;use App\Lib\Utils\RouteNameField)
 @php
     /***

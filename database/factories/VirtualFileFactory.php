@@ -15,12 +15,15 @@ class VirtualFileFactory extends Factory
     {
         return [
             'uuid' => Str::uuid()->toString(),
-            'filename' => $this->faker->word(),
+            'members_id' => null,
+            'type' => 'temporary',
+            'filename' => $this->faker->word().'.jpg',
             'path' => $this->faker->word(),
-            'extension' => $this->faker->word(),
-            'minetypes' => $this->faker->word(),
-            'disk' => $this->faker->word(),
-            'expires_at' => $this->faker->randomNumber(),
+            'extension' => $this->faker->fileExtension(),
+            'minetypes' => 'image/jpeg',
+            'disk' => 'local',
+            'size' => $this->faker->numberBetween(1024, 1024 * 1024),
+            'expired_at' => Carbon::now()->addDays(7)->timestamp,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ];

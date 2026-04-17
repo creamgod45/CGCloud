@@ -23,7 +23,7 @@
 @extends('layouts.default')
 @section('title', "所有自訂頁面 | ".Config::get('app.name'))
 @section('head')
-    @vite(['resources/css/index.css', 'resources/js/index.js'])
+    @vite(['resources/scss/app.scss', 'resources/js/index.js'])
 @endsection
 @section('content')
     <x-scroll-indicator class="!bottom-[14px]" indicator-target="html"></x-scroll-indicator>

@@ -1,5 +1,14 @@
 import tippy from "tippy.js";
 
+// CSS imports
+import "tippy.js/dist/tippy.css";
+import 'tippy.js/themes/light-border.css';
+import 'tippy.js/themes/light.css';
+import 'tippy.js/themes/material.css';
+import 'tippy.js/themes/translucent.css';
+import 'tippy.js/animations/scale.css';
+import 'tippy.js/animations/scale-subtle.css';
+import 'tippy.js/animations/scale-extreme.css';
 /**
  * 初始化頁面上所有帶有 `.tippyer` 類別的元素，用 `tippy.js` 套件加載提示工具（Tooltip）。
  * 依據 data-* 屬性設定每個元素的提示工具參數。

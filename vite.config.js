@@ -7,7 +7,7 @@ export default defineConfig({
         laravel({
             input: [
                 // css
-                'resources/css/index.css',
+                'resources/scss/app.scss',
                 'resources/css/profile.css',
                 // js
                 'resources/js/index.js',
@@ -16,13 +16,14 @@ export default defineConfig({
                 'resources/js/profile.js',
             ],
             refresh: true,
+            detectTls: 'cgcloud.test',
         }),
     ],
     build: {
         rollupOptions: {
             plugins: [
                 obfuscator({
-                    options:{
+                    options: {
                         compact: true,
                         controlFlowFlattening: true,
                         controlFlowFlatteningThreshold: 1,
@@ -101,9 +102,12 @@ export default defineConfig({
             ]
         }
     },
-    //server: {
-    //    hmr: {
-    //        host: 'localhost',
-    //    },
-    //},
+    server: {
+        cors: true,
+        host: '0.0.0.0',
+        hmr: {
+            host: 'cgcloud.test',
+            protocol: 'wss',
+        },
+    },
 });

@@ -1,5 +1,6 @@
 import intlTelInput from "intl-tel-input";
 import zh_tw from ".././intl-tel-input/i18n/zh_tw/index.mjs";
+import "intl-tel-input/build/css/intlTelInput.min.css";
 
 function phone() {
     let tels = document.querySelectorAll('.ITI');
