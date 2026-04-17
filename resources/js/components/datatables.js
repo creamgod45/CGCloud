@@ -38,7 +38,7 @@ import jQuery from "jquery";
  * 可以用於需要完整站點根URL的情況，如網頁中相對路徑的絕對化等操作。
  */
 let domain = window.location.origin;
-pdfmake.vfs = vfsOption.vfs;
+pdfmake.vfs = vfsOption.option.vfs;
 pdfmake.fonts = {
     Roboto: {
         normal: `${domain}/font/NotoSansTC-Regular.ttf`,

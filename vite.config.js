@@ -1,112 +1,53 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import obfuscator from 'rollup-plugin-obfuscator';
 
 export default defineConfig({
     plugins: [
         laravel({
             input: [
-                // css
                 'resources/scss/app.scss',
                 'resources/css/profile.css',
-                // js
                 'resources/js/index.js',
                 'resources/js/tinymce.js',
                 'resources/js/index_.js',
                 'resources/js/profile.js',
             ],
             refresh: true,
-            detectTls: 'cgcloud.test',
+            detectTls: 'vps.bltn.cc',
         }),
     ],
     build: {
+        // 1. 使用 esbuild 壓縮，速度最快且產物輕量
+        minify: 'esbuild', 
+        // 2. 移除 Source Map 減少生產環境體積（除非你需要線上除錯）
+        sourcemap: false,
+        // 3. 調整資源塊大小警告閥值
+        chunkSizeWarningLimit: 1000,
         rollupOptions: {
-            plugins: [
-                obfuscator({
-                    options: {
-                        compact: true,
-                        controlFlowFlattening: true,
-                        controlFlowFlatteningThreshold: 1,
-                        deadCodeInjection: true,
-                        deadCodeInjectionThreshold: 1,
-                        debugProtection: true,
-                        debugProtectionInterval: 4000,
-                        disableConsoleOutput: true,
-                        domainLock: [
-                            'http://ddpc.test/',
-                            'https://cgclound.test/',
-                            'http://127.0.0.1:8000/',
-                            'https://cgcx.bltn.cc/',
-                            'https://cgcx.blaetoan.cyou/',
-                            'https://cgcloud.test/',
-                        ],
-                        domainLockRedirectUrl: 'about:blank',
-                        forceTransformStrings: [],
-                        identifierNamesCache: null,
-                        identifierNamesGenerator: 'hexadecimal',
-                        identifiersDictionary: [],
-                        identifiersPrefix: '',
-                        ignoreImports: false,
-                        inputFileName: '',
-                        log: true,
-                        numbersToExpressions: false,
-                        optionsPreset: 'default',
-                        renameGlobals: false,
-                        renameProperties: false,
-                        renamePropertiesMode: 'safe',
-                        reservedNames: [],
-                        reservedStrings: [],
-                        seed: 0,
-                        selfDefending: false,
-                        simplify: true,
-                        sourceMap: false,
-                        sourceMapBaseUrl: '',
-                        sourceMapFileName: '',
-                        sourceMapMode: 'separate',
-                        sourceMapSourcesMode: 'sources-content',
-                        splitStrings: true,
-                        splitStringsChunkLength: 10,
-                        stringArray: true,
-                        stringArrayCallsTransform: true,
-                        stringArrayCallsTransformThreshold: 0.5,
-                        stringArrayEncoding: [],
-                        stringArrayIndexesType: [
-                            'hexadecimal-number'
-                        ],
-                        stringArrayIndexShift: true,
-                        stringArrayRotate: true,
-                        stringArrayShuffle: true,
-                        stringArrayWrappersCount: 1,
-                        stringArrayWrappersChainedCalls: true,
-                        stringArrayWrappersParametersMaxCount: 2,
-                        stringArrayWrappersType: 'variable',
-                        stringArrayThreshold: 0.75,
-                        target: 'browser',
-                        transformObjectKeys: true,
-                        unicodeEscapeSequence: false
-                    }
-                })
-            ],
             output: {
+                // 4. 精細化分塊策略：將大型套件獨立出來，增加瀏覽器快取命中率
                 manualChunks(id) {
                     if (id.includes('node_modules')) {
-                        // 保持第三方库不合并，按库拆分
-                        return id.toString().split('node_modules/')[1].split('/')[0];
+                        // TinyMCE 這種大型套件強烈建議獨立出來
+                        if (id.includes('tinymce')) {
+                            return 'vendor-tinymce';
+                        }
+                        // 其餘常用的第三方庫合併為一個 vendor
+                        return 'vendor';
                     }
-                }
+                },
+                // 5. 讓輸出的檔名更簡潔
+                chunkFileNames: 'assets/[name]-[hash].js',
+                entryFileNames: 'assets/[name]-[hash].js',
+                assetFileNames: 'assets/[name]-[hash].[ext]',
             },
-            external: [
-                //'intl-tel-input/build/js/i18n/en/index.mjs',
-                //'intl-tel-input/build/js/i18n/zh/index.mjs',
-                //'intl-tel-input/build/js/i18n/zh_TW/index.mjs',
-            ]
-        }
+        },
     },
     server: {
         cors: true,
         host: '0.0.0.0',
         hmr: {
-            host: 'cgcloud.test',
+            host: 'vps.bltn.cc',
             protocol: 'wss',
         },
     },

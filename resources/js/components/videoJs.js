@@ -14,7 +14,7 @@ import axios from "axios";
 
 // CSS imports
 import 'video.js/dist/video-js.min.css';
-import './videojs-zoom.css';
+import '../../css/components/videojs-zoom.css';
 import "videojs-playlist-ui/dist/videojs-playlist-ui.css";
 import "@kokotree-inc/videojs-upnext-plugin/upnext-styles.min.css";
 import 'videojs-vjsdownload/dist/videojs-vjsdownload.css';
