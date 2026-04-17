@@ -55,122 +55,152 @@
             </div>
         </div>
         <div class="pfc-preview">
-            @if($virtualFiles->isNotEmpty())
-                @if($virtualFiles->first() !== null)
-                    @if($virtualFiles->first() !== null || !empty($virtualFiles))
-                        @if(Utilsv2::isSupportImageFile($virtualFiles->first()->minetypes))
-                            @php
-                                // 獲取圖片物件
-                                $image = $virtualFiles->first();
-                                $width =  0;
-                                $height = 0;
-                                if($image !== null){
-                                    // 獲取圖片的原始寬度與高度
-                                    $image1 = $image->getImage($shareTable->id);
-                                    if($image1 !== null){
-                                    $width = $image1->getWidth();
-                                    $height = $image1->getHeight();
-                                    }
-                                }
-
-                                // 初始化縮放寬度與高度的變數
-                                $scaledWidth = 0;
-                                $scaledHeight = 0;
-
-                                // 確保寬高值皆有效，避免計算錯誤
-                                if ($width > 0 && $height > 0) {
-                                    if ($height > 300) {
-                                        // 如果原始高度大於 300，等比例縮小到高度 300 並調整寬度
-                                        $scaledHeight = 180;
-                                        $scaledWidth = ($width / $height) * $scaledHeight;
-                                    } else {
-                                        // 如果原始高度小於等於 300，放大高度到 300 並調整寬度
-                                        $scaledHeight = 180;
-                                        $scaledWidth = ($width / $height) * $scaledHeight;
-                                    }
-                                } else {
-                                    // 如果寬高無效，設定為預設值 0 以便後續檢查
-                                    $scaledWidth = 0;
-                                    $scaledHeight = 0;
-                                }
-                            @endphp
-                            <img class="fdi-imginfo presize" loading="lazy"
-                                 data-prewidth="{{ $scaledWidth }}px"
-                                 data-preheight="{{ $scaledHeight }}px"
-                                 src="{{ $virtualFiles->first()->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}"
-                                 alt="{{ $virtualFiles->first()->filename }}">
-                        @elseif(Utilsv2::isSupportVideoFile($virtualFiles->first()->minetypes) && $virtualFiles->first()->size <= 150 * 1024 * 1024)
-                            @php
-                                /** @var \App\Models\ShareTableVirtualFile[]|\Illuminate\Database\Eloquent\Collection<\App\Models\ShareTableVirtualFile> $shareTableVirtualFiles */
-                                $shareTableVirtualFiles = $shareTable->shareTableVirtualFile()->getResults();
-                                $ftype = 'data-minetype='.$virtualFiles->first()->minetypes;
-                                $f = $virtualFiles->first()->getTemporaryUrl(now()->addMinutes(10), $shareTable->id);
-                                $poster = "";
-                                if($shareTableVirtualFiles !== null){
-                                    foreach ($shareTableVirtualFiles as $item) {
-                                        if($item->virtual_file_uuid === $virtualFiles->first()->uuid && $item->isAvailableDashVideo()){
-                                            /** @var \App\Models\DashVideos $dashVideos */
-                                            $dashVideos = \App\Models\DashVideos::where('virtual_file_uuid', '=', $virtualFiles->first()->uuid)->get()->first();
-                                            if($dashVideos !== null){
-                                                $ftype = 'data-type=dash';
-                                                $f = route(RouteNameField::APIPreviewFileDash->value, [
-                                                    'shareTableId' => $shareTable->id,
-                                                    'fileId' => $virtualFiles->first()->uuid,
-                                                    'fileName' => $dashVideos->filename.".".$dashVideos->extension,
-                                                ]);
-                                                /* @var \App\Models\VirtualFile $result */
-                                                $result = $dashVideos->thumbVirtualFile()->getResults();
-                                                $poster = 'data-poster="'.$result->getThumbTemporaryUrl(now()->addMinutes(10)).'"';
-                                            }
-                                            break;
+            @php
+                $user = \Illuminate\Support\Facades\Auth::user();
+                $isOwner = $shareTable->isOwner($user);
+                $hasPassword = $shareTable->hasPassword();
+                $isPublic = $shareTable->type === \App\Lib\EShareTableType::public->value;
+                $isPrivate = $shareTable->type === \App\Lib\EShareTableType::private->value;
+                $isPermissionMember = $user ? $shareTable->isPermissionMember($user) : false;
+                $isUnlocked = session()->has(\App\Http\Controllers\ShareTablePasswordController::sessionKey($shareTable->short_code));
+                
+                $canView = $isOwner || ($isPublic && !$hasPassword) || ($isPublic && $hasPassword && $isUnlocked) || ($isPrivate && $isPermissionMember);
+            @endphp
+            @if($canView)
+                @if($virtualFiles->isNotEmpty())
+                    @if($virtualFiles->first() !== null)
+                        @if($virtualFiles->first() !== null || !empty($virtualFiles))
+                            @if(Utilsv2::isSupportImageFile($virtualFiles->first()->minetypes))
+                                @php
+                                    // 獲取圖片物件
+                                    $image = $virtualFiles->first();
+                                    $width =  0;
+                                    $height = 0;
+                                    if($image !== null){
+                                        // 獲取圖片的原始寬度與高度
+                                        $image1 = $image->getImage($shareTable->id);
+                                        if($image1 !== null){
+                                        $width = $image1->getWidth();
+                                        $height = $image1->getHeight();
                                         }
                                     }
-                                }
-                            @endphp
-                            <video class="vjs video-js vjs-theme-forest presize" {{ $ftype }} {!! $poster !!} controls
-                                   data-src="{{ $f }}"></video>
-                        @elseif(Utilsv2::isSupportVideoFile($virtualFiles->first()->minetypes))
-                            @php
-                                /** @var \App\Models\ShareTableVirtualFile[]|\Illuminate\Database\Eloquent\Collection<\App\Models\ShareTableVirtualFile> $shareTableVirtualFiles */
-                                $shareTableVirtualFiles = $shareTable->shareTableVirtualFile()->getResults();
-                                $ftype = 'data-minetype='.$virtualFiles->first()->minetypes;
-                                $f = $virtualFiles->first()->getTemporaryUrl(now()->addMinutes(10), $shareTable->id);
-                                if($shareTableVirtualFiles !== null){
-                                    $no = true;
-                                    foreach ($shareTableVirtualFiles as $item) {
-                                        if($item->virtual_file_uuid === $virtualFiles->first()->uuid && $item->isAvailableDashVideo()){
-                                            /** @var \App\Models\DashVideos $dashVideos */
-                                            $dashVideos = \App\Models\DashVideos::where('virtual_file_uuid', '=', $virtualFiles->first()->uuid)->get()->first();
-                                            if($dashVideos !== null){
-                                                $no = false;
-                                                /* @var \App\Models\VirtualFile $result */
-                                                $result = $dashVideos->thumbVirtualFile()->getResults();
+
+                                    // 初始化縮放寬度與高度的變數
+                                    $scaledWidth = 0;
+                                    $scaledHeight = 0;
+
+                                    // 確保寬高值皆有效，避免計算錯誤
+                                    if ($width > 0 && $height > 0) {
+                                        if ($height > 300) {
+                                            // 如果原始高度大於 300，等比例縮小到高度 300 並調整寬度
+                                            $scaledHeight = 180;
+                                            $scaledWidth = ($width / $height) * $scaledHeight;
+                                        } else {
+                                            // 如果原始高度小於等於 300，放大高度到 300 並調整寬度
+                                            $scaledHeight = 180;
+                                            $scaledWidth = ($width / $height) * $scaledHeight;
+                                        }
+                                    } else {
+                                        // 如果寬高無效，設定為預設值 0 以便後續檢查
+                                        $scaledWidth = 0;
+                                        $scaledHeight = 0;
+                                    }
+                                @endphp
+                                <img class="fdi-imginfo presize" loading="lazy"
+                                     data-prewidth="{{ $scaledWidth }}px"
+                                     data-preheight="{{ $scaledHeight }}px"
+                                     src="{{ $virtualFiles->first()->getTemporaryUrl(now()->addMinutes(10), $shareTable->id) }}"
+                                     alt="{{ $virtualFiles->first()->filename }}">
+                            @elseif(Utilsv2::isSupportVideoFile($virtualFiles->first()->minetypes) && $virtualFiles->first()->size <= 150 * 1024 * 1024)
+                                @php
+                                    /** @var \App\Models\ShareTableVirtualFile[]|\Illuminate\Database\Eloquent\Collection<\App\Models\ShareTableVirtualFile> $shareTableVirtualFiles */
+                                    $shareTableVirtualFiles = $shareTable->shareTableVirtualFile()->getResults();
+                                    $ftype = 'data-minetype='.$virtualFiles->first()->minetypes;
+                                    $f = $virtualFiles->first()->getTemporaryUrl(now()->addMinutes(10), $shareTable->id);
+                                    $poster = "";
+                                    if($shareTableVirtualFiles !== null){
+                                        foreach ($shareTableVirtualFiles as $item) {
+                                            if($item->virtual_file_uuid === $virtualFiles->first()->uuid && $item->isAvailableDashVideo()){
+                                                /** @var \App\Models\DashVideos $dashVideos */
+                                                $dashVideos = \App\Models\DashVideos::where('virtual_file_uuid', '=', $virtualFiles->first()->uuid)->get()->first();
+                                                if($dashVideos !== null){
+                                                    $ftype = 'data-type=dash';
+                                                    $f = route(RouteNameField::APIPreviewFileDash->value, [
+                                                        'shareTableId' => $shareTable->id,
+                                                        'fileId' => $virtualFiles->first()->uuid,
+                                                        'fileName' => $dashVideos->filename.".".$dashVideos->extension,
+                                                    ]);
+                                                    /* @var \App\Models\VirtualFile $result */
+                                                    $result = $dashVideos->thumbVirtualFile()->getResults();
+                                                    $poster = 'data-poster="'.$result->getThumbTemporaryUrl(now()->addMinutes(10)).'"';
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                @endphp
+                                <video class="vjs video-js vjs-theme-forest presize" {{ $ftype }} {!! $poster !!} controls
+                                       data-src="{{ $f }}"></video>
+                            @elseif(Utilsv2::isSupportVideoFile($virtualFiles->first()->minetypes))
+                                @php
+                                    /** @var \App\Models\ShareTableVirtualFile[]|\Illuminate\Database\Eloquent\Collection<\App\Models\ShareTableVirtualFile> $shareTableVirtualFiles */
+                                    $shareTableVirtualFiles = $shareTable->shareTableVirtualFile()->getResults();
+                                    $ftype = 'data-minetype='.$virtualFiles->first()->minetypes;
+                                    $f = $virtualFiles->first()->getTemporaryUrl(now()->addMinutes(10), $shareTable->id);
+                                    if($shareTableVirtualFiles !== null){
+                                        $no = true;
+                                        foreach ($shareTableVirtualFiles as $item) {
+                                            if($item->virtual_file_uuid === $virtualFiles->first()->uuid && $item->isAvailableDashVideo()){
+                                                /** @var \App\Models\DashVideos $dashVideos */
+                                                $dashVideos = \App\Models\DashVideos::where('virtual_file_uuid', '=', $virtualFiles->first()->uuid)->get()->first();
+                                                if($dashVideos !== null){
+                                                    $no = false;
+                                                    /* @var \App\Models\VirtualFile $result */
+                                                    $result = $dashVideos->thumbVirtualFile()->getResults();
 
 
-                            @endphp
-                            <video class="vjs video-js vjs-theme-forest presize"
-                                   data-poster="{{$result->getThumbTemporaryUrl(now()->addMinutes(10))}}"
-                                   data-type="dash" controls
-                                   data-src="{{ route(RouteNameField::APIPreviewFileDash->value, ['shareTableId' => $shareTable->id,'fileId' => $virtualFiles->first()->uuid,'fileName' => $dashVideos->filename.".".$dashVideos->extension]) }}"></video>
-                            @php
-                                }
-                                break;
-                            }
-                        }
-                        if($no) {
-                            @endphp
-                            <img class="fdi-imginfo tippyer presize" loading="lazy"
-                                 data-prewidth="100%"
-                                 data-preheight="300px"
-                                 data-content="{{ $i18N->getLanguage(ELanguageText::FileSizeTooLarge) }}"
-                                 src="{{ asset('assets/images/warning_file_size_large.webp') }}"
-                                 alt="{{ $virtualFiles->first()->filename }}">
-                            @php
+                                @endphp
+                                <video class="vjs video-js vjs-theme-forest presize"
+                                       data-poster="{{$result->getThumbTemporaryUrl(now()->addMinutes(10))}}"
+                                       data-type="dash" controls
+                                       data-src="{{ route(RouteNameField::APIPreviewFileDash->value, ['shareTableId' => $shareTable->id,'fileId' => $virtualFiles->first()->uuid,'fileName' => $dashVideos->filename.".".$dashVideos->extension]) }}"></video>
+                                @php
+                                    }
+                                    break;
                                 }
                             }
-                            @endphp
+                            if($no) {
+                                @endphp
+                                <img class="fdi-imginfo tippyer presize" loading="lazy"
+                                     data-prewidth="100%"
+                                     data-preheight="300px"
+                                     data-content="{{ $i18N->getLanguage(ELanguageText::FileSizeTooLarge) }}"
+                                     src="{{ asset('assets/images/warning_file_size_large.webp') }}"
+                                     alt="{{ $virtualFiles->first()->filename }}">
+                                @php
+                                    }
+                                }
+                                @endphp
+                            @endif
                         @endif
                     @endif
+                @endif
+            @else
+                @if($hasPassword)
+                    <div class="flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-neutral-500 py-6 password-protected-trigger cursor-pointer select-none hover:bg-slate-800/20 dark:hover:bg-slate-800/50 rounded-lg transition-colors" data-shortcode="{{ $shareTable->short_code }}" data-title="{{ $shareTable->name }}">
+                        <i class="fa-solid fa-lock text-4xl text-red-500/80 pointer-events-none"></i>
+                        <span class="text-sm font-medium pointer-events-none">點擊解鎖保護</span>
+                    </div>
+                @elseif($isPrivate)
+                    <div class="flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-neutral-500 py-6">
+                        <i class="fa-solid fa-user-lock text-4xl text-rose-500/80"></i>
+                        <span class="text-sm font-medium">私有保護</span>
+                    </div>
+                @else
+                    <div class="flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-neutral-500 py-6">
+                        <i class="fa-solid fa-ban text-4xl text-slate-500/80"></i>
+                        <span class="text-sm font-medium">無法訪問</span>
+                    </div>
                 @endif
             @endif
             <div class="vjs-playlist"></div>

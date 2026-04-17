@@ -64,17 +64,24 @@
             </x-popover-windows>
             <div class="panel-title-field gfont-noto-serif-tc-bold">檔案列表</div>
             @auth
-                <form class="panel-upload-field" method="post"
+                <form class="panel-upload-field bg-white/50 dark:bg-slate-900/40 rounded-2xl shadow-xl border border-white/20 dark:border-white/5 p-4 sm:p-8 mt-8 mb-12 flex flex-col gap-6 backdrop-blur-xl transition-all duration-500 hover:shadow-2xl hover:border-color7/30 ring-1 ring-black/5 dark:ring-white/5" method="post"
                       action="{{ route(RouteNameField::PageShareTableItemPost->value)  }}">
                     @csrf
-                    <input type="submit" class="btn btn-ripple btn-color7 btn-md-strip" name="upload" value="上傳">
-                    <input type="file" class="filepond w-1/2"
-                           data-allowtypes="image/png::image/jpg::image/jpeg::image/svg+xml::image/gif::image/webp::image/apng::image/bmp::image/avif::video/av1::video/H264::video/H264-SVC::video/H264-RCDO::video/H265::video/JPEG::video/JPEG::video/mpeg::video/mpeg4-generic::video/ogg::video/quicktime::video/JPEG::video/vnd.mpegurl::video/vnd.youtube.yt::video/VP8::video/VP9::video/mp4::video/mp4V-ES::video/MPV::video/vnd.directv.mpeg::video/vnd.dece.mp4::video/vnd.uvvu.mp4::video/H266::video/H263::video/H263-1998::video/H263-2000::video/H261::application/zip::application/x-zip-compressed::multipart/x-zip::application/x-compressed"
-                           data-upload="{{ route(RouteNameField::APIShareTableItemUploadImage->value) }}"
-                           data-revert="{{ route(RouteNameField::APIShareTableItemUploadImageRevert->value) }}"
-                           data-patch="{{ route(RouteNameField::APIShareTableItemUploadImagePatch->value, ["fileinfo"=>" "]) }}"
-                           data-multiple="true"
-                           name="ItemImages[]"/>
+                    <div class="w-full">
+                        <input type="file" class="filepond"
+                               data-allowtypes="image/png::image/jpg::image/jpeg::image/svg+xml::image/gif::image/webp::image/apng::image/bmp::image/avif::video/av1::video/H264::video/H264-SVC::video/H264-RCDO::video/H265::video/JPEG::video/JPEG::video/mpeg::video/mpeg4-generic::video/ogg::video/quicktime::video/JPEG::video/vnd.mpegurl::video/vnd.youtube.yt::video/VP8::video/VP9::video/mp4::video/mp4V-ES::video/MPV::video/vnd.directv.mpeg::video/vnd.dece.mp4::video/vnd.uvvu.mp4::video/H266::video/H263::video/H263-1998::video/H263-2000::video/H261::application/zip::application/x-zip-compressed::multipart/x-zip::application/x-compressed"
+                               data-upload="{{ route(RouteNameField::APIShareTableItemUploadImage->value) }}"
+                               data-revert="{{ route(RouteNameField::APIShareTableItemUploadImageRevert->value) }}"
+                               data-patch="{{ route(RouteNameField::APIShareTableItemUploadImagePatch->value, ["fileinfo"=>" "]) }}"
+                               data-multiple="true"
+                               name="ItemImages[]"/>
+                    </div>
+                    <div class="flex justify-end mt-2">
+                        <button type="submit" name="upload" class="btn btn-ripple btn-color7 btn-md-strip px-8 py-2.5 shadow hover:-translate-y-0.5 transition-transform flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span class="font-bold text-[15px]">開始上傳建立分享</span>
+                        </button>
+                    </div>
                 </form>
             @endauth
             <x-panel-field-card-list :share-tables="$shareTables" :popoverid="$popoverid" :i18-n="$i18N"></x-panel-field-card-list>

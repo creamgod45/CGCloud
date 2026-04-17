@@ -88,6 +88,105 @@ export function confirmDialog(title, message, type, ok, cancel) {
 }
 
 /**
+ * 顯示帶有密碼輸入的對話框。
+ *
+ * @param {string} title 對話框的標題。
+ * @param {string} message 對話框的消息內容。
+ * @param {Function} ok 確認按鈕點擊時的回調函數，會傳入輸入的密碼。
+ * @param {Function} cancel 取消按鈕點擊時的回調函數。
+ * @return {string} 生成的對話框的唯一ID。
+ */
+export function passwordDialog(title, message, ok, cancel) {
+    let dialog = document.createElement("div");
+    dialog.id = "dialog_" + generateRandomString(5);
+    dialog.classList.add("dialog-message-box", "dialog-message-box-info");
+    document.body.appendChild(dialog);
+    document.body.style.overflow = "hidden";
+    
+    let bodycolorEl = document.createElement("div");
+    bodycolorEl.classList.add('dialog-message-box-body-color');
+    dialog.append(bodycolorEl);
+    
+    let body2El = document.createElement("div");
+    body2El.classList.add('dialog-message-box-body');
+    bodycolorEl.append(body2El);
+
+    let titleEl = document.createElement("div");
+    titleEl.classList.add('dialog-message-box-title');
+    titleEl.innerText = title;
+    body2El.append(titleEl);
+
+    let contentEl = document.createElement("div");
+    contentEl.classList.add('dialog-message-box-content');
+    contentEl.innerText = message;
+    body2El.append(contentEl);
+    
+    let inputContainer = document.createElement("div");
+    inputContainer.classList.add("mt-4", "mb-2", "w-full", "px-4");
+    let inputEl = document.createElement("input");
+    inputEl.type = "password";
+    inputEl.placeholder = "請輸入保護密碼";
+    inputEl.classList.add("form-solid", "w-full", "text-center", "py-2", "rounded-md");
+    inputEl.addEventListener("keydown", (e) => {
+        if(e.key === "Enter") confirmEl.click();
+    });
+    inputContainer.append(inputEl);
+    body2El.append(inputContainer);
+
+    let errorEl = document.createElement("div");
+    errorEl.classList.add("text-sm", "text-red-500", "mb-4", "hidden");
+    body2El.append(errorEl);
+
+    let buttonFlexGroup = document.createElement("div");
+    buttonFlexGroup.classList.add('dialog-message-box-buttonFlexGroup');
+    body2El.append(buttonFlexGroup);
+
+    let confirmEl = document.createElement("button");
+    confirmEl.classList.add("dialog-message-box-confirm", "btn", "btn-ripple", "btn-color7", "btn-md-strip");
+    confirmEl.type = 'button';
+    confirmEl.innerText = "解鎖";
+    confirmEl.onclick = () => {
+        let val = inputEl.value;
+        if (!val) {
+            errorEl.innerText = "密碼不能為空";
+            errorEl.classList.remove("hidden");
+            return;
+        }
+        confirmEl.disabled = true;
+        confirmEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        ok(val, (errMsg) => {
+            confirmEl.disabled = false;
+            confirmEl.innerText = "解鎖";
+            if (errMsg) {
+                errorEl.innerText = errMsg;
+                errorEl.classList.remove("hidden");
+                inputEl.value = "";
+                inputEl.focus();
+            } else {
+                dialog.remove();
+                document.body.style.overflow = "";
+            }
+        });
+    };
+    buttonFlexGroup.append(confirmEl);
+
+    let cancelEl = document.createElement("button");
+    cancelEl.classList.add("dialog-message-box-cancel", "btn", "btn-ripple", "btn-ok", "btn-md-strip");
+    cancelEl.type = 'button';
+    cancelEl.innerText = "取消";
+    cancelEl.onclick = () => {
+        dialog.remove();
+        document.body.style.overflow = "";
+        if(cancel) cancel();
+    };
+    buttonFlexGroup.append(cancelEl);
+
+    document.dispatchEvent(new CustomEvent('BtnLoad'));
+    setTimeout(() => { inputEl.focus(); }, 100);
+    return dialog.id;
+}
+
+/**
  * 生成指定長度的隨機字符串。
  *
  * @param {number} length - 要生成的字符串的長度。

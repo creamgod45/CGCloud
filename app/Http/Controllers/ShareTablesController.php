@@ -1284,6 +1284,35 @@ class ShareTablesController extends Controller
         }
     }
 
+    public function shareTableItemUploadHeartbeat(Request $request)
+    {
+        $CGLCI = self::baseControllerInit($request);
+        $fingerprint = $CGLCI->getFingerprint();
+        $key = 'sharTableItemPost' . $fingerprint;
+
+        // 延長快取標記
+        if (Cache::has($key)) {
+            Cache::put($key, true, now()->addHour());
+        }
+
+        // 延長暫存檔案過期時間
+        $memberId = Auth::user()->id ?? null;
+        $query = VirtualFile::query()
+            ->where('type', '=', 'temporary')
+            ->where('expired_at', '>', now()->timestamp);
+
+        if ($memberId) {
+            $query->where('members_id', '=', $memberId);
+        } else {
+            // 訪客則透過已標記的快取來延長 (雖然稍微不精確，但暫時符合需求)
+            $query->whereNull('members_id');
+        }
+
+        $query->update(['expired_at' => now()->addHour()->timestamp]);
+
+        return response()->json(['status' => 'success']);
+    }
+
     public function shareTableItemUploadImageHead(Request $request)
     {
         $fileInfo = $request->route('fileinfo', 0);
@@ -1380,20 +1409,6 @@ class ShareTablesController extends Controller
 
         // 返回响应
         return response()->json(['status' => 'success']);
-    }
-
-    public function shareTableItemUploadHeartbeat(Request $request)
-    {
-        $CGLCI = self::baseControllerInit($request);
-        $fingerprint = $CGLCI->getFingerprint();
-        $key = 'sharTableItemPost'.$fingerprint;
-
-        if (Cache::has($key)) {
-            Cache::put($key, true, now()->addHour());
-            return response()->json(['success' => true, 'message' => 'Heartbeat received, cache extended.']);
-        }
-
-        return response()->json(['success' => false, 'message' => 'No active upload session found.'], 404);
     }
 
     public function popover(Request $request) {}

@@ -2688,7 +2688,7 @@ body main .container1 .panel-title-field {
   @apply text-2xl font-bold my-3 text-black dark:text-color1;
 }
 body main .container1 .panel-upload-field {
-  @apply min-h-[91px] max-h-[400px] flex justify-center items-start w-full overflow-y-auto overflow-x-clip;
+  @apply w-full transition-all overflow-visible !important;
 }
 body main .container1 .shop-popover {
   @apply fixed;

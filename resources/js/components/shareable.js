@@ -1,4 +1,5 @@
 import axios from "axios";
+import { passwordDialog } from "./utils.js";
 
 function initPopupElement(id, user, href, users) {
     if (document.getElementById( "shareable_"+id) !== null) return;
@@ -371,4 +372,34 @@ async function shareable() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', shareable);
+function initPasswordProtectedTriggers() {
+    let triggers = document.querySelectorAll(".password-protected-trigger:not(.bound-password-trigger)");
+    for (let trigger of triggers) {
+        trigger.classList.add("bound-password-trigger");
+        trigger.addEventListener('click', () => {
+            let shortcode = trigger.dataset.shortcode;
+            let title = trigger.dataset.title || "";
+            passwordDialog("解鎖分享資源: " + title, "此分享資源受到密碼保護，請輸入存取密碼以繼續操作。", (password, done) => {
+                axios.post(`/share/${shortcode}/unlock`, {
+                    password: password
+                }, {
+                    headers: { "Content-Type": "application/json" }
+                }).then(response => {
+                    done(null); // Success
+                    window.location.reload();
+                }).catch(error => {
+                    let msg = "密碼錯誤或解鎖失敗";
+                    if(error.response && error.response.data && error.response.data.message) {
+                        msg = error.response.data.message;
+                    }
+                    done(msg); // Show error message inside dialog
+                });
+            });
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    shareable();
+    initPasswordProtectedTriggers();
+});
