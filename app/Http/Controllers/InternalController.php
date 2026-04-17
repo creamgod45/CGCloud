@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Lib\EShareTableType;
 use App\Lib\I18N\ELanguageCode;
 use App\Lib\I18N\ELanguageText;
 use App\Lib\Type\String\CGStringable;
@@ -13,7 +12,6 @@ use App\Lib\Utils\Utils;
 use App\Lib\Utils\Utilsv2;
 use App\Lib\Utils\ValidatorBuilder;
 use App\Models\Member;
-use App\Models\SharePermissions;
 use App\Models\ShareTable;
 use App\Models\ShopConfig;
 use App\Models\SystemLog;
@@ -22,7 +20,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Cookie;
@@ -50,6 +47,7 @@ class InternalController extends Controller
     public function SystemSettings(Request $request)
     {
         $shopConfigs = ShopConfig::all();
+
         return view('System.SystemSettings', Controller::baseControllerInit($request,
             ['ShopConfig' => $shopConfigs, 'inventoryTypes' => []])->toArrayable());
     }
@@ -67,25 +65,26 @@ class InternalController extends Controller
         if (Utilsv2::isJson($queryUser)) {
             $queryUser = Json::decode($queryUser, true);
             // Use paginate() instead of all() to fetch paginated results
-            $queryBuilder = Member::when($queryUser, function (Builder $query, $queryObject) use($selectedItems) {
+            $queryBuilder = Member::when($queryUser, function (Builder $query, $queryObject) use ($selectedItems) {
                 foreach ($queryObject as $key => $value) {
                     $query->where($key, 'like', $value);
                 }
-                if (!empty($selectedItems)) {
+                if (! empty($selectedItems)) {
                     $query->whereNotIn('id', $selectedItems);
                 }
+
                 return $query;
             })->getQuery();
-        } elseif (is_string($queryUser) && !empty($queryUser)) {
+        } elseif (is_string($queryUser) && ! empty($queryUser)) {
             // Use paginate() instead of all() to fetch paginated results
-            $queryBuilder = Member::when($queryUser, function ($query, $value) use($selectedItems) {
-                if (!empty($selectedItems)) {
+            $queryBuilder = Member::when($queryUser, function ($query, $value) use ($selectedItems) {
+                if (! empty($selectedItems)) {
                     $query->whereNotIn('id', $selectedItems);
                 }
+
                 return $query->where('username', 'like', "%$value%");
             })->getQuery();
         }
-
 
         if ($queryBuilder === null) {
             return response()->json(['message' => 'No members found'], 404);
@@ -95,8 +94,8 @@ class InternalController extends Controller
             ->paginate($perPage, ['*'], 'page', $page)
             ->through(function ($item) {
                 return [
-                    "name" => $item->username,
-                    "value" => $item->id,
+                    'name' => $item->username,
+                    'value' => $item->id,
                 ];
             });
 
@@ -113,47 +112,50 @@ class InternalController extends Controller
         /** @var UploadedFile[] $files */
         // 從請求中獲取所有上傳檔案
         $files = $request->allFiles();
-        //Log::info("POST /SystemSettingsUploadFile payloads:" . var_export($files, true));
+        // Log::info("POST /SystemSettingsUploadFile payloads:" . var_export($files, true));
 
         $vb = new ValidatorBuilder($CGLCI->getI18N(), EValidatorType::SYSTEMSETTINGUPLOAD);
         $messageBag = $vb->validate($request->all());
         if ($messageBag instanceof MessageBag) {
-            //Log::info("ShopImage, ShopAdPopup, ShopAdItem files do not exist or are invalid");
+            // Log::info("ShopImage, ShopAdPopup, ShopAdItem files do not exist or are invalid");
             return response()->json([
-                "status" => false,
-                "message" => $messageBag->all(),
+                'status' => false,
+                'message' => $messageBag->all(),
             ], ResponseHTTP::HTTP_BAD_REQUEST);
         } else {
-            //Log::info("ShopImage, ShopAdPopup, ShopAdItem files exist and are valid");
+            // Log::info("ShopImage, ShopAdPopup, ShopAdItem files exist and are valid");
             foreach (['ShopImage', 'ShopAdPopup', 'ShopAdItem'] as $key) {
                 if (isset($files[$key])) {
-                    //Log::info("$key files exist and are valid");
+                    // Log::info("$key files exist and are valid");
                     // 如果存在 'ShopImage', 'ShopAdPopup', 或 'ShopAdItem' 檔案，則執行此區塊內的代碼
                     if (empty($files)) {
-                        //Log::info("Create folder for upload");
-                        $path = 'SystemSettingUpload/' . $key . '/SSU_' . Str::random(10);
+                        // Log::info("Create folder for upload");
+                        $path = 'SystemSettingUpload/'.$key.'/SSU_'.Str::random(10);
                         Storage::disk('local')->makeDirectory($path);
-                        return response()->json(["folder" => urlencode(base64_encode($path))]);
+
+                        return response()->json(['folder' => urlencode(base64_encode($path))]);
                     } else {
-                        //Log::info("Upload files");
+                        // Log::info("Upload files");
                         $file_path_array = [];
                         foreach ($files as $fileGroup) {
                             $random = Str::random(10);
                             foreach ($fileGroup as $item) {
                                 if ($item instanceof UploadedFile) {
-                                    $file_path_array[] = $item->storePublicly('SystemSettingUpload/' . $key . '/SSU_' . $random,
+                                    $file_path_array[] = $item->storePublicly('SystemSettingUpload/'.$key.'/SSU_'.$random,
                                         'local');
                                 }
                             }
                         }
+
                         return response()->json($file_path_array);
                     }
                 }
             }
         }
+
         return response()->json([
-            "status" => false,
-            "message" => "Deny Operation",
+            'status' => false,
+            'message' => 'Deny Operation',
         ], ResponseHTTP::HTTP_BAD_REQUEST);
     }
 
@@ -164,30 +166,30 @@ class InternalController extends Controller
         if (is_array($order)) {
             $dir = $order[0]['dir'];
             $name = $order[0]['name'];
-            if ($name === "id") {
-                if ($dir === "asc") {
-                    $dir = "desc";
+            if ($name === 'id') {
+                if ($dir === 'asc') {
+                    $dir = 'desc';
                 } else {
-                    $dir = "asc";
+                    $dir = 'asc';
                 }
                 $logs->orderBy($name, $dir);
             }
         }
-        $array = DataTables::eloquent($logs)->escapeColumns()->addColumn("checkbox", "rows[]")->addColumn("#", "");
+        $array = DataTables::eloquent($logs)->escapeColumns()->addColumn('checkbox', 'rows[]')->addColumn('#', '');
+
         return $array->toJson();
     }
 
     public function getClientID(Request $request)
     {
-        $ref = $request->get("ref", false);
+        $ref = $request->get('ref', false);
+
         return view('getClientID', Controller::baseControllerInit($request, [
             'ref' => $ref,
         ])->toArrayable());
     }
 
     /**
-     * @param Request $request
-     *
      * @return JsonResponse
      */
     /*private function ShopListLoader(Request $request): array
@@ -231,14 +233,15 @@ class InternalController extends Controller
 
         $vb = new ValidatorBuilder($i18N, EValidatorType::GETCLIENTID);
         $v = $vb->validate($request->all(), ['ID'], true);
-        if ($v instanceof MessageBag && !Session::has("ClientID")) {
+        if ($v instanceof MessageBag && ! Session::has('ClientID')) {
             return response()->json(['message' => 'failed']);
         } else {
-            if (!Session::has('ClientID')) {
-                Session::put("ClientID", sha1($v['ID']));
-                EncryptedCache::put(Session::get("ClientID") . "_ClientConfig",
+            if (! Session::has('ClientID')) {
+                Session::put('ClientID', sha1($v['ID']));
+                EncryptedCache::put(Session::get('ClientID').'_ClientConfig',
                     new ClientConfig(ELanguageCode::zh_TW->name), now()->addDays());
             }
+
             return response()->json(['message' => 'ok']);
         }
     }
@@ -246,31 +249,31 @@ class InternalController extends Controller
     public function user(Request $request)
     {
         $filter = $request['filter'];
-        //Log::info("POST /user payloads:" . new CGStringable($filter));
+        // Log::info("POST /user payloads:" . new CGStringable($filter));
         $user = $request->user();
         $catcher = [];
         if (empty($user)) {
-            return response()->json(["message" => "UNAUTHORIZED"], ResponseHTTP::HTTP_UNAUTHORIZED);
+            return response()->json(['message' => 'UNAUTHORIZED'], ResponseHTTP::HTTP_UNAUTHORIZED);
         }
         foreach ($filter as $value) {
-            if ($value === "password" || $value === "remember_token") {
+            if ($value === 'password' || $value === 'remember_token') {
                 continue;
             }
-            $catcher [$value] = $user[$value];
+            $catcher[$value] = $user[$value];
         }
+
         return $catcher;
     }
 
     /** @noinspection PhpUnused */
-
     public function browser(Request $request)
     {
         $key = self::fingerprint($request->session()->get('ClientID'));
+
         return response()->json(['id' => $key]);
     }
 
     /** @noinspection PhpUnused */
-
     public function language(Request $request)
     {
         $cgLCI = self::baseControllerInit($request, []);
@@ -280,7 +283,7 @@ class InternalController extends Controller
         if ($v instanceof MessageBag) {
             return response()->json(['message' => 'Error'], ResponseHTTP::HTTP_BAD_REQUEST);
         } else {
-            $config = EncryptedCache::get(Session::get("ClientID") . "_ClientConfig");
+            $config = EncryptedCache::get(Session::get('ClientID').'_ClientConfig');
             if ($config instanceof ClientConfig) {
                 $language = $config->getLanguage();
                 if (empty($request->all())) {
@@ -291,13 +294,15 @@ class InternalController extends Controller
                 } elseif (ELanguageCode::isVaild($request['lang'])) {
                     $config->setLanguage($request['lang']);
                     $config->setLanguageClass(ELanguageCode::valueof($request['lang']));
-                    EncryptedCache::put(Session::get("ClientID") . "_ClientConfig", $config, now()->addDays());
+                    EncryptedCache::put(Session::get('ClientID').'_ClientConfig', $config, now()->addDays());
+
                     return response()->json([
                         'message' => $i18N->getLanguage(ELanguageText::DataReceivedSuccessfully),
                         'lang' => $request['lang'],
                     ]);
                 }
             }
+
             return response()->json(['message' => 'Error1'], ResponseHTTP::HTTP_BAD_REQUEST);
         }
     }
@@ -311,7 +316,8 @@ class InternalController extends Controller
     {
         $cgLCI = self::baseControllerInit($request, []);
         $i18N = $cgLCI->getI18N();
-        $decodeContext = Utilsv2::decodeContext($request["a"]);
+        $decodeContext = Utilsv2::decodeContext($request['a']);
+
         return response()->json([
             'message' => $i18N->getLanguage(ELanguageText::DataReceivedSuccessfully),
             'raw' => $decodeContext,
@@ -321,89 +327,31 @@ class InternalController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        if($user !== null) {
-            $user->id;
-            // 記錄所有快取後的分頁 ( 頁數為 1)
-            $pageKey = 'shareTableIndexCache_p_' . $request->get('page', 1)."_user_".$user->id;
-        } else {
-            $pageKey = 'shareTableIndexCache_p_' . $request->get('page', 1);
-        }
-        DB::enableQueryLog();
+        $page = $request->get('page', 1);
+        $pageKey = 'shareTableIndexCache_p_'.$page.($user ? '_user_'.$user->id : '');
+
         $shareTables = Cache::remember($pageKey, now()->addMinutes(15), function () use ($pageKey, $user) {
-            // 紀錄所有快取後的分頁
+            // 紀錄快取鍵以便清除
             $key = 'shareTableIndexCaches';
-            if (Cache::has($key)) {
-                $var = Cache::get($key);
-                if (is_array($var) && !in_array($pageKey, $var)) {
-                    $var [] = $pageKey;
-                }
-                Cache::put($key, $var, now()->addDays());
-            } else {
-                Cache::put($key, [$pageKey], now()->addDays());
-            }
-            DB::enableQueryLog();
-            if ($user !== null) {
-                // 使用子查詢或聯表方式一次獲取所有需要的數據
-                $shareTable = ShareTable::select('share_tables.*')
-                    ->where(function($query) use ($user) {
-                        $query->where('share_tables.type', '=', EShareTableType::public->value)
-                            ->orWhere(function ($q) use ($user) {
-                                $q->where('share_tables.type', '=', EShareTableType::private->value)
-                                    ->where('share_tables.member_id', '=', $user->id);
-                            });
-                    })
-                    ->orWhereExists(function ($query) use ($user) {
-                        $query->select(DB::raw(1))
-                            ->from('share_permissions')
-                            ->whereColumn('share_permissions.share_tables_id', 'share_tables.id')
-                            ->where('share_permissions.member_id', '=', $user->id)
-                            ->where('share_tables.type', '=', EShareTableType::private->value);
-                    })
-                    ->orderBy('share_tables.created_at', 'desc')
-                    ->paginate(30);
-            } else {
-                $shareTable = ShareTable::where('type', '=', EShareTableType::public->value)
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(30);
-            }
-            $orderBy = $shareTable;
-            if ($user !== null) {
-                // 使用 with 預加載關聯數據
-                $sharePermissions = SharePermissions::where('member_id', '=', $user->id)
-                    ->with('shareTable')
-                    ->get();
-
-                $privateShareTables = $sharePermissions
-                    ->map(function ($permission) {
-                        return $permission->shareTable;
-                    })
-                    ->filter(function ($shareTable) use ($orderBy) {
-                        return $shareTable &&
-                            !$orderBy->contains($shareTable) &&
-                            $shareTable->type === EShareTableType::private->value;
-                    });
-
-                // 一次性添加所有私有表
-                $orderBy->push(...$privateShareTables);
-
-                // 排序
-                $orderBy->setCollection($orderBy->sortBy([
-                    ['created_at', 'desc'],
-                    ['id', 'desc'],
-                ]));
+            $cachedKeys = Cache::get($key, []);
+            if (! in_array($pageKey, $cachedKeys)) {
+                $cachedKeys[] = $pageKey;
+                Cache::put($key, $cachedKeys, now()->addDays());
             }
 
-            $shareTables = $orderBy;
-            Log::info(json_encode(DB::getQueryLog(), JSON_PRETTY_PRINT));
-            return $shareTables;
+            return ShareTable::viewableFor($user)
+                ->orderBy('created_at', 'desc')
+                ->paginate(30);
         });
-        return view('index', Controller::baseControllerInit($request, [ '$shareTables' => $shareTables])->toArrayable());
+
+        return view('index', Controller::baseControllerInit($request, ['$shareTables' => $shareTables])->toArrayable());
     }
 
     public function getClientConfig()
     {
         $theme = Cookie::get('theme');
-        return response()->json(["theme" => $theme]);
+
+        return response()->json(['theme' => $theme]);
     }
 
     public function imageGen(Request $request)
@@ -411,21 +359,21 @@ class InternalController extends Controller
         $cgCI = $this->baseGlobalVariable($request);
         $i18N = $cgCI->getI18N();
         $vb = new ValidatorBuilder($i18N, EValidatorType::IMAGESGEN);
-        $v = $vb->validate(["text" => $request->route('text'), "color" => "#" . $request->route('color')]);
+        $v = $vb->validate(['text' => $request->route('text'), 'color' => '#'.$request->route('color')]);
         if ($v instanceof MessageBag) {
             return response(status: ResponseHTTP::HTTP_BAD_REQUEST);
         } else {
             $image = Image::create(600, 600);
             $image->text('Laravel by Intervention\Image', 20, 60, function (FontFactory $font) {
-                $font->filename("./font/Roboto-Bold.ttf")->size(36)->lineHeight(1.6)->stroke("a1d45a", 5);
+                $font->filename('./font/Roboto-Bold.ttf')->size(36)->lineHeight(1.6)->stroke('a1d45a', 5);
             });
-            $image->text($v["text"], 360, 500, function (FontFactory $font) {
-                $font->filename("./font/Roboto-Bold.ttf")->size(36)->lineHeight(1.6)->stroke("a1d45a", 5);
+            $image->text($v['text'], 360, 500, function (FontFactory $font) {
+                $font->filename('./font/Roboto-Bold.ttf')->size(36)->lineHeight(1.6)->stroke('a1d45a', 5);
                 $font->color('#333333');
                 $font->align('center');
                 $font->valign('middle');
             });
-            $image->fill($v["color"], 10, 10);
+            $image->fill($v['color'], 10, 10);
             $image->drawBezier(function (BezierFactory $bezier) {
                 $bezier->point(300, 260); // control point 1
                 $bezier->point(150, 335); // control point 2
@@ -465,6 +413,7 @@ class InternalController extends Controller
                 $line->width(10); // line width in pixels
             });
             $encode = $image->toJpeg();
+
             // 返回带有适当响应头的图像响应
             return Response::make($encode, 200, [
                 'Content-Type' => 'image/jpeg',

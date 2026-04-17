@@ -8,12 +8,8 @@ use App\Lib\Utils\RouteNameField;
 use DateTimeInterface;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -47,10 +43,11 @@ class VirtualFile extends Model
 
     public function dashVideos(): BelongsTo
     {
-        return $this->belongsTo(DashVideos::class,  'uuid', 'virtual_file_uuid');
+        return $this->belongsTo(DashVideos::class, 'uuid', 'virtual_file_uuid');
     }
 
-    public function deleteEntry(){
+    public function deleteEntry()
+    {
         Storage::disk($this->disk)->delete($this->path);
         $this->delete();
     }
@@ -72,23 +69,25 @@ class VirtualFile extends Model
 
     public function getImage($shareTableId): ?Image
     {
-        $manager = new ImageManager(new Driver());
+        $manager = new ImageManager(new Driver);
         $filesystem = $this->getFileSystem();
         if ($filesystem->exists($this->path)) {
             $image = $manager->read(
                 $filesystem->readStream($this->path)
             );
             $internalImage = new Image($this->getTemporaryUrl(null, $shareTableId), $image->size()->width(),
-                $image->size()->height(), $this->minetypes, "", "", image: $image);
+                $image->size()->height(), $this->minetypes, '', '', image: $image);
+
             return $internalImage;
         }
+
         return null;
     }
 
-    public function getThumbTemporaryUrl(DateTimeInterface $expiration = null): string
+    public function getThumbTemporaryUrl(?DateTimeInterface $expiration = null): string
     {
-        if($expiration === null) {
-            $expiration = now()->addHour()->startOfHour();
+        if ($expiration === null) {
+            $expiration = now()->addDay()->startOfDay();
         }
 
         $extension = $this->extension ?: 'jpg';
@@ -97,36 +96,36 @@ class VirtualFile extends Model
             RouteNameField::APIPreviewFileTemporary4->value,
             $expiration,
             [
-                'fileId' => $this->uuid . '.' . $extension
+                'fileId' => $this->uuid.'.'.$extension,
             ],
         );
     }
 
-    public function getTemporaryUrl(DateTimeInterface $expiration = null, $shareTableId = null)
+    public function getTemporaryUrl(?DateTimeInterface $expiration = null, $shareTableId = null)
     {
-        if($expiration === null) {
-            $expiration = now()->addHour()->startOfHour();
+        if ($expiration === null) {
+            $expiration = now()->addDay()->startOfDay();
         }
-        $temporaryUrl = "";
+        $temporaryUrl = '';
         $extension = $this->extension ?: 'jpg';
 
-        if($shareTableId === null) {
+        if ($shareTableId === null) {
             $temporaryUrl = URL::temporarySignedRoute(
                 RouteNameField::APIPreviewFileTemporary->value,
                 $expiration,
-                ['fileId' => $this->uuid . '.' . $extension],
+                ['fileId' => $this->uuid.'.'.$extension],
             );
         } else {
             $temporaryUrl = URL::temporarySignedRoute(
                 RouteNameField::APIPreviewFileTemporary2->value,
                 $expiration,
                 [
-                    'fileId' => $this->uuid . '.' . $extension,
+                    'fileId' => $this->uuid.'.'.$extension,
                     'shareTableId' => $shareTableId,
                 ],
             );
         }
+
         return $temporaryUrl;
     }
-
 }

@@ -42,11 +42,12 @@ class ShareTableVirtualFile extends Model
     {
         if ($this->isCreateDashVideo()) {
             /** @var DashVideos $dashVideos */
-            $dashVideos = $this->dashVideos()->getResults();
-            if($dashVideos !== null){
+            $dashVideos = $this->dashVideos;
+            if ($dashVideos !== null) {
                 return $dashVideos->path !== null;
             }
         }
+
         return false;
     }
 }

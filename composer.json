@@ -16,6 +16,7 @@
         "intervention/image": "^3.11",
         "intervention/image-laravel": "^1.5.5",
         "laravel/framework": "^12",
+        "laravel/pulse": "^1.7",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.0",
         "marvinlabs/laravel-discord-logger": "^1.4.3",

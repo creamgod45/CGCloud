@@ -8,6 +8,7 @@ use App\Lib\Utils\RouteNameField;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
@@ -34,19 +35,17 @@ class ShareTable extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Collection<VirtualFile> | VirtualFile[]
      */
+    public function virtualFiles(): BelongsToMany
+    {
+        return $this->belongsToMany(VirtualFile::class, 'share_table_virtual_file', 'share_table_id', 'virtual_file_uuid', 'id', 'uuid');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<VirtualFile> | VirtualFile[]
+     */
     public function getAllVirtualFiles()
     {
-        $hasMany = $this->shareTableVirtualFile();
-        /** @var ShareTableVirtualFile $shareTableVirtualFile */
-        $shareTableVirtualFiles = $hasMany->get();
-        /** @var VirtualFile[] $virtualFiles */
-        $virtualFiles = [];
-        foreach ($shareTableVirtualFiles as $shareTableVirtualFile) {
-            $results = $shareTableVirtualFile->virtualFile()->getResults();
-            $virtualFiles[] = $results;
-        }
-
-        return \Illuminate\Database\Eloquent\Collection::make($virtualFiles);
+        return $this->virtualFiles()->get();
     }
 
     public function shareTableVirtualFile(): HasMany
@@ -132,6 +131,24 @@ class ShareTable extends Model
     public function isPermissionMember(Member $member): bool
     {
         return $this->shareTablePermission()->where('member_id', '=', $member->id)->exists();
+    }
+
+    public function scopeViewableFor($query, ?Member $member)
+    {
+        if ($member === null) {
+            return $query->where('type', EShareTableType::public->value);
+        }
+
+        return $query->where(function ($q) use ($member) {
+            $q->where('type', EShareTableType::public->value)
+                ->orWhere('member_id', $member->id)
+                ->orWhereExists(function ($sub) use ($member) {
+                    $sub->select(\DB::raw(1))
+                        ->from('share_permissions')
+                        ->whereColumn('share_permissions.share_tables_id', 'share_tables.id')
+                        ->where('share_permissions.member_id', $member->id);
+                });
+        });
     }
 
     public function hasPassword(): bool
