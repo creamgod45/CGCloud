@@ -8,9 +8,9 @@ use RuntimeException;
 
 class CGBaseFile extends CGBaseFileObject
 {
-    public function __construct(string $path, bool $defaultFileExists = false)
+    public function __construct(string $path, bool $defaultFileExists = false, bool $queryAcl = false)
     {
-        parent::__construct($path, $defaultFileExists);
+        parent::__construct($path, $defaultFileExists, $queryAcl);
     }
 
     public function isSupportImageFile()

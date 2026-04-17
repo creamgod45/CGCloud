@@ -746,55 +746,44 @@ class ShareTablesController extends Controller
         $fileName = $request->route('fileName', '');
 
         $shareTable = ShareTable::find($shareTableId);
-        $virtualFiles = $shareTable->getAllVirtualFiles();
-        if ($shareTable !== null && $virtualFiles->contains('uuid', '=', $fileId)) {
-            // Log::info('0');
-            /** @var ShareTableVirtualFile[] $shareTableVirtualFile */
-            $shareTableVirtualFile = $shareTable->shareTableVirtualFile()->getResults();
-            if ($shareTableVirtualFile !== null) {
-                // Log::info('1');
-                foreach ($shareTableVirtualFile as $item) {
-                    // Log::info('2');
-                    /** @var DashVideos $dashVideos */
-                    $dashVideos = $item->dashVideos()->getResults();
-                    // Log::info(json_encode($dashVideos->toArray(), JSON_UNESCAPED_UNICODE));
-                    $disk = Storage::disk($dashVideos->disk);
-                    $path = str_replace($dashVideos->filename.'.'.$dashVideos->extension, '', $dashVideos->path);
-                    $files = [];
-                    if (file_exists($disk->path($path).'/allFiles.json')) {
-                        $CGBaseFolder = CGFileSystem::getCGFileObject($disk->path($path));
-                        if ($CGBaseFolder instanceof CGBaseFolder) {
-                            $json = FileSystem::read($disk->path($path).'/allFiles.json');
-                            $files = json_decode($json, true);
-                        }
-                    } else {
-                        $files = $disk->allFiles($path);
-                        $json1 = json_encode($files, JSON_UNESCAPED_UNICODE);
-                        FileSystem::write($disk->path($path).'/allFiles.json', $json1);
-                    }
-                    // Log::info("path: ".$path);
-                    // Log::info(json_encode($files, JSON_UNESCAPED_UNICODE));
-                    foreach ($files as $file) {
-                        // Log::info('3');
-                        if (str_contains($file, $fileName)) {
-                            // Log::info('4');
-                            $stream = $disk->readStream($file);
-
-                            return new StreamedResponse(function () use ($stream) {
-                                stream_copy_to_stream($stream, fopen('php://output', 'wb'));
-                                fclose($stream);
-                            }, 200, [
-                                'Content-Type' => $disk->mimeType($file),
-                                'Content-Length' => $disk->size($file),
-                                'Content-Disposition' => 'inline; filename="'.$fileName.'"',
-                            ]);
-                        }
-                    }
-                    abort(404, 'File not found.');
-                }
-            }
+        if ($shareTable === null) {
+            abort(404, 'ShareTable not found.');
         }
+
+        $virtualFiles = $shareTable->getAllVirtualFiles();
+        if (! $virtualFiles->contains('uuid', '=', $fileId)) {
+            abort(404, 'File not in this ShareTable.');
+        }
+
+        /** @var ShareTableVirtualFile|null $item */
+        $item = $shareTable->shareTableVirtualFile()
+            ->where('virtual_file_uuid', '=', $fileId)
+            ->with('dashVideos')
+            ->first();
+
+        if ($item === null) {
+            abort(404, 'ShareTableVirtualFile not found.');
+        }
+
+        /** @var DashVideos|null $dashVideos */
+        $dashVideos = $item->dashVideos;
+
+        if ($dashVideos === null) {
+            // Fallback: scan storage/sharetable/TEMP/dashvideo/ for matching file
+            return $this->serveDashFileFromScan('sharetable', 'TEMP/dashvideo', $fileName);
+        }
+
+        $disk = Storage::disk($dashVideos->disk);
+        $path = str_replace($dashVideos->filename.'.'.$dashVideos->extension, '', $dashVideos->path);
+        $response = $this->serveDashFileFromPath($disk, $path, $fileName);
+
+        if ($response !== null) {
+            return $response;
+        }
+
+        abort(404, 'File not found.');
     }
+
 
     public function publicShareableShareTableDashPreviewFile(Request $request)
     {
@@ -803,46 +792,122 @@ class ShareTablesController extends Controller
         $fileName = $request->route('fileName', '');
 
         $shareTable = ShareTable::find($shareTableId);
-        $virtualFiles = $shareTable->getAllVirtualFiles();
-        if ($shareTable !== null && $virtualFiles->contains('uuid', '=', $fileId)) {
-            /** @var ShareTableVirtualFile[] $shareTableVirtualFile */
-            $shareTableVirtualFile = $shareTable->shareTableVirtualFile()->getResults();
-            if ($shareTableVirtualFile !== null) {
-                foreach ($shareTableVirtualFile as $item) {
-                    /** @var DashVideos $dashVideos */
-                    $dashVideos = $item->dashVideos()->getResults();
-                    $disk = Storage::disk($dashVideos->disk);
-                    $path = str_replace($dashVideos->filename.'.'.$dashVideos->extension, '', $dashVideos->path);
-                    $files = [];
-                    if (file_exists($disk->path($path).'/allFiles.json')) {
-                        $CGBaseFolder = CGFileSystem::getCGFileObject($disk->path($path));
-                        if ($CGBaseFolder instanceof CGBaseFolder) {
-                            $json = FileSystem::read($disk->path($path).'/allFiles.json');
-                            $files = json_decode($json, true);
-                        }
-                    } else {
-                        $files = $disk->allFiles($path);
-                        $json1 = json_encode($files, JSON_UNESCAPED_UNICODE);
-                        FileSystem::write($disk->path($path).'/allFiles.json', $json1);
-                    }
-                    foreach ($files as $file) {
-                        if (str_contains($file, $fileName)) {
-                            $stream = $disk->readStream($file);
+        if ($shareTable === null) {
+            abort(404, 'ShareTable not found.');
+        }
 
-                            return new StreamedResponse(function () use ($stream) {
-                                stream_copy_to_stream($stream, fopen('php://output', 'wb'));
-                                fclose($stream);
-                            }, 200, [
-                                'Content-Type' => $disk->mimeType($file),
-                                'Content-Length' => $disk->size($file),
-                                'Content-Disposition' => 'inline; filename="'.$fileName.'"',
-                            ]);
-                        }
-                    }
-                    abort(404, 'File not found.');
-                }
+        $virtualFiles = $shareTable->getAllVirtualFiles();
+        if (! $virtualFiles->contains('uuid', '=', $fileId)) {
+            abort(404, 'File not in this ShareTable.');
+        }
+
+        /** @var ShareTableVirtualFile|null $item */
+        $item = $shareTable->shareTableVirtualFile()
+            ->where('virtual_file_uuid', '=', $fileId)
+            ->with('dashVideos')
+            ->first();
+
+        if ($item === null) {
+            abort(404, 'ShareTableVirtualFile not found.');
+        }
+
+        /** @var DashVideos|null $dashVideos */
+        $dashVideos = $item->dashVideos;
+
+        if ($dashVideos === null) {
+            // Fallback: scan storage/sharetable/TEMP/dashvideo/ for matching file
+            return $this->serveDashFileFromScan('sharetable', 'TEMP/dashvideo', $fileName);
+        }
+
+        $disk = Storage::disk($dashVideos->disk);
+        $path = str_replace($dashVideos->filename.'.'.$dashVideos->extension, '', $dashVideos->path);
+        $response = $this->serveDashFileFromPath($disk, $path, $fileName);
+
+        if ($response !== null) {
+            return $response;
+        }
+
+        abort(404, 'File not found.');
+    }
+
+    /**
+     * 從指定磁碟路徑下提供 DASH 檔案，並建立 allFiles.json 快取。
+     *
+     * @param  \Illuminate\Filesystem\FilesystemAdapter  $disk
+     * @param  string  $path  dash 片段資料夾路徑（相對於 disk root）
+     * @param  string  $fileName  要尋找的檔案名稱
+     * @return StreamedResponse|null
+     */
+    private function serveDashFileFromPath($disk, string $path, string $fileName): ?StreamedResponse
+    {
+        $cacheFile = $disk->path($path).'/allFiles.json';
+        if (file_exists($cacheFile)) {
+            $CGBaseFolder = CGFileSystem::getCGFileObject($disk->path($path));
+            if ($CGBaseFolder instanceof CGBaseFolder) {
+                $files = json_decode(FileSystem::read($cacheFile), true);
+            } else {
+                $files = $disk->allFiles($path);
+            }
+        } else {
+            $files = $disk->allFiles($path);
+            FileSystem::write($cacheFile, json_encode($files, JSON_UNESCAPED_UNICODE));
+        }
+
+        foreach ($files as $file) {
+            if (str_contains($file, $fileName)) {
+                $stream = $disk->readStream($file);
+
+                return new StreamedResponse(function () use ($stream) {
+                    stream_copy_to_stream($stream, fopen('php://output', 'wb'));
+                    fclose($stream);
+                }, 200, [
+                    'Content-Type' => $disk->mimeType($file),
+                    'Content-Length' => $disk->size($file),
+                    'Content-Disposition' => 'inline; filename="'.$fileName.'"',
+                ]);
             }
         }
+
+        return null;
+    }
+
+    /**
+     * 當 virtual_files 沒有追蹤到來源時，回退掃描指定磁碟下的 $basePath 資料夾（含子資料夾），
+     * 建立 allFiles.json 快取後回傳第一個符合 $fileName 的檔案串流。
+     *
+     * @param  string  $diskName  Laravel disk 名稱（例如 'sharetable'）
+     * @param  string  $basePath  基礎路徑（例如 'TEMP/dashvideo'）
+     * @param  string  $fileName  要尋找的檔案名稱
+     * @return StreamedResponse
+     */
+    private function serveDashFileFromScan(string $diskName, string $basePath, string $fileName): StreamedResponse
+    {
+        $disk = Storage::disk($diskName);
+        $cacheFile = $disk->path($basePath).'/allFiles.json';
+
+        if (file_exists($cacheFile)) {
+            $files = json_decode(FileSystem::read($cacheFile), true) ?? [];
+        } else {
+            $files = $disk->allFiles($basePath);
+            FileSystem::write($cacheFile, json_encode($files, JSON_UNESCAPED_UNICODE));
+        }
+
+        foreach ($files as $file) {
+            if (str_contains($file, $fileName)) {
+                $stream = $disk->readStream($file);
+
+                return new StreamedResponse(function () use ($stream) {
+                    stream_copy_to_stream($stream, fopen('php://output', 'wb'));
+                    fclose($stream);
+                }, 200, [
+                    'Content-Type' => $disk->mimeType($file),
+                    'Content-Length' => $disk->size($file),
+                    'Content-Disposition' => 'inline; filename="'.$fileName.'"',
+                ]);
+            }
+        }
+
+        abort(404, 'Dash file not found in fallback scan.');
     }
 
     public function playerPreviewFile(Request $request)
@@ -893,7 +958,11 @@ class ShareTablesController extends Controller
 
                         return new StreamedResponse(function () use ($stream, $rateLimit) {
                             $chunkSize = 1024 * 2048;
-                            $delay = $chunkSize / $rateLimit; // 每次传输后的延迟时间
+                            if($rateLimit == 0) {
+                                $delay = 0; // 每次传输后的延迟时间
+                            } else {
+                                $delay = $chunkSize / $rateLimit; // 每次传输后的延迟时间
+                            }
                             while (! feof($stream)) {
                                 echo fread($stream, $chunkSize);
                                 flush(); // 確保輸出的數據立即傳輸到客戶端
@@ -923,9 +992,9 @@ class ShareTablesController extends Controller
         return view('Shop.ShopItemTables', Controller::baseControllerInit($request)->toArrayable());
     }
 
-    public function shareTableItemListJson()
+    /*public function shareTableItemListJson()
     {
-        /*$inventorys = Inventory::select([
+        $inventorys = Inventory::select([
             'id',
             'name',
             'type',
@@ -941,8 +1010,8 @@ class ShareTablesController extends Controller
             ->addColumn("checkbox", "rows[]")
             ->addColumn("#", "")
             ->addColumn("goto", '↗️');
-        return $array->toJson();*/
-    }
+        return $array->toJson();
+    }*/
 
     public function apiPreviewFileTemporary(Request $request)
     {

@@ -253,6 +253,7 @@ class VideoFileToDashJob implements ShouldQueue
         try {
             Cache::forget('pending_process_' . $dashVideos->id);
             Log::info("[JOBS]start processing " . $dashVideos->id);
+            Log::info("[JOBS]start processing " . Storage::disk($virtualFile->disk)->path($virtualFile->path));
             $object = CGFileSystem::getCGFileObject(Storage::disk($virtualFile->disk)->path($virtualFile->path));
             if (!($object instanceof CGBaseFile)) {
                 throw new Exception("不支援轉換非檔案文件");

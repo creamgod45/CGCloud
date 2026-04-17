@@ -22,6 +22,7 @@
     $sharePermissions=[];
     $popup = false;
     $type = "private";
+    $passwordProtected = false;
     if(!empty($moreParams)){
         if(isset($moreParams[0]['shareTable'])){
             $shareTable = $moreParams[0]['shareTable'];
@@ -41,6 +42,9 @@
                 $menu=false;
                 $footer=false;
             }
+        }
+        if(isset($moreParams[0]['passwordProtected'])){
+            $passwordProtected = $moreParams[0]['passwordProtected'];
         }
     }
 @endphp
@@ -77,6 +81,30 @@
 @endsection
 @section('content')
     <x-scroll-indicator indicator-target="body"></x-scroll-indicator>
+    @if($passwordProtected)
+        {{-- 密碼保護遮罩 --}}
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div class="form-panel-box w-full max-w-md mx-4">
+                <div class="flex flex-col items-center gap-4 p-2">
+                    <div class="text-4xl text-yellow-400">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h1 class="form-panel-box-title text-center">此分享資源受密碼保護</h1>
+                    <p class="text-sm text-center text-gray-500 dark:text-gray-400">
+                        請點擊下方按鈕輸入存取密碼以解鎖 <strong>{{ e($shareTable->name) }}</strong>。
+                    </p>
+                    <button
+                        id="password-unlock-btn"
+                        class="password-protected-trigger btn btn-ripple btn-color7 btn-max btn-center"
+                        data-shortcode="{{ $shareTable->short_code }}"
+                        data-title="{{ e($shareTable->name) }}"
+                    >
+                        <i class="fa-solid fa-key"></i>&nbsp;輸入密碼解鎖
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
     <main>
         <div class="share-table-view">
             <div class="form-panel-box">

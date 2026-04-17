@@ -156,10 +156,11 @@ class CGPathUtils
             try {
                 if (self::isValidPath($path)) {
                     // 透過 PowerShell Get-Acl 指令取得檔案擁有者與群組資訊
-                    $tpath = escapeshellarg($path);
-                    $output = shell_exec("powershell -command \"Get-Acl '$tpath' | Format-List\"");
+                    // 使用 -NoProfile -NonInteractive -ExecutionPolicy Bypass 來避免環境限制造成的模組戴入失敗，並以 2> NUL 隱藏錯誤訊息
+                    $tpath = str_replace("'", "''", $path);
+                    $output = shell_exec("powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"Get-Acl -LiteralPath '$tpath' | Format-List\" 2> NUL");
                     //echo $output;
-                    if ($output && $output !== "") {
+                    if ($output && trim($output) !== "") {
                         $outputArray = explode("\n", $output);
                         $newOutputArray = [];
                         foreach ($outputArray as $outputLine) {

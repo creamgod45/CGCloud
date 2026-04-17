@@ -60,10 +60,11 @@ class CGBaseFileObject
     /**
      * @param string $path
      * @param bool   $defaultFileExists
+     * @param bool   $queryAcl 是否啟用 Windows 系統下的 ACL 查詢 (需耗費額外時間)
      *
      * @throws Exception
      */
-    public function __construct(string $path, bool $defaultFileExists = false){
+    public function __construct(string $path, bool $defaultFileExists = false, bool $queryAcl = false){
 
         try {
             if (!CGPathUtils::isValidPath($path, $defaultFileExists)) {
@@ -113,10 +114,13 @@ class CGBaseFileObject
         }
         $this->fileReadAccessed = is_readable($this->path);
         $this->fileWriteAccessed = is_writeable($this->path);
-        if(CGPathUtils::isWindows()){
+        if(CGPathUtils::isWindows() && $queryAcl){
             $windowsGetAclInfo = CGPathUtils::windowsGetAclInfo($this->path, $defaultFileExists);
-            $this->fileOwner = $windowsGetAclInfo['OWNER'];
-            $this->fileGroup = $windowsGetAclInfo['GROUP'];
+            $this->fileOwner = $windowsGetAclInfo['OWNER'] ?? 'Unknown';
+            $this->fileGroup = $windowsGetAclInfo['GROUP'] ?? 'Unknown';
+        } else {
+            $this->fileOwner = 'Unknown';
+            $this->fileGroup = 'Unknown';
         }
     }
 

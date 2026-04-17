@@ -10,19 +10,19 @@ class CGFileSystem
     /**
      * @throws Exception
      */
-    public static function baseFileObject(string $path): CGBaseFileObject
+    public static function baseFileObject(string $path, bool $queryAcl = false): CGBaseFileObject
     {
-        return new CGBaseFileObject($path);
+        return new CGBaseFileObject($path, false, $queryAcl);
     }
 
-    public static function getCGFileObject(string $path): CGBaseFile | CGBaseFolder | CGBaseFileObject | null
+    public static function getCGFileObject(string $path, bool $queryAcl = false): CGBaseFile | CGBaseFolder | CGBaseFileObject | null
     {
         try {
-            $cgBFO = new CGBaseFileObject($path);
+            $cgBFO = new CGBaseFileObject($path, false, $queryAcl);
             if ($cgBFO->isFile()) {
-                return new CGBaseFile($path);
+                return new CGBaseFile($path, false, $queryAcl);
             } elseif ($cgBFO->isDirectory()) {
-                return new CGBaseFolder($path);
+                return new CGBaseFolder($path, false, $queryAcl);
             }
             return $cgBFO;
         } catch (Exception $e) {

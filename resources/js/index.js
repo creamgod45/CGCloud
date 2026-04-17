@@ -60,11 +60,26 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.dispatchEvent(new CustomEvent('CG::Video_init'));
         });
     }
+    let datatableImported = false;
     if (document.querySelectorAll('.datatable').length > 0) {
+        datatableImported = true;
         import('./components/datatables.js').then(() => {
             document.dispatchEvent(new CustomEvent('CGTABLE::init'));
         });
     }
+    // Handle CGTABLE::init fired by dynamic popups when datatables.js hasn't been loaded yet.
+    // Once datatables.js is loaded it registers its own listener, so we only need to bootstrap once.
+    document.addEventListener('CGTABLE::init', () => {
+        if (!datatableImported) {
+            datatableImported = true;
+            import('./components/datatables.js').then(() => {
+                // datatables.js is now loaded and has registered its own CGTABLE::init listener
+                document.dispatchEvent(new CustomEvent('CGTABLE::init'));
+            });
+        }
+    });
+
+
     import('./components/tippy.js').then(() => {
         document.dispatchEvent(new CustomEvent('CGTIPPYER::init'));
     });
