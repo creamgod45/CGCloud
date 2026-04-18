@@ -82,4 +82,5 @@ enum RouteNameField: string
     case APIPreviewFileTemporary4 = 'root.api.PreviewFileTemporary4';
     case APIShareTableAddFile = 'root.api.sharetable.add.file';
     case APIShareTableUnlock = 'root.api.sharetable.unlock';
+    case APIVideoValidate = 'root.api.video.validate';
 }

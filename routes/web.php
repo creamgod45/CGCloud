@@ -4,6 +4,7 @@ use App\Http\Controllers\InternalController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\ShareTablePasswordController;
 use App\Http\Controllers\ShareTablesController;
+use App\Http\Controllers\VideoCheckController;
 use App\Http\Middleware\ClientConfigMiddleware;
 use App\Http\Middleware\EMiddleWareAliases;
 use App\Lib\Utils\RouteNameField;
@@ -65,6 +66,7 @@ Route::middleware('checkClientID')->group(function () {
         Route::post('get_dash_progress', [ShareTablesController::class, 'getDashProgress'])->name(RouteNameField::APIDashProgress->value);
         Route::get('dash/{shareTableId}/{fileId}/{fileName}', [ShareTablesController::class, 'dashPreviewFile'])->name(RouteNameField::APIPreviewFileDash->value);
         Route::get('player/{shareTableId}/{fileId}/{fileName}', [ShareTablesController::class, 'playerPreviewFile'])->name(RouteNameField::PagePreviewFilePlayerDash->value);
+        Route::post('validate-video', [VideoCheckController::class, 'check'])->name(RouteNameField::APIVideoValidate->value);
     });
     Route::get('passwordreset', [MemberController::class, 'passwordReset'])->name(RouteNameField::PagePasswordReset->value);
     Route::post('passwordreset', [MemberController::class, 'passwordResetPost'])->name(RouteNameField::PagePasswordResetPost->value);
