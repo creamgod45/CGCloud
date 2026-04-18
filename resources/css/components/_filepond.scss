@@ -1,91 +1,57 @@
-// ─── FilePond Custom Theme Override ───────────────────────────────────────────
-// 整合主題色系，使 FilePond 與整體 UI 一致
+// ─── FilePond v5 Custom Theme Override ───────────────────────────────────────────
+// 根據 v5 最新規範，使用 CSS Custom Properties 與 ::part() 進行樣式自定義
 
-.filepond--root {
-    @apply font-sans;
+file-pond {
+  display: block;
+  width: 100%;
+  min-height: 120px;
+  font-family: theme('fontFamily.sans');
 
-    // Drop label（拖曳提示區）
-    .filepond--drop-label {
-        @apply min-h-[120px] flex items-center justify-center;
+  // 基礎配色
+  --default-color: theme('colors.slate.700');
+  --default-background-color: theme('colors.slate.50');
+  --default-border-radius: 0.75rem;
 
-        label {
-            @apply text-base text-slate-500 dark:text-slate-400 cursor-pointer select-none;
-            &::before {
-                content: '📂 ';
-            }
-        }
-    }
+  // 拖曳狀態
+  &[drag-over] {
+    --default-background-color: theme('colors.amber.50');
+  }
 
-    // Panel（外框容器）
-    .filepond--panel-root {
-        @apply bg-slate-50 dark:bg-neutral-700 border-2 border-dashed border-slate-300 dark:border-neutral-500 rounded-xl;
-        transition: border-color 200ms, background-color 200ms;
-    }
-
-    // 拖曳進入時高亮
-    &.filepond--hopper[data-hopper-state='drag-over'] .filepond--panel-root {
-        @apply border-color7 bg-amber-50 dark:border-amber-400 dark:bg-neutral-600;
-    }
-
-    // 單個檔案項目
-    .filepond--item {
-        @apply rounded-lg overflow-hidden;
-    }
-
-    // 檔案項目面板
-    .filepond--item-panel {
-        @apply rounded-lg;
-        background: theme('colors.slate.100');
-    }
-
-    // 進度條
-    .filepond--file-action-button {
-        @apply cursor-pointer;
-    }
-
-    // 上傳進度條顏色
-    .filepond--progress-indicator {
-        color: theme('colors.amber.500');
-    }
-
-    // 錯誤狀態
-    .filepond--item[data-filepond-item-state='load-invalid'] .filepond--item-panel,
-    .filepond--item[data-filepond-item-state='processing-error'] .filepond--item-panel {
-        background: theme('colors.red.100');
-    }
-
-    // 成功狀態
-    .filepond--item[data-filepond-item-state='processing-complete'] .filepond--item-panel {
-        background: theme('colors.emerald.100');
-    }
-
-    // 圖片預覽插件整合
-    .filepond--image-preview-overlay {
-        @apply rounded-t-lg;
-    }
-
-    // Credit 標籤縮小
-    .filepond--credits {
-        @apply opacity-30 text-xs;
-    }
-
-    // List scroller
-    .filepond--list-scroller {
-        @apply overflow-y-auto;
-    }
+  input {
+    @apply hidden;
+  }
+  .entry-status-message-content {
+    align-items: unset;
+  }
 }
 
-// Dark mode 整體覆蓋
-.dark .filepond--root {
-    .filepond--panel-root {
-        @apply bg-neutral-700 border-neutral-500;
-    }
+// 針對元件內部的 parts 進行細部調整
+file-pond::part(drop-area) {
+  border: 2px dashed theme('colors.slate.300');
+  border-radius: 0.75rem;
+}
 
-    .filepond--item-panel {
-        background: theme('colors.neutral.600');
-    }
+file-pond::part(entry-list) {
+  --entry-border-radius: 0.5rem;
+}
 
-    .filepond--drop-label label {
-        @apply text-neutral-400;
+// 進度條與按鈕顏色
+file-pond::part(entry-button) {
+  --btn-color: theme('colors.amber.600');
+}
+
+// Dark Mode 支援 (整合專案現有的 .dark 類別)
+.dark {
+  file-pond {
+    --default-color: theme('colors.neutral.300');
+    --default-background-color: theme('colors.neutral.700');
+
+    &[drag-over] {
+      --default-background-color: theme('colors.neutral.600');
     }
+  }
+
+  file-pond::part(drop-area) {
+    border-color: theme('colors.neutral.500');
+  }
 }

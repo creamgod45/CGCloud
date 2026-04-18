@@ -68,7 +68,7 @@
                       action="{{ route(RouteNameField::PageShareTableItemPost->value)  }}">
                     @csrf
                     <input type="submit" class="btn btn-ripple btn-color7 btn-md-strip" name="upload" value="上傳">
-                    <input type="file" class="filepond w-1/2"
+                    <input type="file" class="filepond w-1/2" style="display: none !important;"
                            data-allowtypes="image/png::image/jpg::image/jpeg::image/svg+xml::image/gif::image/webp::image/apng::image/bmp::image/avif::video/av1::video/H264::video/H264-SVC::video/H264-RCDO::video/H265::video/JPEG::video/JPEG::video/mpeg::video/mpeg4-generic::video/ogg::video/quicktime::video/JPEG::video/vnd.mpegurl::video/vnd.youtube.yt::video/VP8::video/VP9::video/mp4::video/mp4V-ES::video/MPV::video/vnd.directv.mpeg::video/vnd.dece.mp4::video/vnd.uvvu.mp4::video/H266::video/H263::video/H263-1998::video/H263-2000::video/H261::application/zip::application/x-zip-compressed::multipart/x-zip::application/x-compressed"
                            data-upload="{{ route(RouteNameField::APIShareTableItemUploadImage->value) }}"
                            data-revert="{{ route(RouteNameField::APIShareTableItemUploadImageRevert->value) }}"
