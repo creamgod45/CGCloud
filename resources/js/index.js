@@ -33,7 +33,7 @@ import './components/dark.js';
 import './components/form.js';
 import './components/form-ct.js';
 import './components/scroll-indicator.js';
-// videoJs dynamically imported below
+// shakaPlayer dynamically imported below
 import './components/file-driver.js';
 import './components/imginfo.js';
 // tom-select dynamically imported below
@@ -55,8 +55,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             document.dispatchEvent(new CustomEvent('CG_FILEPOND::init'));
         });
     }
-    if (document.querySelectorAll('.vjs').length > 0) {
-        import('./components/videoJs.js').then(() => {
+    if (document.querySelectorAll('.shaka-player').length > 0) {
+        import('./components/shakaPlayer.js').then(() => {
             document.dispatchEvent(new CustomEvent('CG::Video_init'));
         });
     }

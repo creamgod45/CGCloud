@@ -24,5 +24,7 @@
     @vite(['resources/scss/app.scss', 'resources/js/index.js'])
 @endsection
 @section('content')
-    <video class="vjs video-js vjs-theme-forest" data-width="100%" data-height="100%" data-type="dash" controls data-src="{{ $url }}"></video>
+    <div class="shaka-ui-container" style="width:100%;height:100vh;">
+        <video class="shaka-player" data-width="100%" data-height="100%" data-type="dash" data-src="{{ $url }}"></video>
+    </div>
 @endsection

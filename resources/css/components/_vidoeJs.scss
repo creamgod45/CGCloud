@@ -1,13 +1,16 @@
-.vjs-control-bar{
-    @apply overflow-x-clip w-full;
-    overflow-y: unset;
+.shaka-player {
+    @apply rounded-lg overflow-hidden;
+    width: 100%;
+    height: 100%;
 }
 
-.video-js{
-    @apply rounded-lg;
-}
+.shaka-ui-container {
+    @apply rounded-lg overflow-hidden;
+    position: relative;
 
-
-.vjs-close-button{
-    @apply top-8 #{!important};
+    video {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
 }

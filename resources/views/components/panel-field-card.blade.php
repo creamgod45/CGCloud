@@ -139,7 +139,7 @@
                                         }
                                     }
                                 @endphp
-                                <video class="vjs video-js vjs-theme-forest presize" {{ $ftype }} {!! $poster !!} controls
+                                <video class="shaka-player presize" {{ $ftype }} {!! $poster !!} controls
                                        data-src="{{ $f }}"></video>
                             @elseif(Utilsv2::isSupportVideoFile($virtualFiles->first()->minetypes))
                                 @php
@@ -160,7 +160,7 @@
 
 
                                 @endphp
-                                <video class="vjs video-js vjs-theme-forest presize"
+                                <video class="shaka-player presize"
                                        data-poster="{{$result->getThumbTemporaryUrl(now()->addMinutes(10))}}"
                                        data-type="dash" controls
                                        data-src="{{ route(RouteNameField::APIPreviewFileDash->value, ['shareTableId' => $shareTable->id,'fileId' => $virtualFiles->first()->uuid,'fileName' => $dashVideos->filename.".".$dashVideos->extension]) }}"></video>
@@ -203,7 +203,7 @@
                     </div>
                 @endif
             @endif
-            <div class="vjs-playlist"></div>
+            <div class="shaka-playlist"></div>
         </div>
         <div class="pfc-operator">
             <div class="grid-btn-group">
