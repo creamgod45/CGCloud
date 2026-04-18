@@ -4,8 +4,8 @@ import axios from "axios";
 function ConfirmBox(){
     let confirmBoxes = document.querySelectorAll('.confirm-box:not(.confirm-box-rendered)');
     for (let confirmBox of confirmBoxes) {
-        //console.log(confirmBox);
-        //console.log("init");
+        
+        
         confirmBox.classList.add('confirm-box-rendered');
         let dataset = confirmBox.dataset;
         let title = dataset.title;
@@ -13,7 +13,7 @@ function ConfirmBox(){
         let type = dataset.type;
         let fn = dataset.fn;
         confirmBox.onclick = () => {
-            console.log("onclick");
+            
             switch(fn){
                 case "shareable_delete_file":
                     let parent = dataset.parent;
@@ -40,7 +40,7 @@ function ConfirmBox(){
                             method: "POST",
                         }).then(async response => {
                             let data = response.data;
-                            console.log(data);
+                            
                             let tElement = document.querySelector(id);
                             tElement.innerText = data.message;
                             let parent1 = dataset.parent;
@@ -56,7 +56,7 @@ function ConfirmBox(){
                             if(statusEl === null) return;
                             statusEl.dataset.stop = "false";
                         }).catch(error => {
-                            console.log(error);
+                            
                         });
                         break;
                     case "shareable_delete_file":

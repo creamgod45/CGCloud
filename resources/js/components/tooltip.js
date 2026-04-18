@@ -24,7 +24,7 @@ function tooltip(event) {
             t.classList.add("tooltip");
             if (tooltipEl.dataset.render === "true" && tooltipEl.dataset.mobileTriggerPx !== null && tooltipEl.dataset.mobile !== null) {
                 if (window.screen.width <= Number.parseInt(tooltipEl.dataset.mobiletriggerpx)) {
-                    //console.log(true)
+                    
                     direction = tooltipEl.dataset.mobile;
                     tooltipEl.dataset.mobilestatus = "true";
                 } else {
@@ -33,7 +33,7 @@ function tooltip(event) {
             }
             t.classList.add(direction);
             if (tooltipEl.dataset.customclass !== undefined) {
-                //console.log(tooltipEl.dataset.customclass)
+                
                 let strings = tooltipEl.dataset.customclass.split(" ");
                 if (strings.length > 1) {
                     for (let string of strings) {
@@ -46,7 +46,7 @@ function tooltip(event) {
             let s = generateRandomString(5);
             t.id = s;
             if (tooltipEl.dataset.htmlable !== undefined) {
-                //console.log(tooltipEl.dataset.htmlable);
+                
                 if (tooltipEl.dataset.htmlable === "true") {
                     t.innerHTML = tooltip;
                 } else {
@@ -64,7 +64,7 @@ function tooltip(event) {
                 t.style.right = "0";
                 //tooltipBound = tooltipEl.getBoundingClientRect(); tBound = t.getBoundingClientRect();
                 //t.style.right = (tBound.x-tooltipBound.x)+(tooltipBound.width)+'px';
-                //console.log(`bottom: ${t.style.bottom} left: ${t.style.left}`);
+                
             }
             if (direction === "tooltip-left") {
                 t.style.right = tooltipBound.width + 20 + "px";
@@ -102,7 +102,7 @@ function tooltip(event) {
         let direction = dataset.direction;
         if (dataset.render === "true" && dataset.mobileTriggerPx !== null && dataset.mobile !== null) {
             if (window.screen.width <= Number.parseInt(dataset.mobiletriggerpx)) {
-                //console.log(true)
+                
                 direction = dataset.mobile;
                 dataset.mobilestatus = "true";
             } else {

@@ -5,9 +5,9 @@ function system_setting(rwdEl, responsivelist, names) {
          */
         if (name === "" || name === null) continue;
         let Element = rwdEl.querySelector(name);
-        console.log(Element);
+        
         if (Element !== null) {
-            console.log("Element not null");
+            
             if (Element.dataset.status === undefined) {
                 Element.status = true;
             } else {

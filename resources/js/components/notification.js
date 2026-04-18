@@ -1,12 +1,12 @@
 function notification() {
-    //console.log(1)
+    
     let nitem = document.querySelectorAll(".notification .item");
-    //console.log(nitem);
+    
     for (let ela of nitem) {
         if (!ela.classList.contains("rendered")) {
             ela.classList.add("rendered");
             let close = ela.querySelector('.close-btn');
-            //console.log(close)
+            
             if (close !== null) {
                 close.onclick = () => {
                     ela.classList.add('done');

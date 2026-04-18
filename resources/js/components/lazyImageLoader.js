@@ -49,13 +49,12 @@ function lazyImageLoader() {
             if (entry.isIntersecting) {
                 let lazyImage = entry.target;
                 let bgImageUrl = window.getComputedStyle(lazyImage).backgroundImage.slice(5, -2); // 獲取背景圖片的URL
-                //console.log(entry);
-                //console.log(lazyImage);
+
                 if (!lazyImage.classList.contains("placeholdered")) {
                     lazyImage.style.backgroundImage = `url(${lazyImage.dataset.src})`;
                     checkBackgroundImageLoad(bgImageUrl, function (isLoaded) {
                         if (isLoaded) {
-                            console.log('Background image has loaded.');
+                            
                             setTimeout(() => {
                                 lazyImage.classList.remove('placeholder');
                                 lazyImage.classList.remove('placeholder-circle');
@@ -81,14 +80,14 @@ function lazyImageLoader() {
 }
 
 setInterval(() => {
-    console.log("queue");
+    
     let placeholders = document.querySelectorAll(".placeholder");
     for (let placeholder of placeholders) {
         if (placeholder.classList.contains("placeholder")) {
             let bgImageUrl = window.getComputedStyle(placeholder).backgroundImage.slice(5, -2); // 獲取背景圖片的URL
             checkBackgroundImageLoad(bgImageUrl, function (isLoaded) {
                 if (isLoaded) {
-                    console.log('Background image has loaded.');
+                    
                     setTimeout(() => {
                         placeholder.classList.remove('placeholder');
                         placeholder.classList.remove('placeholder-circle');

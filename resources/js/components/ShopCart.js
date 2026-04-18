@@ -67,7 +67,7 @@ function ShopCart() {
             }
         });
 
-        //console.log(address_list);
+        
         scScrollFrameElement.address_list = address_list;
     }
 }

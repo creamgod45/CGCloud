@@ -7,11 +7,11 @@ function ripple() {
             elementNodeListOfElement.onmouseup = createRipple;
         }
     }
-    //console.log('ripper')
+    
 }
 
 function createRipple(event) {
-    console.log(event)
+    
     const button = event.currentTarget;
 
     const circle = document.createElement("span");
@@ -55,7 +55,7 @@ document.addEventListener('CG::BtnRipple', (event) => {
 
 document.addEventListener('BtnLoad', () => {
     ripple();
-    console.log('BtnLoad');
+    
 });
 
 document.addEventListener('DOMContentLoaded', ripple);

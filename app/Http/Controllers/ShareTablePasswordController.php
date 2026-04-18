@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Lib\EShareTableType;
 use App\Lib\Utils\RouteNameField;
 use App\Models\ShareTable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -13,7 +14,7 @@ class ShareTablePasswordController extends Controller
     /**
      * 驗證密碼保護的 ShareTable，通過後寫入 Session。
      */
-    public function unlock(Request $request): \Illuminate\Http\JsonResponse
+    public function unlock(Request $request): JsonResponse
     {
         $shortcode = $request->route('shortcode', '');
 
@@ -35,6 +36,7 @@ class ShareTablePasswordController extends Controller
         if (Hash::check($password, $shareTable->secret)) {
             $sessionKey = $this->sessionKey($shortcode);
             $request->session()->put($sessionKey, true);
+            $request->session()->put($sessionKey.'_at', now()->timestamp); // 紀錄解鎖時間
 
             return response()->json([
                 'success' => true,

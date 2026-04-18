@@ -5,7 +5,7 @@ function login() {
     let loginEl = document.querySelector(".login");
     if (loginEl !== null && loginEl.dataset.target !== null) {
         let children = loginEl.children;
-        console.log(children);
+        
         let object = {
             account: children[2].children[1],
             accountTooltip: children[2],
@@ -14,7 +14,7 @@ function login() {
             submit: children[6].children[0],
             alert: document.querySelector(loginEl.dataset.target),
         };
-        console.log(object);
+        
         object.submit.disabled = false;
         object.submit.onclick = () => {
             object.submit.disabled = true;
@@ -110,7 +110,7 @@ function register() {
     let registerEl = document.querySelector(".register");
     if (registerEl !== null && registerEl.dataset.target !== null) {
         let children = registerEl.children;
-        //console.log(children);
+        
         let object = {
             account: children[2].children[1],
             accountTooltip: children[2],
@@ -126,7 +126,7 @@ function register() {
             alert: document.querySelector(registerEl.dataset.target),
         };
         object.submit.disabled = false;
-        console.log(object);
+        
         object.submit.onclick = () => {
             object.submit.disabled = true;
             object.account.onchange = () => {
@@ -318,9 +318,9 @@ function register() {
             //        'X-CSRF-TOKEN': csrf.value
             //    },
             //}).then(async (res) => {
-            //    //console.log(res);
+            //    
             //    let json = await res.json();
-            //    console.log(json);
+            //    
             //});
         };
     }

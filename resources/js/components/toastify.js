@@ -1,7 +1,7 @@
 import Toastify from 'toastify-js'
 import "toastify-js/src/toastify.css";
 document.addEventListener('CGTOASTIFY::notice', function (e) {
-    console.log(e);
+    
 
     if(e.detail.message === null) return;
     Toastify({

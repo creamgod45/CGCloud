@@ -1,4 +1,4 @@
-<button class="{{$btnClassList}}" popovertarget="{{$id}}">{{$popoverBtnMessage}}</button>
+<button class="{{$btnClassList}}" popovertarget="{{$id}}">{!! $popoverBtnMessage !!}</button>
 <style>
     #{{$id}}::backdrop {
         @if ($popoverOptions->blurBackground)

@@ -22,7 +22,7 @@ function organizable() {
                 }, function () {
 
                 });
-                console.log(a);
+                
             };
             ItemAddressList.push(address);
         }
@@ -56,12 +56,12 @@ function organizable() {
                     title: item.querySelector('.title').textContent.trim(),
                 };
             });
-            console.log('主選單新順序：', order);
+            
             // 發送到後端保存
         });
-        draggable.on('sortable:sort', () => console.log('sortable:sort'));
-        draggable.on('sortable:sorted', () => console.log('sortable:sorted'));
-        draggable.on('sortable:stop', () => console.log('sortable:stop'));
+        //draggable.on('sortable:sort', () =>
+        //draggable.on('sortable:sorted', () =>
+        //draggable.on('sortable:stop', () =>
     }
 }
 

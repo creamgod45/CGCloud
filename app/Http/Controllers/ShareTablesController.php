@@ -22,6 +22,7 @@ use App\Models\ShareTableVirtualFile;
 use App\Models\VirtualFile;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -53,11 +54,17 @@ class ShareTablesController extends Controller
         $shareTable = ShareTable::where('short_code', '=', $id)->where('type', '=',
             EShareTableType::public->value)->get()->first();
         if ($shareTable !== null) {
-            // ── 密碼保護判斷 ──────────────────────────────────────────────
+            // ── 密碼保護判斷 (含一分鐘過期機制) ───────────────────────────
             if ($shareTable->hasPassword()) {
                 $sessionKey = ShareTablePasswordController::sessionKey($id);
-                if (! $request->session()->get($sessionKey, false)) {
-                    // 尚未解鎖：回傳密碼彈窗頁面，隱藏所有檔案資訊
+                $unlockedAt = $request->session()->get($sessionKey.'_at', 0);
+                $isExpired = (now()->timestamp - $unlockedAt) > 60; // 60 秒過期
+
+                if (! $request->session()->get($sessionKey, false) || $isExpired) {
+                    // 如果過期或未解鎖，清除 Session 並回傳保護頁面
+                    $request->session()->forget($sessionKey);
+                    $request->session()->forget($sessionKey.'_at');
+
                     $sharePermissions = SharePermissions::where('share_tables_id', '=', $shareTable->id)->get();
 
                     return view('ShareTable.view', Controller::baseControllerInit($request, [
@@ -126,6 +133,17 @@ class ShareTablesController extends Controller
         $i18N = $CGLCI->getI18N();
         $rawfileUUID = $request->route('fileId', 0);
         $shareTableId = $request->route('shortcode', 0);
+
+        // ── 密碼安全校驗 ──────────────────────────────────────────────
+        $shareTable = ShareTable::where('short_code', '=', $shareTableId)->first();
+        if ($shareTable && $shareTable->hasPassword()) {
+            $sessionKey = ShareTablePasswordController::sessionKey($shareTableId);
+            if (! $request->session()->get($sessionKey, false) && ! $shareTable->isOwner(Auth::user())) {
+                abort(403, '此資源受密碼保護，請先解鎖。');
+            }
+        }
+        // ─────────────────────────────────────────────────────────────
+
         $vb = new ValidatorBuilder($i18N, EValidatorType::PublicShareablePreviewItem);
         $v = $vb->validate(['fileId' => $rawfileUUID, 'shortcode' => $shareTableId]);
         if ($v instanceof MessageBag) {
@@ -217,6 +235,16 @@ class ShareTablesController extends Controller
         $shareTableId = $request->route('shortcode', 0);
         $fileId = $request->route('fileId', 0);
 
+        // ── 密碼安全校驗 ──────────────────────────────────────────────
+        $shareTable = ShareTable::where('short_code', '=', $shareTableId)->first();
+        if ($shareTable && $shareTable->hasPassword()) {
+            $sessionKey = ShareTablePasswordController::sessionKey($shareTableId);
+            if (! $request->session()->get($sessionKey, false) && ! $shareTable->isOwner(Auth::user())) {
+                abort(403, '此資源受密碼保護，請先解鎖。');
+            }
+        }
+        // ─────────────────────────────────────────────────────────────
+
         $stvf = ShareTableVirtualFile::whereHas('shareTable', function ($query) use ($shareTableId) {
             $query->where('short_code', '=', $shareTableId)
                 ->where('type', '=', EShareTableType::public->value);
@@ -273,6 +301,29 @@ class ShareTablesController extends Controller
         $shareTableId = $request->route('id', 0);
         $shareTable = ShareTable::find($shareTableId);
         if ($shareTable !== null) {
+
+            // ── 密碼保護判斷 (含一分鐘過期機制) ───────────────────────────
+            if ($shareTable->hasPassword()) {
+                $sessionKey = ShareTablePasswordController::sessionKey($shareTable->short_code);
+                $unlockedAt = $request->session()->get($sessionKey.'_at', 0);
+                $isExpired = (now()->timestamp - $unlockedAt) > 60;
+
+                if (! $request->session()->get($sessionKey, false) || $isExpired) {
+                    $request->session()->forget($sessionKey);
+                    $request->session()->forget($sessionKey.'_at');
+
+                    return view('ShareTable.view', Controller::baseControllerInit($request, [
+                        'shareTable' => $shareTable,
+                        'virtualFiles' => collect(),
+                        'sharePermissions' => collect(),
+                        'popup' => $popup,
+                        'type' => 'private',
+                        'passwordProtected' => true,
+                    ])->toArrayable());
+                }
+            }
+            // ─────────────────────────────────────────────────────────────
+
             $virtualFiles = $shareTable->getAllVirtualFiles();
             foreach ($virtualFiles as $virtualFile) {
                 $virtualFile['#'] = '';
@@ -784,7 +835,6 @@ class ShareTablesController extends Controller
         abort(404, 'File not found.');
     }
 
-
     public function publicShareableShareTableDashPreviewFile(Request $request)
     {
         $shareTableId = $request->route('shareTableId', 0);
@@ -833,10 +883,9 @@ class ShareTablesController extends Controller
     /**
      * 從指定磁碟路徑下提供 DASH 檔案，並建立 allFiles.json 快取。
      *
-     * @param  \Illuminate\Filesystem\FilesystemAdapter  $disk
+     * @param  FilesystemAdapter  $disk
      * @param  string  $path  dash 片段資料夾路徑（相對於 disk root）
      * @param  string  $fileName  要尋找的檔案名稱
-     * @return StreamedResponse|null
      */
     private function serveDashFileFromPath($disk, string $path, string $fileName): ?StreamedResponse
     {
@@ -878,7 +927,6 @@ class ShareTablesController extends Controller
      * @param  string  $diskName  Laravel disk 名稱（例如 'sharetable'）
      * @param  string  $basePath  基礎路徑（例如 'TEMP/dashvideo'）
      * @param  string  $fileName  要尋找的檔案名稱
-     * @return StreamedResponse
      */
     private function serveDashFileFromScan(string $diskName, string $basePath, string $fileName): StreamedResponse
     {
@@ -958,7 +1006,7 @@ class ShareTablesController extends Controller
 
                         return new StreamedResponse(function () use ($stream, $rateLimit) {
                             $chunkSize = 1024 * 2048;
-                            if($rateLimit == 0) {
+                            if ($rateLimit == 0) {
                                 $delay = 0; // 每次传输后的延迟时间
                             } else {
                                 $delay = $chunkSize / $rateLimit; // 每次传输后的延迟时间
@@ -1330,9 +1378,12 @@ class ShareTablesController extends Controller
             Log::info('Upload files');
             $file_path_array = [];
             foreach ($files as $file) {
-                $random = Str::random(10);
-                foreach ($file as $item) {
+                // 統一轉為陣列處理
+                $fileItems = is_array($file) ? $file : [$file];
+
+                foreach ($fileItems as $item) {
                     if ($item instanceof UploadedFile) {
+                        $random = Str::random(10);
                         $filePath = $item->storeAs('ShareTable/TEMP/Block/', $random, 'local');
                         $uuid = Str::uuid();
                         $mimeType = $item->getMimeType();
@@ -1356,7 +1407,7 @@ class ShareTablesController extends Controller
                             'size' => $item->getSize(),
                             'expired_at' => now()->addHour()->timestamp,
                         ]);
-                        $file_path_array[] = $uuid;
+                        $file_path_array[] = $uuid->toString();
                     }
                 }
             }

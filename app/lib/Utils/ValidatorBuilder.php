@@ -17,10 +17,15 @@ use Illuminate\Validation\ValidationException;
 class ValidatorBuilder
 {
     public EValidatorType $eValidatorType;
+
     public int $lastkey = 0;
+
     private I18N $i18N;
+
     private array $rules;
+
     private array $customMessages;
+
     private array $atters;
 
     public function __construct(I18N $i18N, EValidatorType $eValidatorType = EValidatorType::NULL)
@@ -142,7 +147,7 @@ class ValidatorBuilder
             'can' => 'validator_can',
             'confirmed' => $this->i18N->getLanguage(ELanguageText::validator_confirmed, true)
                 ->placeholderParser(
-                    "validator_field_passwordConfirmed",
+                    'validator_field_passwordConfirmed',
                     $this->i18N->getLanguage(ELanguageText::validator_field_passwordConfirmed),
                 )->toString(),
             'current_password' => 'validator_current_password',
@@ -275,20 +280,21 @@ class ValidatorBuilder
                 foreach ($item as $k => $v) {
                     $isELanguageText = ELanguageText::valueof($v);
                     if ($isELanguageText === null) {
-                        $newarr [$key][$k] = $v;
+                        $newarr[$key][$k] = $v;
                     } else {
-                        $newarr [$key][$k] = $this->i18N->getLanguage($isELanguageText);
+                        $newarr[$key][$k] = $this->i18N->getLanguage($isELanguageText);
                     }
                 }
             } else {
                 $isELanguageText = ELanguageText::valueof($item);
                 if ($isELanguageText === null) {
-                    $newarr [$key] = $item;
+                    $newarr[$key] = $item;
                 } else {
-                    $newarr [$key] = $this->i18N->getLanguage($isELanguageText);
+                    $newarr[$key] = $this->i18N->getLanguage($isELanguageText);
                 }
             }
         }
+
         return $newarr;
     }
 
@@ -401,9 +407,10 @@ class ValidatorBuilder
         $this->customMessages = $this->initMessage();
         $this->atters = $this->initAtters();
         $this->rules = [
-            'sendMailVerifyCodeToken' => ['required', 'string'],
+            'sendMailVerifyCodeToken' => ['string', 'nullable'],
             'token' => ['required', 'string'],
             'method' => ['required', 'string'],
+            'avatar_uuid' => ['string', 'nullable', 'exists:virtual_files,uuid'],
         ];
         $this->lastkey = 9;
     }
@@ -458,7 +465,7 @@ class ValidatorBuilder
         $this->atters = $this->initAtters();
         $languages = [];
         foreach (ELanguageCode::cases() as $case) {
-            $languages [] = $case->name;
+            $languages[] = $case->name;
         }
         $this->rules = [
             'lang' => ['string', Rule::in($languages)],
@@ -522,7 +529,7 @@ class ValidatorBuilder
             'shareTableType' => ['required', 'string', Rule::enum(EShareTableType::class)],
             'shareMembers' => ['nullable', 'array', 'exists:members,id'],
             'password' => ['nullable', 'string', 'confirmed'],
-            'files' => ['required', 'array', 'exists:virtual_files,uuid']
+            'files' => ['required', 'array', 'exists:virtual_files,uuid'],
         ];
         $this->lastkey = 19;
     }
@@ -540,7 +547,7 @@ class ValidatorBuilder
             'shareMembers' => ['nullable', 'array', 'exists:members,id'],
             'current-password' => ['nullable', 'string'],
             'password' => ['nullable', 'string', 'confirmed'],
-            'files' => ['required', 'array', 'exists:virtual_files,uuid']
+            'files' => ['required', 'array', 'exists:virtual_files,uuid'],
         ];
         $this->lastkey = 20;
     }
@@ -557,11 +564,6 @@ class ValidatorBuilder
     }
 
     /**
-     * @param       $data
-     * @param array $decodeKeyList
-     * @param bool  $decodeContext
-     *
-     * @return array|MessageBag
      * @throws ValidationException
      */
     public function validate($data, array $decodeKeyList = [], bool $decodeContext = false): array|MessageBag
@@ -576,7 +578,7 @@ class ValidatorBuilder
                     $newdata[$key] = $datum;
                 }
             }
-            //Log::info("password newdata: ".Json::encode($newdata));
+            // Log::info("password newdata: ".Json::encode($newdata));
         } else {
             $newdata = $data;
         }
@@ -584,31 +586,22 @@ class ValidatorBuilder
         if ($validator->fails()) {
             return $validator->errors();
         }
+
         return $validator->validate();
     }
 
-    /**
-     * @return array
-     */
     public function getRules(): array
     {
         return $this->rules;
     }
 
-    /**
-     * @return array
-     */
     public function getCustomMessages(): array
     {
         return $this->customMessages;
     }
 
-    /**
-     * @return array
-     */
     public function getAtters(): array
     {
         return $this->atters;
     }
-
 }

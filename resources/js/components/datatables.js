@@ -435,7 +435,7 @@ function handleLoadingTimer(datatableEl) {
  */
 function handleRowClick(datatableEl, popover, event) {
     if (!popover) return;
-    console.log();
+    
 
     let data = datatableEl.datatableObj.row(event.currentTarget.parentElement._DT_RowIndex).data();
     const popoverEl = document.querySelector(`#${popover}`);
@@ -454,7 +454,7 @@ function handleRowClick(datatableEl, popover, event) {
             shop_iframe.src = `/shop/item/edit/${data.id}`;
             document.body.style.overflow = "hidden";
         } else if (order_iframe && shop_popover_loader) {
-            console.log(data);
+            
             order_iframe.onload = () => shop_popover_loader.classList.add('hidden');
             shop_popover_loader.classList.remove("hidden");
             order_iframe.src = `/customer/order/${data.id}`;

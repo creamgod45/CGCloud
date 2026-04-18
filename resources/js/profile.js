@@ -32,3 +32,4 @@ import './components/dark.js';
 import './components/form.js';
 import './components/form-ct.js';
 import './components/scroll-indicator.js';
+import './components/profile_avatar.js';

@@ -26,7 +26,7 @@ function phone() {
             },
         });
         const reset = (line) => {
-            console.log(`reset line:${line}`)
+            
             let btn = document.querySelector(tel.dataset.btn);
             let msg = document.querySelector(tel.dataset.msg);
             if (msg !== null) {
@@ -49,7 +49,7 @@ function phone() {
                         } else if (iti.isValidNumber()) {
                             msg.innerText = ok;
                             msg.classList.remove("hidden");
-                            console.log(iti);
+                            
                             let namedItem = tel.parentElement.children.namedItem('dialCode');
                             if (namedItem === null) {
                                 tel.insertAdjacentHTML("afterend", `<input type='hidden' name='dialCode' value="${iti.selectedCountryData.dialCode}">`);
@@ -58,7 +58,7 @@ function phone() {
                             }
                         } else {
                             const errorCode = iti.getValidationError();
-                            //console.log(errorCode);
+                            
                             msg.innerText = errorMap[errorCode] || "Invalid number";
                             msg.classList.remove('hidden');
                         }
@@ -72,9 +72,9 @@ function phone() {
             let ok = tel.dataset.true;
             let fail = tel.dataset.false;
             if (btn !== null && msg !== null && ok !== null && fail !== null) {
-                //console.log('ok');
+                
                 btn.onclick = () => {
-                    //console.log('onclick');
+                    
                     reset(84);
                     if (!tel.value.trim()) {
                         msg.innerText = fail;
@@ -83,7 +83,7 @@ function phone() {
                     } else if (iti.isValidNumber()) {
                         msg.innerText = ok;
                         msg.classList.remove("hidden");
-                        console.log(iti);
+                        
                         let namedItem = tel.parentElement.children.namedItem('dialCode');
                         if (namedItem === null) {
                             tel.insertAdjacentHTML("afterend", `<input type='hidden' name='dialCode' value="${iti.selectedCountryData.dialCode}">`);
@@ -92,7 +92,7 @@ function phone() {
                         }
                     } else {
                         const errorCode = iti.getValidationError();
-                        //console.log(errorCode);
+                        
                         msg.innerText = errorMap[errorCode] || "Invalid number";
                         msg.classList.remove('hidden');
                     }

@@ -6,7 +6,7 @@
  * @return {void} 無返回值
  */
 function handlerScrollIndicator(self, target) {
-    console.log(self, target);
+    
     window.addEventListener('scroll', function(event) {
         let maxScroll = target.scrollHeight - target.clientHeight; // 總的可滾動距離
         if(self.querySelector('progress') === null) {
@@ -28,10 +28,10 @@ function scroll_indicator() {
     let scroll_inicator = document.querySelectorAll(".scroll-indicator");
     for (let scrollInicatorElement of scroll_inicator) {
         let target = scrollInicatorElement.dataset.target;
-        console.log(scrollInicatorElement.dataset);
+        
         if(target === undefined) continue;
         let Element = document.querySelector(target);
-        console.log(Element);
+        
         if(Element !== null){
             handlerScrollIndicator(scrollInicatorElement, Element);
         }

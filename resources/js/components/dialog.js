@@ -6,10 +6,10 @@
  */
 function dialog() {
     for (let el of document.querySelectorAll('.dialog')) {
-        //console.log(el);
+        
         let closebtn = null;
         for (let child of el.children) {
-            //console.log(child);
+            
             let children1 = child.children;
             for (let child2 of children1) {
                 if (child2.classList.contains('dialog-closebtn')) {
@@ -27,10 +27,10 @@ function dialog() {
         }
     }
     for (let el of document.querySelectorAll('.dialog-frame')) {
-        //console.log(el);
+        
         let closebtn = null;
         for (let child of el.children) {
-            //console.log(child);
+            
             if (child.classList.contains('dialog-vt')) {
                 closebtn = el.querySelector(".dialog-closebtn");
             }

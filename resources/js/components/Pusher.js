@@ -35,7 +35,7 @@ axios.post('/HTMLTemplate/Notification', {}, {
     adapter: "fetch",
 
 }).then(async (res) => {
-    //console.log(res);
+    
     HTMLTemplateNotificationData = res.data;
     document.dispatchEvent(HTMLTemplateNotificationLoadedEvent);
 });
@@ -43,31 +43,31 @@ axios.post('/HTMLTemplate/Notification', {}, {
 axios.post('/browser', {}, {
     adapter: "fetch",
 }).then(async (res) => {
-    //console.log(res);
+    
     if (res.status === 200) {
         id = res.data.id;
-        //console.log(id);
+        
     }
     document.dispatchEvent(BrowserIDLoadedEvent);
 });
 
 document.addEventListener('BrowserIDLoadedEvent', () => {
-    //console.log(event);
-    //console.log(2);
+    
+    
     let userChannel = pusher.subscribe('Notification.user.' + id);
     userChannel.bind('Notification', function (msg) {
-        //console.log(msg);
+        
         insertItemToParentDOM(msg)
         document.dispatchEvent(PusherRenderNotificationEvent);
     });
 });
 
 document.addEventListener('HTMLTemplateNotificationLoadedEvent', () => {
-    //console.log(event);
-    console.log('publicChannel');
+    
+    
     let publicchannel = pusher.subscribe('Notification');
     publicchannel.bind('Notification', function (msg) {
-        //console.log(msg);
+        
         insertItemToParentDOM(msg)
         document.dispatchEvent(PusherRenderNotificationEvent);
     });

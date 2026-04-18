@@ -6,7 +6,7 @@ function copyer(){
         if(url === undefined) return false;
         copyer.onclick = () => {
             navigator.clipboard.writeText(url).then(() => {
-                console.log('Text copied to clipboard:', url);
+                
             }).catch(err => {
                 console.error('Could not copy text: ', err);
             });

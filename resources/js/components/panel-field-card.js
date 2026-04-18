@@ -22,7 +22,7 @@ function panelFieldCard() {
 }
 
 function panelFieldCard_update(event) {
-    console.log(event);
+    
 
 }
 

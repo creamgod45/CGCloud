@@ -29,15 +29,13 @@ use Laravel\Sanctum\HasApiTokens;
  * @method static null|static find($id, $columns = ['*'])
  *
  * @property-read int    $id
- *
- * @property string      $username
- * @property string      $email
- * @property string      $password
- * @property string      $phone
- * @property string      $enable
- * @property string      $administrator
- * @property string      $remember_token
- *
+ * @property string $username
+ * @property string $email
+ * @property string $password
+ * @property string $phone
+ * @property string $enable
+ * @property string $administrator
+ * @property string $remember_token
  * @property-read Carbon $created_at
  * @property-read Carbon $updated_at
  */
@@ -48,8 +46,11 @@ class Member extends Authenticatable
     use Notifiable;
 
     public $incrementing = true; // 指定模型对应的表
+
     protected $table = 'members'; // 主键，Laravel 默认也是 id，此行可省略
+
     protected $primaryKey = 'id'; // 因为 id 是自增的
+
     protected $keyType = 'int'; // 主键类型
 
     protected $fillable = [
@@ -73,4 +74,14 @@ class Member extends Authenticatable
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    /**
+     * Get the member's current avatar.
+     */
+    public function avatar()
+    {
+        return $this->hasOne(VirtualFile::class, 'members_id')
+            ->where('path', 'like', 'Profile/Avatars/%')
+            ->orderBy('created_at', 'desc');
+    }
 }

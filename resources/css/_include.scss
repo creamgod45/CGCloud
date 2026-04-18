@@ -1,7 +1,7 @@
 /**
  * FilePond v5 Styles
+ * v5 樣式已內建於 Web Component 中，無需額外匯入基礎 CSS
  */
-@import '../../node_modules/filepond/dist/filepond.min.css';
 
-// 導入自定義覆寫
+// 只導入專案自定義的 UI 覆寫 (::part 樣式)
 @import "components/filepond";

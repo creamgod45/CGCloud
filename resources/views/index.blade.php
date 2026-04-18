@@ -12,10 +12,18 @@
      */
     $menu=true;
     $footer=true;
-    $shareTables = [];
+    $shareTables = collect();
     if(!empty($moreParams)){
         if(isset($moreParams[0]['$shareTables'])){
             $shareTables = $moreParams[0]['$shareTables'];
+            
+            // 權限過濾：如果是 Private 且當前使用者不在共享名單中且非擁有者，則完全不顯示
+            $user = \Illuminate\Support\Facades\Auth::user();
+            $shareTables = $shareTables->filter(function($table) use ($user) {
+                if ($table->type === \App\Lib\EShareTableType::public->value) return true;
+                if (!$user) return false; // 未登入不能看私有
+                return $table->member_id === $user->id || $table->isPermissionMember($user);
+            });
         }
     }
 @endphp

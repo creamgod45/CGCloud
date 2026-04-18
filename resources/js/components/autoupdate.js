@@ -14,7 +14,7 @@ function autoupdate(){
                     if(_autoupdate.dataset.stop === "true") break;
                     axios.post('/sharetable/get_dash_progress', { id: id }).then(async function(response){
                         let data = await response.data;
-                        console.log(data);
+                        
                         if(data.message === "success"){
                             _autoupdate.innerText = "浮水印影片 生成中... " + data.value;
                         }

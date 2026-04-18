@@ -87,7 +87,7 @@ function initPopupElement(id, user, href, users) {
     let optionsids = [];
     const parse = JSON.parse(users);
     if(parse !== null) {
-        console.log(parse);
+        
         for (let userElement of parse) {
             optionsids.push(userElement['value']);
         }
@@ -217,7 +217,7 @@ async function initDownloadMenuPopupElement(id, href, json, delete_url) {
         fileId: uuids,
         shareTableId: id,
     }, { adapter: "fetch", method: 'post',responseType:'json'}).then(res => {
-        console.log(res);
+        
         let data = res.data;
 
         for (let objectKey in object) {
@@ -355,11 +355,11 @@ async function shareable() {
                 let user = shareable.dataset.user;
                 let users = shareable.dataset.users;
                 if (user === undefined) {
-                    console.log("user url is undefined");
+                    
                     return;
                 }
                 if (users === undefined) {
-                    console.log("users is undefined");
+                    
                     return;
                 }
                 await initPopupElement(id, user, href, users);
@@ -379,14 +379,24 @@ function initPasswordProtectedTriggers() {
         trigger.addEventListener('click', () => {
             let shortcode = trigger.dataset.shortcode;
             let title = trigger.dataset.title || "";
+            let token = trigger.dataset.token || "";
+            
             passwordDialog("解鎖分享資源: " + title, "此分享資源受到密碼保護，請輸入存取密碼以繼續操作。", (password, done) => {
-                axios.post(`/share/${shortcode}/unlock`, {
-                    password: password
+                axios.post(`/p/share/${shortcode}/unlock`, {
+                    password: password,
+                    token: token // Custom CSRF
                 }, {
-                    headers: { "Content-Type": "application/json" }
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.content
+                    }
                 }).then(response => {
-                    done(null); // Success
-                    window.location.reload();
+                    if (response.data.success) {
+                        done(null); // Success
+                        window.location.reload();
+                    } else {
+                        done(response.data.message || "密碼錯誤");
+                    }
                 }).catch(error => {
                     let msg = "密碼錯誤或解鎖失敗";
                     if(error.response && error.response.data && error.response.data.message) {

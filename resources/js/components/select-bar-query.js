@@ -24,7 +24,7 @@ function resetSBQ(addressList) {
     addressList.root['step'] = {};
     toggleStep(parseInt(getStep(addressList.root)), select_map, sbq_info, addressList);
     build_fake_input(addressList);
-    console.log("reset");
+    
 }
 
 /**

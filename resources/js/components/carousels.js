@@ -175,7 +175,7 @@ function prev(address_list) {
  * @return {void} 此方法不返回任何值。
  */
 function createRipple(el) {
-    //console.log(event)
+    
     const button = el;
     const circle = document.createElement("span");
     circle.classList.add("ripple");

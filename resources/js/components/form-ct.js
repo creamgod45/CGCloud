@@ -9,7 +9,7 @@ import * as Utils from "./utils";
  */
 function Auth_login(element) {
     let options = element.cgoptions;
-    console.log(options);
+    
     if (options.rawOptions.target === null) return false;
     for (let tracksListElement of options.tracksList) {
         if (tracksListElement === null) return false;
@@ -56,8 +56,8 @@ function Auth_login(element) {
         }).then((response) => {
             let data = response.data;
             element.token = data.token;
-            console.log(data);
-            console.log(element.token);
+            
+            
             if (alert !== null) {
                 alert.innerHTML = data.message;
             }
@@ -99,7 +99,7 @@ function Auth_login(element) {
  */
 function Auth_Register(element) {
     let options = element.cgoptions;
-    console.log(options);
+    
     if (options.rawOptions.target === null) return false;
     for (let tracksListElement of options.tracksList) {
         if (tracksListElement === null) return false;
@@ -169,8 +169,8 @@ function Auth_Register(element) {
         }).then((response) => {
             let data = response.data;
             element.token = data.token;
-            console.log(data);
-            console.log(element.token);
+            
+            
             if (alert !== null) {
                 alert.innerHTML = data.message;
             }
@@ -205,7 +205,7 @@ function Auth_Register(element) {
  */
 function Auth_ForgetPassword(element) {
     let options = element.cgoptions;
-    console.log(options);
+    
     if (options.rawOptions.target === null) return false;
     for (let tracksListElement of options.tracksList) {
         if (tracksListElement === null) return false;
@@ -240,8 +240,8 @@ function Auth_ForgetPassword(element) {
         }).then((response) => {
             let data = response.data;
             element.token = data.token;
-            console.log(data);
-            console.log(element.token);
+            
+            
             if (alert !== null) {
                 alert.innerHTML = data.message;
             }
@@ -271,13 +271,13 @@ function Auth_ForgetPassword(element) {
 function ShareTable_add(element) {
     let options = element.cgoptions;
     let i = 0;
-    console.log(options);
+    
     if (options.rawOptions.target === null) return false;
-    console.log(i++)
+    
     for (let tracksListElement of options.tracksList) {
         if (tracksListElement === null) return false;
     }
-    console.log(i++)
+    
     /**
      * resetpassword,password_confirmation,password
      * @var {HTMLButtonElement}
@@ -300,7 +300,7 @@ function ShareTable_add(element) {
     let refetchFn = options.tracksList["files*_refetch"];
     let filelabel = options.tracksList['#filelabel'];
 
-    console.log(i++)
+    
     let alert = element.querySelector(options.rawOptions.target);
     let validateFn = () => {
         files = refetchFn();
@@ -322,14 +322,14 @@ function ShareTable_add(element) {
                 password_confirmation.tippy.show();
             }
             if(files.length === 0){
-                console.log("no file");
+                
                 filelabel.tippy.show();
             }
         }
         return b;
     };
     let proccessFn = () => {
-        console.log(files);
+        
         let files_array = [];
         for (let file of files) {
             files_array.push(file.value);
@@ -352,8 +352,8 @@ function ShareTable_add(element) {
         }).then((response) => {
             let data = response.data;
             element.token = data.token;
-            console.log(data);
-            console.log(element.token);
+            
+            
             if (alert !== null) {
                 alert.innerHTML = data.message;
             }
@@ -386,13 +386,13 @@ function ShareTable_add(element) {
 function ShareTable_edit(element) {
     let options = element.cgoptions;
     let i = 0;
-    console.log(options);
+    
     if (options.rawOptions.target === null) return false;
-    console.log(i++)
+    
     for (let tracksListElement of options.tracksList) {
         if (tracksListElement === null) return false;
     }
-    console.log(i++)
+    
     /**
      * resetpassword,password_confirmation,password
      * @var {HTMLButtonElement}
@@ -416,7 +416,7 @@ function ShareTable_edit(element) {
     let refetchFn = options.tracksList["files*_refetch"];
     let filelabel = options.tracksList['#filelabel'];
 
-    console.log(i++)
+    
     let alert = element.querySelector(options.rawOptions.target);
     let validateFn = () => {
         files = refetchFn();
@@ -438,14 +438,14 @@ function ShareTable_edit(element) {
                 password_confirmation.tippy.show();
             }
             if(files.length === 0){
-                console.log("no file");
+                
                 filelabel.tippy.show();
             }
         }
         return b;
     };
     let proccessFn = () => {
-        console.log(files);
+        
         let files_array = [];
         for (let file of files) {
             files_array.push(file.value);
@@ -470,8 +470,8 @@ function ShareTable_edit(element) {
         }).then((response) => {
             let data = response.data;
             element.token = data.token;
-            console.log(data);
-            console.log(element.token);
+            
+            
             if (alert !== null) {
                 alert.innerHTML = data.message;
             }
@@ -510,13 +510,13 @@ function ShareTable_edit(element) {
 function Auth_ResetPassword(element) {
     let options = element.cgoptions;
     let i = 0;
-    console.log(options);
+    
     if (options.rawOptions.target === null) return false;
-    console.log(i++)
+    
     for (let tracksListElement of options.tracksList) {
         if (tracksListElement === null) return false;
     }
-    console.log(i++)
+    
     /**
      * resetpassword,password_confirmation,password
      * @var {HTMLButtonElement}
@@ -531,9 +531,10 @@ function Auth_ResetPassword(element) {
      */
     let password = options.tracksList.password;
     let email = options.tracksList.email;
+    let token = options.tracksList.token;
     let token2 = options.tracksList.token2;
 
-    console.log(i++)
+    
     let alert = element.querySelector(options.rawOptions.target);
     let validateFn = () => {
         let b = password.validateStatus && password_confirmation.validateStatus && password.value === password_confirmation.value;
@@ -554,8 +555,8 @@ function Auth_ResetPassword(element) {
         axios.post('/passwordreset', {
             password: Utils.encodeContext(password.value)['compress'],
             password_confirmation: Utils.encodeContext(password_confirmation.value)['compress'],
-            token2: element.token,
-            token: token2.value,
+            token2: element.dataset.token, // 使用 dataset 避開屬性衝突 (CSRF)
+            token: token.value, // 重設密碼 Token
             email: email.value,
         }, {
             adapter: "fetch",
@@ -563,9 +564,9 @@ function Auth_ResetPassword(element) {
             responseType: "json",
         }).then((response) => {
             let data = response.data;
-            element.token = data.token;
-            console.log(data);
-            console.log(element.token);
+            element.dataset.token = data.token; // 更新 dataset 裡的 Token
+            
+            
             if (alert !== null) {
                 alert.innerHTML = data.message;
             }
@@ -629,7 +630,7 @@ function form_ct() {
                 if (track.indexOf('*') !== -1) {
                     let ttrack = 'input[name="'+track.replace("*", "") + '[]"]';
                     if (form.querySelector(ttrack) === null) {
-                        console.log("untracked input: "+ttrack);
+                        
                         trackslist[track] = form[track];
                     } else {
                         trackslist[track] = form.querySelectorAll(ttrack) ?? new NodeList();

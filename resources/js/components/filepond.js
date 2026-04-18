@@ -1,24 +1,64 @@
 import { defineFilePond, createStoreExtension } from 'filepond';
 
-// 導入語系
-import { locale as chinese_base } from 'filepond/locales/zh-cn';
-
-// 單獨導入擴充功能，避開 Vite 解析錯誤
+// 導入語系與擴充功能
+import { locale as zh_cn_base } from 'filepond/locales/zh-cn';
 import { EntryListView } from 'filepond/extensions/entry-list-view';
 import { FileSizeValidator } from 'filepond/extensions/file-size-validator';
 import { FileMimeTypeValidator } from 'filepond/extensions/file-mime-type-validator';
 import { ImageBitmapTransform } from 'filepond/extensions/image-bitmap-transform';
 import { URLLoader } from 'filepond/extensions/url-loader';
-
-// 導入模板與 UI 元件
 import { 
     createFilePondEntryList, 
     appendEntryImageView 
 } from 'filepond/templates';
 
-const chinese_tw = {
-    ...chinese_base,
-    labelIdle: '拖放檔案至此或是 <span class="filepond--label-action"> 點擊瀏覽 </span>',
+/**
+ * 繁體中文語系 (zh-TW)
+ * 透過完全繼承 zh-cn 結構並僅替換文字，確保不會發生 'variables' undefined 錯誤
+ */
+const zh_TW = {
+    ...zh_cn_base,
+    // 核心標籤
+    abort: '中止',
+    remove: '移除',
+    reset: '重設',
+    undo: '撤銷',
+    cancel: '取消',
+    store: '上傳',
+    revert: '還原',
+    busy: '處理中',
+    loading: '載入中',
+    error: '錯誤',
+    warning: '警告',
+    success: '成功',
+    info: '資訊',
+    
+    // 檔案類別
+    fileMainTypeImage: '圖片',
+    fileMainTypeVideo: '影片',
+    fileMainTypeAudio: '音訊',
+    fileMainTypeApplication: '檔案',
+    assistAbort: '點擊中止',
+    assistUndo: '點擊撤銷',
+    
+    // UI 互動
+    browse: '瀏覽',
+    browseAndDrop: '拖放檔案至此或是 <span class="filepond--label-action"> 點擊瀏覽 </span>',
+    loadError: '載入檔案時發生錯誤',
+    
+    // 驗證訊息 (維持物件結構)
+    validationInvalid: '檔案無效',
+    validationFileNameMissing: '檔案名稱缺失',
+    validationInvalidEntries: '包含無效項目',
+    
+    // 單位
+    unitB: { 1: '位元組', else: '位元組' },
+    unitFiles: { 1: '個檔案', else: '個檔案' },
+
+    // 存儲狀態
+    storeStorageProgress: '正在上傳 {{progress}}%',
+    storeStorageComplete: '上傳完成',
+    storeError: '上傳失敗',
 };
 
 /**
@@ -45,8 +85,32 @@ const CoreStore = createStoreExtension('CoreStore', {
                         let res = xhr.responseText.trim();
                         try {
                             const data = JSON.parse(res);
-                            res = Array.isArray(data) ? data[0] : (data.uuid || data.id || res);
-                        } catch(e) {}
+                            if (Array.isArray(data)) {
+                                res = data[0];
+                            } else if (typeof data === 'object' && data !== null) {
+                                res = data.uuid || data.id || res;
+                            } else {
+                                res = data;
+                            }
+                        } catch(e) {
+                            // res stays as xhr.responseText
+                        }
+                        
+                        if (!res) {
+                            console.error('CoreStore: No UUID returned from server');
+                            reject('No UUID');
+                            return;
+                        }
+                        
+                        // 觸發全域事件
+                        document.dispatchEvent(new CustomEvent('FILEPOND_STORE_SUCCESS', {
+                            detail: {
+                                uuid: res,
+                                context: context,
+                                entry: entry
+                            }
+                        }));
+                        
                         resolve(res); 
                     } else reject(xhr.status);
                 };
@@ -83,7 +147,7 @@ function filepondLoader() {
 
     if (!customElements.get('file-pond')) {
         defineFilePond({
-            locale: chinese_tw,
+            locale: zh_TW,
             extensions: [
                 CoreStore, 
                 [EntryListView, { template: listTemplate }],
@@ -121,6 +185,7 @@ function filepondLoader() {
 
         pond.setAttribute('should-store', 'true');
         pond.setAttribute('name', el.name);
+        pond.locale = zh_TW;
 
         el.after(pond);
         pond.append(el);

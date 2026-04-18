@@ -100,12 +100,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             const observer = new MutationObserver((mutations) => {
                 // 當 DOM 變化時重新布局
                 if (masonry !== undefined && masonry.cglocked === false) {
-                    console.log('layouted');
+                    
                     masonry.cglocked = true;
                     masonry.layout();
                     setTimeout(() => {
                         masonry.cglocked = false;
-                        console.log('layout again');
+                        
                     }, 500);
                 }
             });
@@ -123,14 +123,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 window.addEventListener('scroll', function (e) {
     if(e.target.scrollingElement.scrollTop  >= (e.target.scrollingElement?.scrollTopOld ?? 0) + 100){
-        console.log('scroll');
+        
         if (masonry !== undefined && masonry.cglocked === false) {
-            console.log('layouted');
+            
             masonry.cglocked = true;
             masonry.layout();
             setTimeout(() => {
                 masonry.cglocked = false;
-                console.log('layout again');
+                
             }, 500);
         }
         e.target.scrollingElement.scrollTopOld = e.target.scrollingElement.scrollTop;

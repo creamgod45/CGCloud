@@ -96,7 +96,7 @@ function select2Loader() {
  */
 function matchCustom(params, data) {
     // If there are no search terms, return all of the data
-    //console.log(params, data);
+    
     if (jQuery.trim(params.term) === '') {
         return data;
     }

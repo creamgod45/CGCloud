@@ -20,7 +20,7 @@
     <div class="register-frame">
         <form class="register form-ct"
               data-fn="Auth.ResetPassword"
-              data-tracks="resetpassword,password_confirmation,password,email,token2"
+              data-tracks="resetpassword,password_confirmation,password,email,token,token2"
               data-target="#alert"
               data-token="{{ (new \App\Lib\Server\CSRF(RouteNameField::PagePasswordResetPost->value))->get() }}"
               method="POST"
@@ -50,7 +50,8 @@
                 </div>
             </div>
             <input type="hidden" name="email" value="{{ $moreParams['email'] }}">
-            <input type="hidden" name="token2" value="{{ $moreParams['token'] }}">
+            <input type="hidden" name="token" value="{{ $moreParams['token'] }}">
+            <input type="hidden" name="token2" value="{{ (new \App\Lib\Server\CSRF(RouteNameField::PagePasswordResetPost->value))->get() }}">
             <div class="button">
                 <button type="button" name="resetpassword" value="1" class="btn btn-ripple btn-md-strip btn-color7">重設密碼</button>
             </div>

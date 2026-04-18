@@ -126,7 +126,7 @@ export function passwordDialog(title, message, ok, cancel) {
     let inputEl = document.createElement("input");
     inputEl.type = "password";
     inputEl.placeholder = "請輸入保護密碼";
-    inputEl.classList.add("form-solid", "w-full", "text-center", "py-2", "rounded-md");
+    inputEl.classList.add("form-solid", "w-full", "text-center", "py-2", "rounded-md", "mb-20");
     inputEl.addEventListener("keydown", (e) => {
         if(e.key === "Enter") confirmEl.click();
     });
@@ -134,7 +134,7 @@ export function passwordDialog(title, message, ok, cancel) {
     body2El.append(inputContainer);
 
     let errorEl = document.createElement("div");
-    errorEl.classList.add("text-sm", "text-red-500", "mb-4", "hidden");
+    errorEl.classList.add("text-sm", "text-red-500", "mb-4", "hidden", "mb-20");
     body2El.append(errorEl);
 
     let buttonFlexGroup = document.createElement("div");
@@ -150,6 +150,7 @@ export function passwordDialog(title, message, ok, cancel) {
         if (!val) {
             errorEl.innerText = "密碼不能為空";
             errorEl.classList.remove("hidden");
+            inputEl.classList.remove('mb-20');
             return;
         }
         confirmEl.disabled = true;
@@ -212,21 +213,21 @@ export function encodeContext(data) {
     let hash = "";
     let encodeBase64 = btoa(encodeURIComponent(htmlencode(data)));
     let source = encodeBase64;
-    //console.log(encodeBase64);
+    
     let length = encodeBase64.length;
     let randomNumbers = generateRandomNumbers(0, length - 1, (length - 1) / 6);
-    //console.log(randomNumbers);
+    
     randomNumbers.forEach((value, k) => {
-        //console.log(k, value);
+        
         let a = string_move_shift(encodeBase64, k, value);
         encodeBase64 = a.str;
         let index = a.index;
         let shiftIndex = a.shift;
         hash += index + "&" + shiftIndex + "$";
     })
-    //console.log(encodeBase64);
-    //console.log(hash);
-    //console.log(atob(decodeURIComponent(encodeBase64)));
+    
+    
+    
     return {
         source: source,
         hash: hash,
@@ -257,8 +258,8 @@ export function decodeContext(compress) {
         let a = string_move_shift(data, i, hashChunk2[i]);
         data = a.str;
     }
-    //console.log(data);
-    //console.log(data === t.source);
+    
+    
     return htmldecode(decodeURIComponent(atob(data)));
 }
 
@@ -353,18 +354,18 @@ export function rotateElement(event, element) {
     // get mouse position
     const x = event.clientX;
     const y = event.clientY;
-    // console.log(x, y)
+    // 
 
     // find the middle
     const middleX = window.innerWidth / 2;
     const middleY = window.innerHeight / 2;
-    // console.log(middleX, middleY)
+    // 
 
     // get offset from middle as a percentage
     // and tone it down a little
     const offsetX = ((x - middleX) / middleX) * 10;
     const offsetY = ((y - middleY) / middleY) * 10;
-    // console.log(offsetX, offsetY);
+    // 
 
     // set rotation
     element.style.setProperty("--rotateX", offsetX + "deg");
@@ -508,7 +509,7 @@ export async function getClientFingerprint() {
 
     const fingerprint = fingerprintComponents.join('~');
     let encodeContext1 = encodeContext(fingerprint);
-    console.log(fingerprint);
+    
     let encodeContextElement = encodeContext1['compress'];
     return encodeContextElement;
 }

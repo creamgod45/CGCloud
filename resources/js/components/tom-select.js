@@ -66,10 +66,10 @@ function TomSelect_() {
             };
 
             custome_options.shouldLoad = function (query) {
-                console.log(query);
-                console.log(this.currentResults.items.length);
-                console.log(this);
-                console.log(this.maxOptions);
+                
+                
+                
+                
 
                 const getUnixTime = () => {
                     return Math.floor(Date.now() / 1000);
@@ -81,7 +81,7 @@ function TomSelect_() {
 
                 if (this.currentResults.items.length < this.settings.maxOptions - 5 && this.currentResults.items.length !== 0 && getUnixTime() > this.timeout) {
                     this.timeout = getUnixTime() + 3;
-                    console.log('load');
+                    
                     let item = this.items;
                     this.load(query, function (e) {
                         item = e;
@@ -91,19 +91,19 @@ function TomSelect_() {
             };
 
             custome_options.load = function (query, callback) {
-                console.log(query);
+                
                 if(query === "") return callback([]);
                 //const url = this.getUrl(query);
                 axios.post(src, {
                     query: query, selectedItems: this.items,
                 }).then(res => {
                     let items = res.data.data;
-                    console.log(res.data);
-                    console.log(items);
+                    
+                    
                     callback(items);
                     //this.setNextUrl(query, res.data.next_page_url)
                 }).catch(err => {
-                    console.log(err);
+                    
                     callback([]);
                 })
             };

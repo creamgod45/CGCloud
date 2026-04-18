@@ -32,7 +32,7 @@ function datalist_selector(ct, target) {
     let datalist = document.querySelector(target);
 
     function datalist_init() {
-        //console.log("datalist_init");
+        
         let s = Utils.generateRandomString(5);
         let i = 0;
         let str_arry = [];
@@ -47,7 +47,7 @@ function datalist_selector(ct, target) {
         datalist.dataset.lists = str_arry.join(",");
 
         let prevfn = () => {
-            console.log("prevfn");
+            
             let index = datalist.dataset.index;
             if (index !== null) {
                 if (index === "0") {
@@ -70,7 +70,7 @@ function datalist_selector(ct, target) {
             }
         };
         let nextfn = () => {
-            console.log("nextfn");
+            
             let index = datalist.dataset.index;
             if (index !== null) {
                 let number = Number.parseInt(index);
@@ -100,10 +100,10 @@ function datalist_selector(ct, target) {
 
         datalist.addEventListener("wheel", function (event) {
             if (event.deltaX < 0) {
-                console.log('Wheel moved left');
+                
                 prevfn();
             } else if (event.deltaX > 0) {
-                console.log('Wheel moved right');
+                
                 nextfn();
             }
         });
@@ -116,10 +116,10 @@ function datalist_selector(ct, target) {
         const observer = new MutationObserver((mutationsList) => {
             for (const mutation of mutationsList) {
                 if (mutation.type === 'childList') {
-                    //console.log('A child node has been added or removed.');
+                    
                     mutation.addedNodes.forEach(node => {
                         if (node.nodeType === Node.ELEMENT_NODE) {
-                            //console.log('Added node:', node);
+                            
                             if (!node.classList.contains("ripple")) datalist_init();
                         }
                     });
@@ -142,7 +142,7 @@ function datalist_selector(ct, target) {
  * @return {void} 不返回任何值。
  */
 function createRipple(el) {
-    //console.log(event)
+    
     const button = el;
     const circle = document.createElement("span");
     circle.classList.add("ripple");
@@ -185,7 +185,7 @@ function sendMailVerifyCode_profile_email(ct, target) {
         let formdata = new FormData();
         formdata.append('token', ct.dataset.token);
         let onfulfilled = async (res) => {
-            //console.log(res);
+            
 
             let markSendStatus = ct.dataset.marksendstatus;
             let markSendStatusEl = document.querySelector(markSendStatus);
@@ -200,7 +200,7 @@ function sendMailVerifyCode_profile_email(ct, target) {
                 console.error(e);
                 return false;
             }
-            //console.log(json);
+            
             let el = document.querySelector(target);
             ct.dataset.token = json.token;
             el.innerText = json.message;
@@ -208,10 +208,10 @@ function sendMailVerifyCode_profile_email(ct, target) {
             let date = new Date();
             let seconds = cooldown - Math.floor((date.valueOf() / 1000));
             /*ct.cooldown = seconds;
-            console.log(seconds);
+            
             setInterval(() => {
                 ct.cooldown = ct.cooldown - 1;
-                console.log(ct.cooldown);
+                
             }, 1000);*/
             setTimeout(() => {
                 clearInterval(ct.timer);
@@ -283,9 +283,9 @@ function verifyCode_profile_email(ct, target) {
             formdata.append("code", targetel.value);
             formdata.append('token', ct.dataset.token);
             let onfulfilled = async (res) => {
-                //console.log(res);
+                
                 let json = await res.json();
-                //console.log(json);
+                
                 if (res.status === 200) {
                     if (json.access_token !== "") {
                         let htmlInputElement = document.createElement("input");
@@ -382,7 +382,7 @@ function newMailVerifyCode_profile_email(ct, target) {
             formdata.append("email", data.value);
             formdata.append("token", ct.dataset.token);
             let onfulfilled = async (res) => {
-                //console.log(res);
+                
                 let json = await res.json();
                 ct.dataset.token = json.token;
                 targetel.innerText = json.message;
@@ -493,9 +493,9 @@ function profileUpdateEmail(ct, target) {
                     'X-CSRF-TOKEN': csrf.value
                 },
             }).then(async (res) => {
-                //console.log(res);
+                
                 let json = await res.json();
-                console.log(json);
+                
                 resultel.innerText = json.message;
                 if (res.status === 200) {
                     setTimeout(async () => {
@@ -528,10 +528,10 @@ function sendMailVerifyCode_password(ct, target) {
                 'X-CSRF-TOKEN': csrf.value
             }, body: formdata,
         }).then(async (res) => {
-            console.log(res);
+            
             let json = await res.json();
-            console.log(json);
-            console.log(1);
+            
+            
             targetel.innerText = json.message;
             ct.dataset.token = json.token;
         });
@@ -578,9 +578,9 @@ function verifyCode_password(ct, target) {
                     'X-CSRF-TOKEN': csrf.value
                 },
             }).then(async (res) => {
-                console.log(res);
+                
                 let json = await res.json();
-                console.log(json);
+                
                 if (res.status === 200) {
                     if (json.access_token !== "") {
                         let htmlInputElement = document.createElement("input");
@@ -598,7 +598,7 @@ function verifyCode_password(ct, target) {
                     }
                 }
             })
-                .catch(console.log);
+                //.catch(
         };
     }
 }
@@ -642,12 +642,12 @@ function profileUpdatePassword(ct, target) {
                     'X-CSRF-TOKEN': csrf.value
                 },
             }).then(async (res) => {
-                //console.log(res);
+                
                 let json = await res.json();
-                console.log(json);
+                
                 let str = "";
                 if (json.hasOwnProperty("errors")) {
-                    console.log(json.errors);
+                    
                     if (typeof json.errors === "object") {
                         str = json.errors.join("\n<br>");
                     }
@@ -684,7 +684,7 @@ function test_broadcast(ct, target) {
                 'X-CSRF-TOKEN': ct.dataset.token
             },
         }).then(async (res) => {
-            console.log(res);
+            
         });
     };
 }
@@ -739,11 +739,11 @@ function toggleable(ct, target) {
             if (whenscreenless === "-1" || whenscreenless === -1) whenscreenless = Number.MAX_SAFE_INTEGER;
             if (whenscrolltopmore === "-1" || whenscrolltopmore === -1) whenscrolltopmore = Number.MAX_SAFE_INTEGER;
             if (animation !== null && animation === "true" && targetEl.classList.contains("animationing")) {
-                console.log("animationing");
+                
                 return false;
             }
-            console.log(window.scrollY <= whenscrolltopmore);
-            console.log(window.scrollY, whenscrolltopmore);
+            
+            
             if (status === undefined) return false;
             if (status === "off") {
                 targetEl.dataset.status = "on";
@@ -1039,10 +1039,10 @@ function download_toast(ct, target) {
 function customTrigger() {
     var cts = document.querySelectorAll('.ct:not(.ct-rendered)');
     for (let ct of cts) {
-        //console.log(ct)
+        
         if (ct.dataset.fn !== null && ct.dataset.target !== null) {
             let target = ct.dataset.target;
-            //console.log(target)
+            
             ct.classList.add("ct-rendered")
             switch (ct.dataset.fn) {
                 case 'toggleable':

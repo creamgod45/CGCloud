@@ -1,5 +1,5 @@
 function presize() {
-    console.log("DOMContentLoaded");
+    
     /**
      * @type {NodeListOf<HTMLImageElement>}
      */
