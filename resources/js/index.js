@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 window.addEventListener('scroll', function (e) {
+    if (e.target.scrollingElement === null || e.target.scrollingElement === undefined) return;
     if(e.target.scrollingElement.scrollTop  >= (e.target.scrollingElement?.scrollTopOld ?? 0) + 100){
         
         if (masonry !== undefined && masonry.cglocked === false) {
